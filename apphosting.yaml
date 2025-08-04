@@ -1,0 +1,20 @@
+# The name of the backend resource in your Firebase project.
+# This can be found under the "App Hosting" tab in the Firebase console.
+backend: okr-vision
+# The directory that contains the Next.js app to deploy.
+# This is relative to the apphosting.yaml file.
+source: .
+# The command to build the Next.js app.
+buildCommand: npm run build
+# The command to start the Next.js app.
+startCommand: npm run start
+# The node version to use for the build and start commands.
+# This should match the version you are using locally.
+nodeVersion: 20
+# Specifies that all traffic should be routed to the Next.js app.
+# This is the default setting for Next.js apps on App Hosting.
+# You can customize this to route traffic to other services.
+# https://firebase.google.com/docs/app-hosting/configure-backends#routing-rules
+routingRules:
+  - path: /*
+    target: okr-vision
