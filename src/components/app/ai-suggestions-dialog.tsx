@@ -16,15 +16,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { OkrItem } from '@/lib/types';
 import { Lightbulb, Plus, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { suggestKeyResultsAction } from '@/lib/actions';
 
 type AiSuggestionsDialogProps = {
   isOpen: boolean;
   setOpen: (isOpen: boolean) => void;
   objective: OkrItem;
   onAddKeyResult: (title: string) => void;
-  suggestAction: (input: {
-    objective: string;
-  }) => Promise<{ keyResults?: string[]; error?: string }>;
 };
 
 export function AiSuggestionsDialog({
@@ -32,7 +30,6 @@ export function AiSuggestionsDialog({
   setOpen,
   objective,
   onAddKeyResult,
-  suggestAction,
 }: AiSuggestionsDialogProps) {
   const [isPending, startTransition] = useTransition();
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -42,7 +39,7 @@ export function AiSuggestionsDialog({
   const handleGetSuggestions = () => {
     startTransition(async () => {
       setError(null);
-      const result = await suggestAction({ objective: objective.title });
+      const result = await suggestKeyResultsAction({ objective: objective.title });
       if (result.error) {
         setError(result.error);
       } else {

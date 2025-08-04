@@ -7,7 +7,6 @@ import { OkrCard } from '@/components/app/okr-card';
 import { AddOkrDialog } from '@/components/app/add-okr-dialog';
 import { AiSuggestionsDialog } from '@/components/app/ai-suggestions-dialog';
 import type { OkrItem } from '@/lib/types';
-import { suggestKeyResultsAction } from '@/lib/actions';
 
 const initialData: OkrItem[] = [
   { id: '1', title: 'Launch New Product Line', type: 'objective', progress: 0, parentId: null },
@@ -160,7 +159,6 @@ export default function OkrDashboardPage() {
               parentId: aiSuggestionObjective.id,
             });
           }}
-          suggestAction={suggestKeyResultsAction}
         />
       )}
     </div>
