@@ -11,13 +11,13 @@ import { suggestKeyResultsAction } from '@/lib/actions';
 
 const initialData: OkrItem[] = [
   { id: '1', title: 'Launch New Product Line', type: 'objective', progress: 0, parentId: null },
-  { id: '2', title: 'Achieve $1M in revenue', type: 'keyResult', progress: 75, parentId: '1' },
-  { id: '3', title: 'Secure 10 enterprise clients', type: 'keyResult', progress: 50, parentId: '1' },
+  { id: '2', title: 'Achieve $1M in revenue', type: 'keyResult', progress: 75, parentId: '1', notes: 'Initial revenue target is for Q3.' },
+  { id: '3', title: 'Secure 10 enterprise clients', type: 'keyResult', progress: 50, parentId: '1', notes: '' },
   { id: '4', title: 'Increase Website Traffic by 50%', type: 'objective', progress: 0, parentId: null },
-  { id: '5', title: 'Publish 20 blog posts', type: 'keyResult', progress: 80, parentId: '4' },
-  { id: '6', title: 'Improve SEO ranking to top 5 for target keywords', type: 'keyResult', progress: 40, parentId: '4' },
+  { id: '5', title: 'Publish 20 blog posts', type: 'keyResult', progress: 80, parentId: '4', notes: 'Focus on SEO keywords related to our new product line.' },
+  { id: '6', title: 'Improve SEO ranking to top 5 for target keywords', type: 'keyResult', progress: 40, parentId: '4', notes: '' },
   { id: '7', title: 'Run a successful social media campaign', type: 'objective', progress: 0, parentId: '4' },
-  { id: '8', title: 'Reach 100k followers on Twitter', type: 'keyResult', progress: 60, parentId: '7' },
+  { id: '8', title: 'Reach 100k followers on Twitter', type: 'keyResult', progress: 60, parentId: '7', notes: '' },
 ];
 
 export default function OkrDashboardPage() {
@@ -84,6 +84,7 @@ export default function OkrDashboardPage() {
         ...data,
         id: Date.now().toString(),
         progress: 0,
+        notes: data.type === 'keyResult' ? '' : undefined,
       };
       setOkrs(prev => [...prev, newOkr]);
     }
@@ -95,6 +96,10 @@ export default function OkrDashboardPage() {
 
   const handleUpdateProgress = (id: string, progress: number) => {
     setOkrs(prev => prev.map(okr => okr.id === id ? { ...okr, progress } : okr));
+  };
+  
+  const handleUpdateNotes = (id: string, notes: string) => {
+    setOkrs(prev => prev.map(okr => okr.id === id ? { ...okr, notes } : okr));
   };
 
   return (
@@ -119,6 +124,7 @@ export default function OkrDashboardPage() {
                   onAddOrUpdate={handleOpenAddDialog}
                   onDelete={handleDeleteOkr}
                   onSuggestKRs={handleOpenAiDialog}
+                  onUpdateNotes={handleUpdateNotes}
                 />
               ))
             ) : (

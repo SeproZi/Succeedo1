@@ -4,4 +4,5 @@ export type OkrItem = {
   type: 'objective' | 'keyResult';
   progress: number;
   parentId: string | null;
+  notes?: string;
 };

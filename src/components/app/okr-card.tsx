@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Target,
   CheckCircle2,
@@ -7,6 +8,7 @@ import {
   Plus,
   Trash2,
   Lightbulb,
+  Notebook,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -19,8 +21,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Textarea } from '@/components/ui/textarea';
 import type { OkrItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 type OkrCardProps = {
   okr: OkrItem;
@@ -30,6 +40,7 @@ type OkrCardProps = {
   onAddOrUpdate: (data: OkrItem | { parentId: string | null }) => void;
   onDelete: (id: string) => void;
   onSuggestKRs: (objective: OkrItem) => void;
+  onUpdateNotes: (id: string, notes: string) => void;
 };
 
 export function OkrCard({
@@ -40,9 +51,20 @@ export function OkrCard({
   onAddOrUpdate,
   onDelete,
   onSuggestKRs,
+  onUpdateNotes,
 }: OkrCardProps) {
   const isObjective = okr.type === 'objective';
   const children = allOkrs.filter(item => item.parentId === okr.id);
+  const [notes, setNotes] = useState(okr.notes ?? '');
+  const { toast } = useToast();
+
+  const handleSaveNotes = () => {
+    onUpdateNotes(okr.id, notes);
+    toast({
+        title: "Notes Saved",
+        description: "Your notes have been successfully saved.",
+    });
+  };
 
   const icon = isObjective ? (
     <Target className="h-6 w-6 text-primary" />
@@ -62,7 +84,7 @@ export function OkrCard({
           </div>
           <div className="flex items-center gap-4 ml-4">
             <div className="w-32 hidden sm:block">
-              <Progress value={okr.progress} className="h-3" indicatorClassName={okr.progress > 80 ? 'bg-green-500' : 'bg-accent'} />
+              <Progress value={okr.progress} className="h-3" />
             </div>
             <span className="font-semibold text-primary w-12 text-right">
               {okr.progress}%
@@ -113,6 +135,29 @@ export function OkrCard({
                 step={1}
               />
             </div>
+            <Accordion type="single" collapsible className="w-full mt-2">
+              <AccordionItem value="item-1" className="border-t pt-2">
+                <AccordionTrigger>
+                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                        <Notebook className="h-4 w-4" />
+                        Notes
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <div className="space-y-2 pt-2">
+                        <Textarea
+                            placeholder="Add your notes here..."
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            className="min-h-[100px]"
+                        />
+                        <div className="flex justify-end">
+                            <Button size="sm" onClick={handleSaveNotes}>Save Notes</Button>
+                        </div>
+                    </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </CardContent>
         )}
       </Card>
@@ -133,6 +178,7 @@ export function OkrCard({
               onAddOrUpdate={onAddOrUpdate}
               onDelete={onDelete}
               onSuggestKRs={onSuggestKRs}
+              onUpdateNotes={onUpdateNotes}
             />
           ))}
         </div>
