@@ -1,21 +1,17 @@
 'use server';
 
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from './firebase';
+// This is a mock service. In a real application, you would look up the user 
+// in a database or an authentication service.
+const authorizedUsers = [
+    'test@example.com',
+    'user@google.com',
+];
 
 export async function isUserAuthorized(email: string | null | undefined): Promise<boolean> {
   if (!email) {
     return false;
   }
-
-  try {
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', email));
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty;
-  } catch (error) {
-    console.error("Error checking user authorization:", error);
-    // In case of error, default to denying access for security.
-    return false;
-  }
+  // For this example, we'll just check against a hardcoded list.
+  // In a real app, you might query a database or an auth provider.
+  return authorizedUsers.includes(email.toLowerCase());
 }
