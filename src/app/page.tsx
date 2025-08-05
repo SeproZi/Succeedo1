@@ -9,7 +9,7 @@ export default function HomePage() {
       {loading ? (
         <p className="text-muted-foreground">Loading...</p>
       ) : (
-        <p className="text-muted-foreground">Redirecting to login...</p>
+        <p className="text-muted-foreground">Redirecting...</p>
       )}
     </div>
   );

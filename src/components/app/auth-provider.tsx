@@ -2,8 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { User } from 'firebase/auth';
 import { isUserAuthorized } from '@/lib/user-service';
 
 // Mock user object for email-only auth
@@ -48,15 +47,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedEmail) {
         const mockUser = createMockUser(storedEmail);
         setUser(mockUser);
+        if (pathname === '/login' || pathname === '/') {
+          router.replace('/department/1');
+        }
+    } else {
+        if (pathname !== '/login') {
+            router.replace('/login');
+        }
     }
     setLoading(false);
-
-    // Redirect logic
-    if (storedEmail && (pathname === '/login' || pathname === '/')) {
-      router.replace('/department/1');
-    } else if (!storedEmail && pathname !== '/login') {
-      router.replace('/login');
-    }
 
   }, [router, pathname]);
 
