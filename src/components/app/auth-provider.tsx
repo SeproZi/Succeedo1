@@ -24,17 +24,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // This handles the result of the redirect sign-in
+    // This handles the result of the redirect sign-in. It's called when the page reloads.
     getRedirectResult(auth)
       .then((result) => {
         if (result) {
           // User has successfully signed in via redirect.
-          // onAuthStateChanged will handle the rest.
+          // The onAuthStateChanged listener below will handle the user state update.
+          console.log("Redirect result processed successfully.");
         }
+        // If result is null, it means this is a normal page load, not a redirect callback.
       })
       .catch((err) => {
         console.error("Redirect Result Error:", err);
-        setError("Failed to process sign-in redirect.");
+        setError("Failed to process sign-in redirect. Please try again.");
+        setLoading(false); // Ensure loading is false on error.
       });
   
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -48,7 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           await signOut(auth);
           setUser(null);
-          router.replace('/login?error=unauthorized');
+          // Redirect to login with a specific error message.
+          if (pathname !== '/login') {
+            router.replace('/login?error=unauthorized');
+          }
         }
       } else {
         setUser(null);
@@ -67,8 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      // This will redirect the user to the Google sign-in page.
       await signInWithRedirect(auth, provider);
-      // The redirect will navigate away, and the onAuthStateChanged listener 
+      // The user will be redirected away, and the logic in the useEffect 
       // will handle the user state when they return.
     } catch (err: any) {
       console.error("Sign-in initiation error:", err.code, err.message);
@@ -78,17 +85,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOutUser = async () => {
-    setLoading(true);
     await signOut(auth);
-    setUser(null);
-    router.replace('/login');
-    setLoading(false);
+    // State will be cleared by the onAuthStateChanged listener.
   };
   
+  // While the initial auth state is being determined, show a loading screen.
+  // This prevents content flashes.
   if (loading && pathname !== '/login') {
     return (
         <div className="flex h-screen items-center justify-center bg-background">
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Loading authentication...</p>
         </div>
     );
   }
