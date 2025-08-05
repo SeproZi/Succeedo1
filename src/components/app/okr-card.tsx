@@ -8,7 +8,7 @@ import {
   Plus,
   Trash2,
   Notebook,
-  Sparkles,
+  Check,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Slider } from '@/components/ui/slider';
 import {
   Accordion,
   AccordionContent,
@@ -40,7 +39,6 @@ type OkrCardProps = {
   onAddOrUpdate: (data: Partial<OkrItem> | { parentId: string | null }) => void;
   onDelete: (id: string) => void;
   onUpdateNotes: (id: string, notes: string) => void;
-  onSuggestKRs?: (objective: OkrItem) => void;
 };
 
 export function OkrCard({
@@ -51,7 +49,6 @@ export function OkrCard({
   onAddOrUpdate,
   onDelete,
   onUpdateNotes,
-  onSuggestKRs,
 }: OkrCardProps) {
   const isObjective = okr.type === 'objective';
   const children = allOkrs.filter(item => item.parentId === okr.id);
@@ -63,6 +60,15 @@ export function OkrCard({
     toast({
         title: "Notes Saved",
         description: "Your notes have been successfully saved.",
+    });
+  };
+
+  const handleMarkAsDone = () => {
+    const newProgress = okr.progress === 100 ? 0 : 100;
+    onUpdateProgress(okr.id, newProgress);
+    toast({
+        title: `Key Result ${newProgress === 100 ? 'Completed' : 'Reset'}`,
+        description: `Progress set to ${newProgress}%`,
     });
   };
 
@@ -105,19 +111,6 @@ export function OkrCard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {isObjective && (
-                  <>
-                     <DropdownMenuItem onClick={() => onSuggestKRs?.(okr)}>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      <span>Suggest KRs with AI</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onAddOrUpdate({ parentId: okr.id, type: 'keyResult' })}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      <span>Add Key Result</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
                 <DropdownMenuItem onClick={() => onAddOrUpdate(okr)}>
                   Edit
                 </DropdownMenuItem>
@@ -135,14 +128,16 @@ export function OkrCard({
 
         {!isObjective && (
           <CardContent className="p-4 pt-0">
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">Progress:</span>
-              <Slider
-                value={[okr.progress]}
-                onValueChange={([value]) => onUpdateProgress(okr.id, value)}
-                max={100}
-                step={1}
-              />
+             <div className="flex items-center justify-between gap-4">
+               <Button 
+                variant={okr.progress === 100 ? "secondary" : "default"}
+                size="sm"
+                onClick={handleMarkAsDone}
+                className="bg-green-500 hover:bg-green-600 text-white"
+               >
+                 <Check className="mr-2 h-4 w-4" />
+                 {okr.progress === 100 ? 'Mark as Incomplete' : 'Mark as Done'}
+               </Button>
             </div>
             <Accordion type="single" collapsible className="w-full mt-2">
               <AccordionItem value="item-1" className="border-t pt-2">
@@ -170,6 +165,7 @@ export function OkrCard({
           </CardContent>
         )}
       </Card>
+      
       {children.length > 0 && (
         <div
           className={cn(
@@ -190,6 +186,17 @@ export function OkrCard({
             />
           ))}
         </div>
+      )}
+
+      {isObjective && (
+        <Button 
+            variant="outline" 
+            className="mt-4 w-full border-dashed"
+            onClick={() => onAddOrUpdate({ parentId: okr.id, type: 'keyResult' })}
+        >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Key Result
+        </Button>
       )}
     </div>
   );

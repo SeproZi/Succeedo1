@@ -9,13 +9,12 @@ import { cn } from '@/lib/utils';
 
 type OkrGridProps = {
   objectives: OkrItem[];
-  allOkrs: OkrItem[];
   onGridItemClick: (id: string) => void;
 };
 
 const pillars: OkrPillar[] = ['People', 'Product', 'Tech'];
 
-export function OkrGrid({ objectives, allOkrs, onGridItemClick }: OkrGridProps) {
+export function OkrGrid({ objectives, onGridItemClick }: OkrGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
       {pillars.map(pillar => (
@@ -32,13 +31,6 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick }: OkrGridProps) 
             .map(obj => (
               <div key={obj.id}>
                 <GridItem item={obj} onClick={onGridItemClick} />
-                <div className="space-y-2 mt-2 pl-4 border-l-2 border-border ml-2">
-                  {allOkrs
-                    .filter(kr => kr.parentId === obj.id)
-                    .map(kr => (
-                      <GridItem key={kr.id} item={kr} onClick={onGridItemClick} />
-                    ))}
-                </div>
               </div>
             ))}
         </div>
