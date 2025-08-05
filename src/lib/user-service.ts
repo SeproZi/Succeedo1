@@ -5,6 +5,7 @@
 const authorizedUsers = [
     'test@example.com',
     'user@google.com',
+    'sedat.c@boeing.com',
 ];
 
 export async function isUserAuthorized(email: string | null | undefined): Promise<boolean> {
@@ -13,6 +14,5 @@ export async function isUserAuthorized(email: string | null | undefined): Promis
   }
   // For this example, we'll just check against a hardcoded list.
   // In a real app, you might query a database or an auth provider.
-  // For now, we will authorize any user.
-  return true;
+  return authorizedUsers.includes(email);
 }
