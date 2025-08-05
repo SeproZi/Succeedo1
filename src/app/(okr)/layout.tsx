@@ -4,7 +4,7 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarInset,
-  SidebarRail,
+  SidebarToggleButton,
 } from '@/components/ui/sidebar';
 import { OkrDashboard } from '@/components/app/okr-dashboard';
 
@@ -17,7 +17,7 @@ export default function OkrLayout({
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <AppSidebar />
-        <SidebarRail />
+        <SidebarToggleButton />
       </Sidebar>
       <SidebarInset>
           {children}

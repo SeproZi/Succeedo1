@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeft } from "lucide-react"
+import { PanelLeft, ChevronLeft } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -224,7 +224,8 @@ const Sidebar = React.forwardRef<
         {/* This is what handles the sidebar gap on desktop */}
         <div
           className={cn(
-            "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
+            "duration-200 relative h-svh bg-transparent transition-[width] ease-linear",
+            "w-[--sidebar-width]",
             "group-data-[collapsible=offcanvas]:w-0",
             "group-data-[side=right]:rotate-180",
             variant === "floating" || variant === "inset"
@@ -234,7 +235,8 @@ const Sidebar = React.forwardRef<
         />
         <div
           className={cn(
-            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
+            "duration-200 fixed inset-y-0 z-10 hidden h-svh transition-[left,right,width] ease-linear md:flex",
+            "w-[--sidebar-width]",
             side === "left"
               ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -313,6 +315,38 @@ const SidebarRail = React.forwardRef<
   )
 })
 SidebarRail.displayName = "SidebarRail"
+
+const SidebarToggleButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<"button">
+>(({ className, ...props }, ref) => {
+  const { toggleSidebar, state } = useSidebar()
+
+  return (
+    <Button
+      ref={ref}
+      variant="ghost"
+      size="icon"
+      className={cn(
+        "absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-background text-foreground shadow-md hover:bg-secondary",
+        "group-data-[side=left]:-right-4 group-data-[side=left]:border",
+        "group-data-[side=right]:-left-4 group-data-[side=right]:border",
+        "hidden md:flex",
+        className
+      )}
+      onClick={toggleSidebar}
+      {...props}
+    >
+      <ChevronLeft
+        className={cn(
+          "h-4 w-4 transition-transform",
+          state === "collapsed" && "rotate-180"
+        )}
+      />
+    </Button>
+  )
+})
+SidebarToggleButton.displayName = "SidebarToggleButton"
 
 const SidebarInset = React.forwardRef<
   HTMLDivElement,
@@ -759,5 +793,6 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
+  SidebarToggleButton,
   useSidebar,
 }
