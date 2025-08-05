@@ -2,15 +2,35 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, onAuthStateChanged, signInWithRedirect, GoogleAuthProvider, signOut, getRedirectResult } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { isUserAuthorized } from '@/lib/user-service';
+
+// Mock user object for email-only auth
+const createMockUser = (email: string): User => ({
+  uid: email,
+  email: email,
+  displayName: email.split('@')[0],
+  photoURL: null,
+  emailVerified: true,
+  isAnonymous: false,
+  metadata: {},
+  providerData: [],
+  providerId: 'password',
+  tenantId: null,
+  delete: async () => {},
+  getIdToken: async () => '',
+  getIdTokenResult: async () => ({ token: '', expirationTime: '', authTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null, claims: {} }),
+  reload: async () => {},
+  toJSON: () => ({}),
+});
+
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string) => Promise<void>;
   signOutUser: () => Promise<void>;
 }
 
@@ -24,73 +44,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // This handles the result of the redirect sign-in. It's called when the page reloads.
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          // User has successfully signed in via redirect.
-          // The onAuthStateChanged listener below will handle the user state update.
-          console.log("Redirect result processed successfully.");
-        }
-        // If result is null, it means this is a normal page load, not a redirect callback.
-      })
-      .catch((err) => {
-        console.error("Redirect Result Error:", err);
-        setError("Failed to process sign-in redirect. Please try again.");
-        setLoading(false); // Ensure loading is false on error.
-      });
-  
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const authorized = await isUserAuthorized(user.email);
-        if (authorized) {
-          setUser(user);
-          if (pathname === '/login' || pathname === '/') {
-            router.replace('/department/1');
-          }
-        } else {
-          await signOut(auth);
-          setUser(null);
-          // Redirect to login with a specific error message.
-          if (pathname !== '/login') {
-            router.replace('/login?error=unauthorized');
-          }
-        }
-      } else {
-        setUser(null);
-        if (pathname !== '/login') {
-          router.replace('/login');
-        }
-      }
-      setLoading(false);
-    });
+    const storedEmail = localStorage.getItem('userEmail');
+    if (storedEmail) {
+        const mockUser = createMockUser(storedEmail);
+        setUser(mockUser);
+    }
+    setLoading(false);
 
-    return () => unsubscribe();
+    // Redirect logic
+    if (storedEmail && (pathname === '/login' || pathname === '/')) {
+      router.replace('/department/1');
+    } else if (!storedEmail && pathname !== '/login') {
+      router.replace('/login');
+    }
+
   }, [router, pathname]);
 
-  const signInWithGoogle = async () => {
+  const signInWithEmail = async (email: string) => {
     setError(null);
     setLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      // This will redirect the user to the Google sign-in page.
-      await signInWithRedirect(auth, provider);
-      // The user will be redirected away, and the logic in the useEffect 
-      // will handle the user state when they return.
-    } catch (err: any) {
-      console.error("Sign-in initiation error:", err.code, err.message);
-      setError('Failed to initiate sign in. Please try again.');
-      setLoading(false);
+    const authorized = await isUserAuthorized(email);
+    if (authorized) {
+      const mockUser = createMockUser(email);
+      localStorage.setItem('userEmail', email);
+      setUser(mockUser);
+      router.replace('/department/1');
+    } else {
+      setError('This email address is not authorized.');
     }
+    setLoading(false);
   };
 
+
   const signOutUser = async () => {
-    await signOut(auth);
-    // State will be cleared by the onAuthStateChanged listener.
+    localStorage.removeItem('userEmail');
+    setUser(null);
+    router.replace('/login');
   };
   
-  // While the initial auth state is being determined, show a loading screen.
-  // This prevents content flashes.
   if (loading && pathname !== '/login') {
     return (
         <div className="flex h-screen items-center justify-center bg-background">
@@ -100,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, signInWithGoogle, signOutUser }}>
+    <AuthContext.Provider value={{ user, loading, error, signInWithEmail, signOutUser }}>
       {children}
     </AuthContext.Provider>
   );
