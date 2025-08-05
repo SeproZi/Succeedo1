@@ -8,7 +8,7 @@ import { AddOkrDialog } from '@/components/app/add-okr-dialog';
 import type { OkrItem, OkrPillar, OkrOwner } from '@/lib/types';
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { Button } from '@/components/ui/button';
-import { Plus, PanelRight } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useSidebar } from '../ui/sidebar';
 
 type OkrDashboardProps = {
@@ -22,9 +22,6 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
 
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [editingOkr, setEditingOkr] = useState<Partial<OkrItem> | { parentId: string | null } | null>(null);
-
-  const { state, toggleSidebar } = useSidebar();
-  const isCollapsed = state === 'collapsed';
 
   const okrCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -91,14 +88,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     <>
       <div className="p-4 sm:p-6 lg:p-8 space-y-8">
         <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                {isCollapsed && (
-                    <Button variant="ghost" size="icon" onClick={toggleSidebar} className='h-8 w-8'>
-                        <PanelRight/>
-                    </Button>
-                )}
-                <h1 className="text-3xl font-bold font-headline text-primary">{title}</h1>
-            </div>
+            <h1 className="text-3xl font-bold font-headline text-primary">{title}</h1>
             <Button onClick={() => handleOpenAddDialog({ parentId: null, type: 'objective' })}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Objective

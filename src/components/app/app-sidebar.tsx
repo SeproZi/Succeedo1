@@ -10,10 +10,9 @@ import {
     SidebarMenuSubItem,
     SidebarMenuSubButton,
     useSidebar,
-    SidebarTrigger
 } from '@/components/ui/sidebar';
 import { useOkrStore } from '@/hooks/use-okr-store';
-import { Building, Users, ChevronsRight, Plus, MoreHorizontal, PanelLeft, PanelRight } from 'lucide-react';
+import { Building, Users, ChevronsRight, Plus, MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -38,7 +37,7 @@ export function AppSidebar() {
     const { data, addDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam } = useOkrStore();
     const params = useParams();
     const { id: departmentId, teamId } = params;
-    const { state, toggleSidebar } = useSidebar();
+    const { state } = useSidebar();
     const isCollapsed = state === 'collapsed';
 
     const handleAddDepartment = () => {
@@ -81,11 +80,6 @@ export function AppSidebar() {
                         </div>
                        )}
                     </div>
-                    {!isCollapsed && (
-                         <Button variant="ghost" size="icon" onClick={toggleSidebar} className='h-7 w-7'>
-                            <PanelLeft/>
-                         </Button>
-                    )}
                 </div>
             </SidebarHeader>
             <SidebarContent>
