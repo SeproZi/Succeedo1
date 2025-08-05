@@ -32,7 +32,7 @@ const Logo = () => (
 );
 
 export function AppSidebar() {
-    const { data, addDepartment, addTeam, deleteDepartment, deleteTeam } = useOkrStore();
+    const { data, addDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam } = useOkrStore();
     const params = useParams();
     const { id: departmentId, teamId } = params;
 
@@ -44,6 +44,19 @@ export function AppSidebar() {
     const handleAddTeam = (deptId: string) => {
         const title = prompt('Enter team name:');
         if (title) addTeam(title, deptId);
+    };
+    
+    const handleEditTeam = (teamId: string, currentTitle: string) => {
+        const title = prompt('Enter new team name:', currentTitle);
+        if (title && title !== currentTitle) {
+            updateTeam(teamId, title);
+        }
+    };
+
+    const handleDeleteTeam = (teamId: string, teamTitle: string) => {
+        if (confirm(`Are you sure you want to delete the "${teamTitle}" team? This will also delete all of its OKRs.`)) {
+            deleteTeam(teamId);
+        }
     };
 
     return (
@@ -94,13 +107,26 @@ export function AppSidebar() {
                                 {teams.length > 0 && (
                                     <SidebarMenuSub>
                                         {teams.map(team => (
-                                            <SidebarMenuSubItem key={team.id}>
+                                            <SidebarMenuSubItem key={team.id} className="relative group/sub-item">
                                                 <Link href={`/department/${dept.id}/team/${team.id}`}>
                                                     <SidebarMenuSubButton isActive={teamId === team.id}>
                                                         <Users />
                                                         <span>{team.title}</span>
                                                     </SidebarMenuSubButton>
                                                 </Link>
+                                                <div className="absolute right-1 top-0.5 opacity-0 group-hover/sub-item:opacity-100 transition-opacity">
+                                                  <DropdownMenu>
+                                                      <DropdownMenuTrigger asChild>
+                                                          <Button variant="ghost" size="icon" className="h-6 w-6">
+                                                              <MoreHorizontal className="h-4 w-4" />
+                                                          </Button>
+                                                      </DropdownMenuTrigger>
+                                                      <DropdownMenuContent>
+                                                          <DropdownMenuItem onClick={() => handleEditTeam(team.id, team.title)}>Edit Team</DropdownMenuItem>
+                                                          <DropdownMenuItem onClick={() => handleDeleteTeam(team.id, team.title)} className="text-destructive">Delete Team</DropdownMenuItem>
+                                                      </DropdownMenuContent>
+                                                  </DropdownMenu>
+                                                </div>
                                             </SidebarMenuSubItem>
                                         ))}
                                     </SidebarMenuSub>
