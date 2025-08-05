@@ -73,18 +73,18 @@ export function OkrCard({
   );
 
   const priorityStyles = {
-    P1: 'border-l-4 border-destructive',
-    P2: 'border-l-4 border-yellow-500',
-    P3: '',
+    P1: 'bg-red-500/10 border-red-500/30',
+    P2: 'bg-yellow-500/10 border-yellow-500/30',
+    P3: 'bg-card',
   };
 
   return (
     <div style={{ marginLeft: level > 0 ? `${level * 1.5}rem` : '0' }}>
       <Card className={cn(
-        "overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300",
-        isObjective && okr.priority && priorityStyles[okr.priority]
+        "overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border",
+        okr.priority && priorityStyles[okr.priority]
       )}>
-        <CardHeader className="flex flex-row items-center justify-between p-4 bg-card">
+        <CardHeader className="flex flex-row items-center justify-between p-4 bg-transparent">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {icon}
             <span className="font-headline font-semibold text-lg truncate text-card-foreground">
@@ -111,7 +111,7 @@ export function OkrCard({
                       <Sparkles className="mr-2 h-4 w-4" />
                       <span>Suggest KRs with AI</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onAddOrUpdate({ parentId: okr.id })}>
+                    <DropdownMenuItem onClick={() => onAddOrUpdate({ parentId: okr.id, type: 'keyResult' })}>
                       <Plus className="mr-2 h-4 w-4" />
                       <span>Add Key Result</span>
                     </DropdownMenuItem>

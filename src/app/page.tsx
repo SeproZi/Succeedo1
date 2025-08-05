@@ -7,24 +7,24 @@ import { OkrGrid } from '@/components/app/okr-grid';
 import { OkrCard } from '@/components/app/okr-card';
 import { AddOkrDialog } from '@/components/app/add-okr-dialog';
 import { AiSuggestionsDialog } from '@/components/app/ai-suggestions-dialog';
-import { suggestKeyResultsAction } from '@/lib/actions';
 import type { OkrItem, OkrPillar } from '@/lib/types';
+import { suggestKeyResultsAction } from '@/lib/actions';
 
 const initialData: OkrItem[] = [
   { id: '1', title: 'Foster a world-class engineering team', type: 'objective', progress: 0, parentId: null, pillar: 'People', priority: 'P1' },
-  { id: '2', title: 'Hire 5 senior engineers', type: 'keyResult', progress: 40, parentId: '1', notes: '2 frontend, 2 backend, 1 SRE' },
-  { id: '3', title: 'Implement a new professional development plan', type: 'keyResult', progress: 80, parentId: '1', notes: 'Mentorship program is live.' },
-  { id: '10', title: 'Improve team satisfaction by 15%', type: 'keyResult', progress: 30, parentId: '1', notes: '' },
+  { id: '2', title: 'Hire 5 senior engineers', type: 'keyResult', progress: 40, parentId: '1', notes: '2 frontend, 2 backend, 1 SRE', priority: 'P1' },
+  { id: '3', title: 'Implement a new professional development plan', type: 'keyResult', progress: 80, parentId: '1', notes: 'Mentorship program is live.', priority: 'P2' },
+  { id: '10', title: 'Improve team satisfaction by 15%', type: 'keyResult', progress: 30, parentId: '1', notes: '', priority: 'P3' },
   
   { id: '4', title: 'Launch New Product Line', type: 'objective', progress: 0, parentId: null, pillar: 'Product', priority: 'P2' },
-  { id: '5', title: 'Achieve $1M in revenue', type: 'keyResult', progress: 75, parentId: '4', notes: 'Initial revenue target is for Q3.' },
-  { id: '6', title: 'Secure 10 enterprise clients', type: 'keyResult', progress: 50, parentId: '4', notes: '' },
-  { id: '7', title: 'Increase Website Traffic by 50%', type: 'keyResult', progress: 40, parentId: '4', notes: 'Focus on SEO keywords related to our new product line.' },
+  { id: '5', title: 'Achieve $1M in revenue', type: 'keyResult', progress: 75, parentId: '4', notes: 'Initial revenue target is for Q3.', priority: 'P1' },
+  { id: '6', title: 'Secure 10 enterprise clients', type: 'keyResult', progress: 50, parentId: '4', notes: '', priority: 'P2' },
+  { id: '7', title: 'Increase Website Traffic by 50%', type: 'keyResult', progress: 40, parentId: '4', notes: 'Focus on SEO keywords related to our new product line.', priority: 'P3' },
 
   { id: '8', title: 'Modernize Core Platform Technology', type: 'objective', progress: 0, parentId: null, pillar: 'Tech', priority: 'P3' },
-  { id: '9', title: 'Migrate to a new cloud provider', type: 'keyResult', progress: 60, parentId: '8', notes: 'AWS migration is 60% complete.' },
-  { id: '11', title: 'Reduce API latency by 30%', type: 'keyResult', progress: 90, parentId: '8', notes: '' },
-  { id: '12', title: 'Achieve 99.9% uptime', type: 'keyResult', progress: 95, parentId: '8', notes: '' },
+  { id: '9', title: 'Migrate to a new cloud provider', type: 'keyResult', progress: 60, parentId: '8', notes: 'AWS migration is 60% complete.', priority: 'P2' },
+  { id: '11', title: 'Reduce API latency by 30%', type: 'keyResult', progress: 90, parentId: '8', notes: '', priority: 'P1' },
+  { id: '12', title: 'Achieve 99.9% uptime', type: 'keyResult', progress: 95, parentId: '8', notes: '', priority: 'P3' },
 ];
 
 
@@ -104,8 +104,9 @@ export default function OkrDashboardPage() {
         ...data,
         id: Date.now().toString(),
         progress: 0,
-        notes: data.type === 'keyResult' ? '' : undefined,
-        priority: data.type === 'objective' ? data.priority : undefined,
+        notes: data.type === 'keyResult' ? (data.notes || '') : undefined,
+        priority: data.priority || 'P3',
+        pillar: data.type === 'objective' ? data.pillar : undefined,
       };
       setOkrs(prev => [...prev, newOkr]);
     }
@@ -140,6 +141,7 @@ export default function OkrDashboardPage() {
         title: krTitle,
         type: 'keyResult',
         parentId: suggestionTarget.id,
+        priority: 'P3'
       });
     }
   };

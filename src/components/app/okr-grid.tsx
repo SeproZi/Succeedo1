@@ -48,9 +48,9 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick }: OkrGridProps) 
 }
 
 const priorityStyles: Record<OkrPriority, string> = {
-    P1: 'border-l-4 border-destructive',
-    P2: 'border-l-4 border-yellow-500',
-    P3: '',
+    P1: 'bg-red-500/10 border-red-500/30',
+    P2: 'bg-yellow-500/10 border-yellow-500/30',
+    P3: 'bg-card',
 };
 
 function GridItem({ item, onClick }: { item: OkrItem; onClick: (id: string) => void }) {
@@ -60,8 +60,8 @@ function GridItem({ item, onClick }: { item: OkrItem; onClick: (id: string) => v
   return (
     <Card
       className={cn(
-        "cursor-pointer hover:shadow-lg hover:border-accent transition-all duration-200",
-        isObjective && item.priority && priorityStyles[item.priority]
+        "cursor-pointer hover:shadow-lg transition-all duration-200 border",
+        item.priority && priorityStyles[item.priority]
       )}
       onClick={() => onClick(item.id)}
     >

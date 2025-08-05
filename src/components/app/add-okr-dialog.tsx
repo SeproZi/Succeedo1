@@ -82,10 +82,7 @@ export function AddOkrDialog({
   }, [okrData, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (values.type === 'keyResult') {
-      values.pillar = undefined;
-      values.priority = undefined;
-    } else if (values.type === 'objective') {
+    if (values.type === 'objective') {
       values.parentId = null;
     }
     onSave(values);
@@ -176,7 +173,6 @@ export function AddOkrDialog({
             )}
             
             {type === 'objective' && (
-              <>
                 <FormField
                   control={form.control}
                   name="pillar"
@@ -199,30 +195,29 @@ export function AddOkrDialog({
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Priority</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a priority" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="P1">P1: Critical</SelectItem>
-                          <SelectItem value="P2">P2: High</SelectItem>
-                          <SelectItem value="P3">P3: Normal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
             )}
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a priority" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="P1">P1: Critical</SelectItem>
+                      <SelectItem value="P2">P2: High</SelectItem>
+                      <SelectItem value="P3">P3: Normal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
