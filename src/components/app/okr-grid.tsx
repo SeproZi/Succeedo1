@@ -19,13 +19,11 @@ export function OkrGrid({ objectives, onGridItemClick }: OkrGridProps) {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
       {pillars.map(pillar => (
         <div key={pillar} className="space-y-4">
-          <Card className="bg-primary/5 border-primary/10 border shadow-sm">
-            <div className="p-3">
-              <h3 className="text-center text-lg font-bold tracking-wider uppercase text-primary">
+          <div className="bg-card border border-border rounded-lg shadow-sm p-3">
+              <h3 className="text-center text-base font-bold tracking-wider uppercase text-primary/80">
                 {pillar}
               </h3>
-            </div>
-          </Card>
+          </div>
           {objectives
             .filter(obj => obj.pillar === pillar)
             .map(obj => (
