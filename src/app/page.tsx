@@ -7,7 +7,6 @@ import { OkrGrid } from '@/components/app/okr-grid';
 import { OkrCard } from '@/components/app/okr-card';
 import { AddOkrDialog } from '@/components/app/add-okr-dialog';
 import type { OkrItem, OkrPillar } from '@/lib/types';
-import { suggestKeyResults } from "@/ai/flows/suggest-key-results";
 
 
 const initialData: OkrItem[] = [
@@ -170,7 +169,7 @@ export default function OkrDashboardPage() {
               <div className="text-center py-12 px-6 bg-card rounded-xl">
                   <h3 className="text-xl font-medium text-card-foreground">No Objectives Yet</h3>
                   <p className="text-muted-foreground mt-2 mb-4">Get started by adding your first company objective.</p>
-                  <button onClick={() => handleOpenAddDialog({ parentId: null, type: 'objective' })} className="bg-accent text-accent-foreground px-4 py-2 rounded-md font-semibold">Add Objective</button>
+                  <Button onClick={() => handleOpenAddDialog({ parentId: null, type: 'objective' })}>Add Objective</Button>
               </div>
             )}
           </div>

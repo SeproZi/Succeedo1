@@ -89,8 +89,8 @@ export default {
           },
         },
         'pulse-once': {
-            '0%, 100%': { transform: 'scale(1)', backgroundColor: 'hsl(var(--card))' },
-            '50%': { transform: 'scale(1.02)', backgroundColor: 'hsl(var(--accent) / 0.1)' },
+            '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0 hsl(var(--primary) / 0)' },
+            '50%': { transform: 'scale(1.02)', boxShadow: '0 0 0 10px hsl(var(--primary) / 0.1)' },
         }
       },
       animation: {

@@ -16,12 +16,12 @@ const pillars: OkrPillar[] = ['People', 'Product', 'Tech'];
 
 export function OkrGrid({ objectives, onGridItemClick }: OkrGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
       {pillars.map(pillar => (
         <div key={pillar} className="space-y-4">
-          <Card className="bg-primary text-primary-foreground">
+          <Card className="bg-primary/10 border-primary/20 border">
             <div className="p-3">
-              <h3 className="text-center text-lg font-bold tracking-wider">
+              <h3 className="text-center text-lg font-bold tracking-wider text-primary">
                 {pillar}
               </h3>
             </div>
@@ -40,9 +40,9 @@ export function OkrGrid({ objectives, onGridItemClick }: OkrGridProps) {
 }
 
 const priorityStyles: Record<OkrPriority, string> = {
-    P1: 'bg-red-500/10 border-red-500/30',
-    P2: 'bg-yellow-500/10 border-yellow-500/30',
-    P3: 'bg-card',
+    P1: 'border-l-red-500',
+    P2: 'border-l-amber-500',
+    P3: 'border-l-transparent',
 };
 
 function GridItem({ item, onClick }: { item: OkrItem; onClick: (id: string) => void }) {
@@ -52,14 +52,14 @@ function GridItem({ item, onClick }: { item: OkrItem; onClick: (id: string) => v
   return (
     <Card
       className={cn(
-        "cursor-pointer hover:shadow-lg transition-all duration-200 border",
+        "cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4",
         item.priority && priorityStyles[item.priority]
       )}
       onClick={() => onClick(item.id)}
     >
-      <CardContent className="p-3">
+      <CardContent className="p-4">
         <div className="flex items-start gap-3">
-            <Icon className={`h-5 w-5 mt-0.5 ${isObjective ? 'text-primary' : 'text-yellow-500'}`} />
+            <Icon className={`h-5 w-5 mt-0.5 ${isObjective ? 'text-primary' : 'text-amber-500'}`} />
             <div className="flex-1">
                 <p className="font-semibold text-card-foreground leading-tight">{item.title}</p>
                 <div className="flex items-center gap-2 mt-2">

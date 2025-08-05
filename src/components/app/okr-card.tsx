@@ -30,6 +30,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { OkrItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Slider } from '@/components/ui/slider';
 
 type OkrCardProps = {
   okr: OkrItem;
@@ -79,16 +80,20 @@ export function OkrCard({
   );
 
   const priorityStyles = {
-    P1: 'bg-red-500/10 border-red-500/30',
-    P2: 'bg-yellow-500/10 border-yellow-500/30',
-    P3: 'bg-card',
+    P1: 'bg-red-500/10 border-red-500/30 text-red-900 dark:text-red-100',
+    P2: 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-100',
+    P3: 'bg-card border-border',
   };
 
   return (
     <div style={{ marginLeft: level > 0 ? `${level * 1.5}rem` : '0' }}>
       <Card className={cn(
-        "overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border",
-        okr.priority && priorityStyles[okr.priority]
+        "overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border-l-4",
+        okr.priority && {
+            'P1': 'border-l-red-500',
+            'P2': 'border-l-amber-500',
+            'P3': 'border-l-transparent',
+        }[okr.priority]
       )}>
         <CardHeader className="flex flex-row items-center justify-between p-4 bg-transparent">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -127,19 +132,25 @@ export function OkrCard({
         </CardHeader>
 
         {!isObjective && (
-          <CardContent className="p-4 pt-0">
-             <div className="flex items-center justify-between gap-4">
-               <Button 
-                variant={okr.progress === 100 ? "secondary" : "default"}
-                size="sm"
-                onClick={handleMarkAsDone}
-                className="bg-green-500 hover:bg-green-600 text-white"
-               >
-                 <Check className="mr-2 h-4 w-4" />
-                 {okr.progress === 100 ? 'Mark as Incomplete' : 'Mark as Done'}
-               </Button>
-            </div>
-            <Accordion type="single" collapsible className="w-full mt-2">
+          <CardContent className="p-4 pt-0 space-y-4">
+             <div className="flex items-center gap-4">
+                <Slider
+                    value={[okr.progress]}
+                    onValueChange={(value) => onUpdateProgress(okr.id, value[0])}
+                    max={100}
+                    step={1}
+                    className="flex-1"
+                />
+                <Button 
+                    variant={okr.progress === 100 ? "secondary" : "default"}
+                    size="sm"
+                    onClick={handleMarkAsDone}
+                >
+                    <Check className="mr-2 h-4 w-4" />
+                    {okr.progress === 100 ? 'Reset' : 'Mark as Done'}
+                </Button>
+             </div>
+            <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1" className="border-t pt-2">
                 <AccordionTrigger>
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
