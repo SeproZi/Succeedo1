@@ -147,20 +147,20 @@ export function OkrCard({
                 </Button>
              </div>
             <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1" className="border-t-0 pt-0">
-                <AccordionTrigger>
+              <AccordionItem value="item-1" className="border-b-0">
+                <AccordionTrigger className="py-2 hover:no-underline">
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                         <Notebook className="h-4 w-4" />
                         Notes
                     </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                    <div className="space-y-2 pt-2">
+                    <div className="space-y-2">
                         <Textarea
                             placeholder="Add your notes here..."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            className="min-h-[100px] bg-background"
+                            className="min-h-[80px] bg-background"
                         />
                         <div className="flex justify-end">
                             <Button size="sm" onClick={handleSaveNotes} className="bg-accent hover:bg-accent/90 text-accent-foreground">Save Notes</Button>
