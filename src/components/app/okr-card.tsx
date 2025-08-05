@@ -80,18 +80,9 @@ export function OkrCard({
     <CheckCircle2 className="h-6 w-6 text-green-500" />
   );
   
-  const priorityStyles = {
-    P1: 'bg-red-500/10 border-red-500/30 text-red-700',
-    P2: 'bg-amber-500/10 border-amber-500/30 text-amber-700',
-    P3: 'bg-card border-border',
-  };
-
   return (
     <div style={{ marginLeft: level > 0 ? `${level * 1.5}rem` : '0' }}>
-      <Card className={cn(
-        "overflow-hidden shadow-sm hover:shadow-md transition-all duration-300",
-        okr.priority && priorityStyles[okr.priority]
-      )}>
+      <Card className="overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
         <CardHeader className="flex flex-row items-center justify-between p-4 bg-transparent">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {icon}
