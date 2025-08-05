@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, onAuthStateChanged, signInWithRedirect, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithRedirect, GoogleAuthProvider, signOut, getRedirectResult } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { isUserAuthorized } from '@/lib/user-service';
 
@@ -24,12 +24,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    // This handles the result of the redirect sign-in
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // User has successfully signed in via redirect.
+          // onAuthStateChanged will handle the rest.
+        }
+      })
+      .catch((err) => {
+        console.error("Redirect Result Error:", err);
+        setError("Failed to process sign-in redirect.");
+      });
+  
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const authorized = await isUserAuthorized(user.email);
         if (authorized) {
           setUser(user);
-          if (pathname === '/login') {
+          if (pathname === '/login' || pathname === '/') {
             router.replace('/department/1');
           }
         } else {
@@ -55,10 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithRedirect(auth, provider);
-      // The onAuthStateChanged listener will handle the result of the redirect.
+      // The redirect will navigate away, and the onAuthStateChanged listener 
+      // will handle the user state when they return.
     } catch (err: any) {
-      console.error(err);
-      setError('Failed to sign in. Please try again.');
+      console.error("Sign-in initiation error:", err.code, err.message);
+      setError('Failed to initiate sign in. Please try again.');
       setLoading(false);
     }
   };
@@ -71,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   };
   
-  if (loading) {
+  if (loading && pathname !== '/login') {
     return (
         <div className="flex h-screen items-center justify-center bg-background">
             <p className="text-muted-foreground">Loading...</p>
