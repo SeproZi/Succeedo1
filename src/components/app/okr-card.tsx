@@ -140,15 +140,15 @@ export function OkrCard({
                     variant={okr.progress === 100 ? "outline" : "default"}
                     size="sm"
                     onClick={handleMarkAsDone}
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground h-8 text-xs px-2"
                 >
-                    <Check className="mr-2 h-4 w-4" />
+                    <Check className="mr-1 h-3 w-3" />
                     {okr.progress === 100 ? 'Reset' : 'Mark as Done'}
                 </Button>
              </div>
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1" className="border-b-0">
-                <AccordionTrigger className="py-2 hover:no-underline">
+                <AccordionTrigger className="py-1 hover:no-underline">
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                         <Notebook className="h-4 w-4" />
                         Notes
