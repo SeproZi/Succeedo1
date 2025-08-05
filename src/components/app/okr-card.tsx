@@ -7,7 +7,6 @@ import {
   MoreVertical,
   Plus,
   Trash2,
-  Lightbulb,
   Notebook,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -39,7 +38,6 @@ type OkrCardProps = {
   onUpdateProgress: (id: string, progress: number) => void;
   onAddOrUpdate: (data: Partial<OkrItem> | { parentId: string | null }) => void;
   onDelete: (id: string) => void;
-  onSuggestKRs: () => void;
   onUpdateNotes: (id: string, notes: string) => void;
 };
 
@@ -50,7 +48,6 @@ export function OkrCard({
   onUpdateProgress,
   onAddOrUpdate,
   onDelete,
-  onSuggestKRs,
   onUpdateNotes,
 }: OkrCardProps) {
   const isObjective = okr.type === 'objective';
@@ -110,10 +107,6 @@ export function OkrCard({
                     <DropdownMenuItem onClick={() => onAddOrUpdate({ parentId: okr.id })}>
                       <Plus className="mr-2 h-4 w-4" />
                       <span>Add Item</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onSuggestKRs}>
-                      <Lightbulb className="mr-2 h-4 w-4" />
-                      <span>Suggest KRs with AI</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
@@ -186,7 +179,6 @@ export function OkrCard({
               onUpdateProgress={onUpdateProgress}
               onAddOrUpdate={onAddOrUpdate}
               onDelete={onDelete}
-              onSuggestKRs={onSuggestKRs}
               onUpdateNotes={onUpdateNotes}
             />
           ))}

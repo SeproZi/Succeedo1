@@ -6,9 +6,7 @@ import { PillarProgress } from '@/components/app/pillar-progress';
 import { OkrGrid } from '@/components/app/okr-grid';
 import { OkrCard } from '@/components/app/okr-card';
 import { AddOkrDialog } from '@/components/app/add-okr-dialog';
-import { AiSuggestionsDialog } from '@/components/app/ai-suggestions-dialog';
 import type { OkrItem, OkrPillar } from '@/lib/types';
-import { suggestKeyResultsAction } from '@/lib/actions';
 
 const initialData: OkrItem[] = [
   { id: '1', title: 'Foster a world-class engineering team', type: 'objective', progress: 0, parentId: null, pillar: 'People', priority: 'P1' },
@@ -31,9 +29,7 @@ const initialData: OkrItem[] = [
 export default function OkrDashboardPage() {
   const [okrs, setOkrs] = useState<OkrItem[]>(initialData);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
-  const [isAiDialogOpen, setAiDialogOpen] = useState(false);
   const [editingOkr, setEditingOkr] = useState<OkrItem | { parentId: string | null } | null>(null);
-  const [aiSuggestionObjective, setAiSuggestionObjective] = useState<OkrItem | null>(null);
 
   const okrCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -88,11 +84,6 @@ export default function OkrDashboardPage() {
   const handleOpenAddDialog = (data: Partial<OkrItem> | { parentId: string | null } | null) => {
     setEditingOkr(data as OkrItem | { parentId: string | null } | null);
     setAddDialogOpen(true);
-  };
-
-  const handleOpenAiDialog = (objective: OkrItem) => {
-    setAiSuggestionObjective(objective);
-    setAiDialogOpen(true);
   };
 
   const handleAddOrUpdateOkr = (data: Omit<OkrItem, 'progress' | 'id'> & { id?: string }) => {
@@ -170,7 +161,6 @@ export default function OkrDashboardPage() {
                       onUpdateProgress={handleUpdateProgress}
                       onAddOrUpdate={handleOpenAddDialog}
                       onDelete={handleDeleteOkr}
-                      onSuggestKRs={() => handleOpenAiDialog(okr)}
                       onUpdateNotes={handleUpdateNotes}
                     />
                  </div>
@@ -192,21 +182,6 @@ export default function OkrDashboardPage() {
           okrData={editingOkr}
           onSave={handleAddOrUpdateOkr}
           objectives={allObjectives}
-        />
-      )}
-
-      {isAiDialogOpen && aiSuggestionObjective && (
-        <AiSuggestionsDialog
-          isOpen={isAiDialogOpen}
-          setOpen={setAiDialogOpen}
-          objective={aiSuggestionObjective}
-          onAddKeyResult={(title) => {
-            handleAddOrUpdateOkr({
-              title,
-              type: 'keyResult',
-              parentId: aiSuggestionObjective.id,
-            });
-          }}
         />
       )}
     </div>
