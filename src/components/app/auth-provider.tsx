@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithRedirect, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { isUserAuthorized } from '@/lib/user-service';
 
@@ -54,8 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      // The onAuthStateChanged listener will handle routing and authorization
+      await signInWithRedirect(auth, provider);
+      // The onAuthStateChanged listener will handle the result of the redirect.
     } catch (err: any) {
       console.error(err);
       setError('Failed to sign in. Please try again.');
