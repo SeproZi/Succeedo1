@@ -55,12 +55,6 @@ type AddOkrDialogProps = {
   owner: OkrOwner;
 };
 
-const availableYears = [
-    new Date().getFullYear() -1,
-    new Date().getFullYear(),
-    new Date().getFullYear() + 1
-];
-
 export function AddOkrDialog({
   isOpen,
   setOpen,
@@ -70,7 +64,7 @@ export function AddOkrDialog({
   const isEditing = okrData && 'id' in okrData;
   const { toast } = useToast();
   const [isSuggesting, setIsSuggesting] = useState(false);
-  const { addOkr, updateOkr, currentYear, currentPeriod } = useOkrStore();
+  const { addOkr, updateOkr, currentYear, currentPeriod, availableYears, addYear } = useOkrStore();
 
   const objectives = useOkrStore(state => 
     state.data.okrs.filter(okr => 
@@ -158,6 +152,19 @@ export function AddOkrDialog({
     }
   };
 
+  const handleAddYear = () => {
+    const newYearString = prompt('Enter the year to add:');
+    if (newYearString) {
+        const newYear = parseInt(newYearString, 10);
+        if (!isNaN(newYear) && newYear > 2000) {
+            addYear(newYear);
+            toast({ title: "Year Added", description: `Year ${newYear} has been added.`});
+        } else {
+            toast({ title: "Invalid Year", description: "Please enter a valid year.", variant: "destructive"});
+        }
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-md">
@@ -192,7 +199,7 @@ export function AddOkrDialog({
                           ))}
                           <Separator className="my-1" />
                            <div className="p-2">
-                            <Button variant="outline" size="sm" className="w-full" disabled>
+                            <Button variant="outline" size="sm" className="w-full" type="button" onClick={handleAddYear}>
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add Year
                             </Button>

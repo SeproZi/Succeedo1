@@ -40,6 +40,8 @@ interface OkrState {
   data: AppData;
   currentYear: number;
   currentPeriod: TimelinePeriod;
+  availableYears: number[];
+  addYear: (year: number) => void;
   setYear: (year: number) => void;
   setPeriod: (period: TimelinePeriod) => void;
   addDepartment: (title: string) => void;
@@ -55,10 +57,26 @@ interface OkrState {
   updateOkrNotes: (id: string, notes: string) => void;
 }
 
+const getInitialYears = () => {
+    const year = new Date().getFullYear();
+    const years = new Set<number>();
+    years.add(year - 1);
+    years.add(year);
+    years.add(year + 1);
+    initialData.okrs.forEach(okr => years.add(okr.year));
+    return Array.from(years).sort();
+}
+
 export const useOkrStore = create<OkrState>((set) => ({
     data: initialData,
     currentYear: new Date().getFullYear(),
     currentPeriod: 'P1',
+    availableYears: getInitialYears(),
+    addYear: (year) => set(state => {
+        if (state.availableYears.includes(year)) return state;
+        const newYears = [...state.availableYears, year].sort();
+        return { availableYears: newYears };
+    }),
     setYear: (year) => set({ currentYear: year }),
     setPeriod: (period) => set({ currentPeriod: period }),
     addDepartment: (title) => set(state => ({

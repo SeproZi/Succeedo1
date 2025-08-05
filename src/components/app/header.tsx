@@ -13,15 +13,24 @@ import { SidebarTrigger } from '../ui/sidebar';
 import type { TimelinePeriod } from '@/lib/types';
 import { Plus } from 'lucide-react';
 import { Separator } from '../ui/separator';
-
-const availableYears = [
-    new Date().getFullYear() -1,
-    new Date().getFullYear(),
-    new Date().getFullYear() + 1
-];
+import { useToast } from '@/hooks/use-toast';
 
 export function Header({ title }: { title: string }) {
-  const { currentYear, currentPeriod, setYear, setPeriod } = useOkrStore();
+  const { currentYear, currentPeriod, setYear, setPeriod, availableYears, addYear } = useOkrStore();
+  const { toast } = useToast();
+
+  const handleAddYear = () => {
+    const newYearString = prompt('Enter the year to add:');
+    if (newYearString) {
+        const newYear = parseInt(newYearString, 10);
+        if (!isNaN(newYear) && newYear > 2000) {
+            addYear(newYear);
+            toast({ title: "Year Added", description: `Year ${newYear} has been added.`});
+        } else {
+            toast({ title: "Invalid Year", description: "Please enter a valid year.", variant: "destructive"});
+        }
+    }
+  };
 
   return (
     <header className="bg-card shadow-sm sticky top-0 z-40 border-b">
@@ -46,7 +55,7 @@ export function Header({ title }: { title: string }) {
                     ))}
                     <Separator className="my-1" />
                     <div className="p-2">
-                        <Button variant="outline" size="sm" className="w-full" disabled>
+                        <Button variant="outline" size="sm" className="w-full" onClick={handleAddYear}>
                             <Plus className="mr-2 h-4 w-4" />
                             Add Year
                         </Button>
