@@ -9,10 +9,10 @@ type HeaderProps = {
 
 const Logo = () => (
     <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0 50C0 22.3858 22.3858 0 50 0V50H0Z" fill="#FBBF24"/>
-      <path d="M50 0C77.6142 0 100 22.3858 100 50H50V0Z" fill="#F472B6"/>
-      <path d="M0 50V100C27.6142 100 50 77.6142 50 50H0Z" fill="#67E8F9"/>
-      <path d="M50 50C50 77.6142 72.3858 100 100 100V50H50Z" fill="#2DD4BF"/>
+      <path d="M50,0 C22.3858,0 0,22.3858 0,50 L50,50 L50,0 Z" fill="#FBBF24"/>
+      <path d="M100,0 C100,27.6142 77.6142,50 50,50 L50,0 L100,0 Z" fill="#F472B6"/>
+      <path d="M0,100 C0,72.3858 22.3858,50 50,50 L50,100 L0,100 Z" fill="#67E8F9"/>
+      <path d="M100,100 C100,72.3858 77.6142,50 50,50 L50,100 L100,100 Z" fill="#2DD4BF"/>
     </svg>
   );
 
