@@ -92,13 +92,18 @@ export function OkrCard({
           </div>
           <div className="flex items-center gap-4 ml-4">
              {okr.type === 'keyResult' && (
-                <div className="w-32 hidden sm:block">
-                    <Progress value={okr.progress} className="h-2" />
+                <div className="w-32 hidden sm:flex items-center gap-2">
+                    <Progress value={okr.progress} className="h-2 flex-1" />
+                    <span className="font-semibold text-primary w-12 text-right">
+                        {okr.progress}%
+                    </span>
                 </div>
              )}
-            <span className="font-semibold text-primary w-12 text-right">
-              {okr.progress}%
-            </span>
+             {okr.type === 'objective' && (
+                 <span className="font-semibold text-primary w-12 text-right">
+                    {okr.progress}%
+                 </span>
+             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -122,7 +127,7 @@ export function OkrCard({
         </CardHeader>
 
         {!isObjective && (
-          <CardContent className="p-4 pt-0 space-y-4">
+          <CardContent className="p-4 pt-0 space-y-2">
              <div className="flex items-center gap-4">
                 <Slider
                     value={[okr.progress]}
@@ -142,7 +147,7 @@ export function OkrCard({
                 </Button>
              </div>
             <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1" className="border-t pt-2">
+              <AccordionItem value="item-1" className="border-t-0 pt-0">
                 <AccordionTrigger>
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                         <Notebook className="h-4 w-4" />
