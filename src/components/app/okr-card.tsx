@@ -39,7 +39,7 @@ type OkrCardProps = {
   onUpdateProgress: (id: string, progress: number) => void;
   onAddOrUpdate: (data: OkrItem | { parentId: string | null }) => void;
   onDelete: (id: string) => void;
-  onSuggestKRs: (objective: OkrItem) => void;
+  onSuggestKRs: () => void;
   onUpdateNotes: (id: string, notes: string) => void;
 };
 
@@ -102,7 +102,7 @@ export function OkrCard({
                       <Plus className="mr-2 h-4 w-4" />
                       <span>Add Item</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onSuggestKRs(okr)}>
+                    <DropdownMenuItem onClick={onSuggestKRs}>
                       <Lightbulb className="mr-2 h-4 w-4" />
                       <span>Suggest KRs with AI</span>
                     </DropdownMenuItem>

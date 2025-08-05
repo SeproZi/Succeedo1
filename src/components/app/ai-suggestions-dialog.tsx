@@ -16,13 +16,14 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { OkrItem } from '@/lib/types';
 import { Lightbulb, Plus, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { suggestKeyResultsAction } from '@/lib/actions';
+import type { suggestKeyResultsAction } from '@/lib/actions';
 
 type AiSuggestionsDialogProps = {
   isOpen: boolean;
   setOpen: (isOpen: boolean) => void;
   objective: OkrItem;
   onAddKeyResult: (title: string) => void;
+  suggestKeyResultsAction: typeof suggestKeyResultsAction;
 };
 
 export function AiSuggestionsDialog({
@@ -30,6 +31,7 @@ export function AiSuggestionsDialog({
   setOpen,
   objective,
   onAddKeyResult,
+  suggestKeyResultsAction,
 }: AiSuggestionsDialogProps) {
   const [isPending, startTransition] = useTransition();
   const [suggestions, setSuggestions] = useState<string[]>([]);

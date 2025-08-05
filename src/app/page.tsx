@@ -7,6 +7,7 @@ import { OkrCard } from '@/components/app/okr-card';
 import { AddOkrDialog } from '@/components/app/add-okr-dialog';
 import { AiSuggestionsDialog } from '@/components/app/ai-suggestions-dialog';
 import type { OkrItem } from '@/lib/types';
+import { suggestKeyResultsAction } from '@/lib/actions';
 
 const initialData: OkrItem[] = [
   { id: '1', title: 'Launch New Product Line', type: 'objective', progress: 0, parentId: null },
@@ -122,7 +123,7 @@ export default function OkrDashboardPage() {
                   onUpdateProgress={handleUpdateProgress}
                   onAddOrUpdate={handleOpenAddDialog}
                   onDelete={handleDeleteOkr}
-                  onSuggestKRs={handleOpenAiDialog}
+                  onSuggestKRs={() => handleOpenAiDialog(okr)}
                   onUpdateNotes={handleUpdateNotes}
                 />
               ))
@@ -152,6 +153,7 @@ export default function OkrDashboardPage() {
           isOpen={isAiDialogOpen}
           setOpen={setAiDialogOpen}
           objective={aiSuggestionObjective}
+          suggestKeyResultsAction={suggestKeyResultsAction}
           onAddKeyResult={(title) => {
             handleAddOrUpdateOkr({
               title,
