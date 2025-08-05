@@ -5,10 +5,14 @@ import { PillarProgress } from '@/components/app/pillar-progress';
 import { OkrGrid } from '@/components/app/okr-grid';
 import { OkrCard } from '@/components/app/okr-card';
 import { AddOkrDialog } from '@/components/app/add-okr-dialog';
-import type { OkrItem, OkrPillar, OkrOwner } from '@/lib/types';
+import type { OkrItem, OkrPillar, OkrOwner, TimelinePeriod } from '@/lib/types';
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Separator } from '../ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { SidebarTrigger } from '../ui/sidebar';
 
 type OkrDashboardProps = {
     owner: OkrOwner;
@@ -16,8 +20,16 @@ type OkrDashboardProps = {
 };
 
 export function OkrDashboard({ owner, title }: OkrDashboardProps) {
-  const allOkrs = useOkrStore(state => state.data.okrs);
-  const { currentYear, currentPeriod } = useOkrStore();
+  const { 
+    data: { okrs: allOkrs }, 
+    currentYear, 
+    currentPeriod, 
+    setYear, 
+    setPeriod, 
+    availableYears, 
+    addYear 
+  } = useOkrStore();
+  const { toast } = useToast();
 
   const okrs = useMemo(() => 
     allOkrs.filter(okr => 
@@ -92,15 +104,60 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
      }, 1000)
   };
 
+  const handleAddYear = () => {
+    const newYearString = prompt('Enter the year to add:');
+    if (newYearString) {
+        const newYear = parseInt(newYearString, 10);
+        if (!isNaN(newYear) && newYear > 2000) {
+            addYear(newYear);
+            toast({ title: "Year Added", description: `Year ${newYear} has been added.`});
+        } else {
+            toast({ title: "Invalid Year", description: "Please enter a valid year.", variant: "destructive"});
+        }
+    }
+  };
+
   return (
     <>
       <div className="p-4 sm:p-6 lg:p-8 space-y-8">
-        <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold font-headline text-primary">{title}</h1>
-            <Button onClick={() => handleOpenAddDialog({ parentId: null, type: 'objective' })}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Objective
-            </Button>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+                <SidebarTrigger className="md:hidden"/>
+                <h1 className="text-3xl font-bold font-headline text-primary">{title}</h1>
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+                <Select value={String(currentYear)} onValueChange={(val) => setYear(Number(val))}>
+                    <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableYears.map(year => (
+                            <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                        ))}
+                        <Separator className="my-1" />
+                        <div className="p-2">
+                            <Button variant="outline" size="sm" className="w-full" onClick={handleAddYear}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Year
+                            </Button>
+                        </div>
+                    </SelectContent>
+                </Select>
+                <Select value={currentPeriod} onValueChange={(val) => setPeriod(val as TimelinePeriod)}>
+                    <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="P1">Period 1</SelectItem>
+                        <SelectItem value="P2">Period 2</SelectItem>
+                        <SelectItem value="P3">Period 3</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Button onClick={() => handleOpenAddDialog({ parentId: null, type: 'objective' })}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Objective
+                </Button>
+            </div>
         </div>
 
         <div className="mb-8">

@@ -1,6 +1,5 @@
 'use client';
 import { AppSidebar } from '@/components/app/app-sidebar';
-import { Header } from '@/components/app/header';
 import {
   SidebarProvider,
   Sidebar,
@@ -20,7 +19,6 @@ export default function OkrLayout({
         <SidebarToggleButton />
       </Sidebar>
       <SidebarInset>
-          <Header title="Dashboard" />
           {children}
       </SidebarInset>
     </SidebarProvider>
