@@ -91,42 +91,42 @@ export function OkrDashboard({ owner, title, showAddButton }: OkrDashboardProps)
         showAddButton={showAddButton}
         onAddObjective={() => handleOpenAddDialog({ parentId: null, type: 'objective' })} 
       />
-        
-      <div className="mb-8">
-          <PillarProgress overall={overallProgress} pillarProgress={pillarProgress} />
-      </div>
-
-      <div className="mb-12">
-          <OkrGrid 
-              objectives={topLevelOkrs} 
-              onGridItemClick={handleGridItemClick}
-          />
-      </div>
-
-      <div className="space-y-6">
-          <h2 className="text-3xl font-bold font-headline text-primary mb-6">
-              Objectives Details
-          </h2>
-          {topLevelOkrs.length > 0 ? (
-            topLevelOkrs.map(okr => (
-               <div key={okr.id} ref={el => okrCardRefs.current[okr.id] = el} className="scroll-mt-24">
-                  <OkrCard
-                    okr={okr}
-                    allOkrs={okrsWithCalculatedProgress}
-                    level={0}
-                    onAddOrUpdate={(data) => handleOpenAddDialog({...data, owner})}
-                  />
-               </div>
-            ))
-          ) : (
-            <div className="text-center py-12 px-6 bg-card rounded-xl">
-                <h3 className="text-xl font-medium text-card-foreground">No Objectives Yet</h3>
-                <p className="text-muted-foreground mt-2 mb-4">Get started by adding your first objective.</p>
-                <Button onClick={() => handleOpenAddDialog({ parentId: null, type: 'objective' })}>Add Objective</Button>
-            </div>
-          )}
+      <div className="space-y-8 mt-6">
+        <div className="mb-8">
+            <PillarProgress overall={overallProgress} pillarProgress={pillarProgress} />
         </div>
 
+        <div className="mb-12">
+            <OkrGrid 
+                objectives={topLevelOkrs} 
+                onGridItemClick={handleGridItemClick}
+            />
+        </div>
+
+        <div className="space-y-6">
+            <h2 className="text-3xl font-bold font-headline text-primary mb-6">
+                Objectives Details
+            </h2>
+            {topLevelOkrs.length > 0 ? (
+              topLevelOkrs.map(okr => (
+                 <div key={okr.id} ref={el => okrCardRefs.current[okr.id] = el} className="scroll-mt-24">
+                    <OkrCard
+                      okr={okr}
+                      allOkrs={okrsWithCalculatedProgress}
+                      level={0}
+                      onAddOrUpdate={(data) => handleOpenAddDialog({...data, owner})}
+                    />
+                 </div>
+              ))
+            ) : (
+              <div className="text-center py-12 px-6 bg-card rounded-xl">
+                  <h3 className="text-xl font-medium text-card-foreground">No Objectives Yet</h3>
+                  <p className="text-muted-foreground mt-2 mb-4">Get started by adding your first objective.</p>
+                  <Button onClick={() => handleOpenAddDialog({ parentId: null, type: 'objective' })}>Add Objective</Button>
+              </div>
+            )}
+          </div>
+      </div>
       {isAddDialogOpen && (
         <AddOkrDialog
           isOpen={isAddDialogOpen}

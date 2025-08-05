@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { SidebarTrigger } from '../ui/sidebar';
+import { SidebarTrigger, useSidebar } from '../ui/sidebar';
 
 type HeaderProps = {
   onAddObjective?: () => void;
@@ -21,15 +21,29 @@ const Logo = () => (
 
 
 export function Header({ onAddObjective, title, showAddButton = true }: HeaderProps) {
+  const { state, isMobile } = useSidebar();
   return (
     <header className="bg-card shadow-sm sticky top-0 z-40 border-b">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center space-x-3">
-             <div className="p-1 md:hidden">
+             <div className="p-1">
                 <SidebarTrigger />
              </div>
-             <div>
+             {(isMobile || state === 'collapsed') && (
+                <div className="flex items-center space-x-3">
+                    <div className="p-1 bg-background rounded-md">
+                        <Logo />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold font-headline text-primary">
+                           Succeedo
+                        </h1>
+                        <p className="text-xs text-muted-foreground -mt-1">powered by Proceedo</p>
+                    </div>
+                </div>
+             )}
+             <div className="hidden md:block">
                 <h1 className="text-2xl font-bold font-headline text-primary">
                  {title}
                 </h1>
@@ -41,6 +55,11 @@ export function Header({ onAddObjective, title, showAddButton = true }: HeaderPr
                 Add Objective
             </Button>
           )}
+        </div>
+        <div className="md:hidden pb-4">
+             <h1 className="text-2xl font-bold font-headline text-primary">
+                {title}
+            </h1>
         </div>
       </div>
     </header>

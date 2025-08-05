@@ -9,6 +9,7 @@ import {
     SidebarMenuSub,
     SidebarMenuSubItem,
     SidebarMenuSubButton,
+    useSidebar
 } from '@/components/ui/sidebar';
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { Building, Users, ChevronsRight, Plus, MoreHorizontal } from 'lucide-react';
@@ -35,6 +36,7 @@ export function AppSidebar() {
     const { data, addDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam } = useOkrStore();
     const params = useParams();
     const { id: departmentId, teamId } = params;
+    const { state } = useSidebar();
 
     const handleAddDepartment = () => {
         const title = prompt('Enter department name:');
@@ -63,15 +65,17 @@ export function AppSidebar() {
         <>
             <SidebarHeader className='p-4'>
                 <div className="flex items-center space-x-3">
-                    <div className="p-1">
+                    <div className="p-1 bg-background rounded-md">
                         <Logo />
                     </div>
-                    <div>
+                   {state === 'expanded' && (
+                     <div>
                         <h1 className="text-2xl font-bold font-headline text-sidebar-primary-foreground">
-                        Succeedo
+                           Succeedo
                         </h1>
                         <p className="text-xs text-sidebar-foreground/70 -mt-1">powered by Proceedo</p>
                     </div>
+                   )}
                 </div>
             </SidebarHeader>
             <SidebarContent>
@@ -139,7 +143,7 @@ export function AppSidebar() {
             <SidebarFooter>
                 <Button variant="ghost" className="w-full justify-start" onClick={handleAddDepartment}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Department
+                    {state === 'expanded' && <span>Add Department</span>}
                 </Button>
             </SidebarFooter>
         </>
