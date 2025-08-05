@@ -18,20 +18,15 @@ const Logo = () => (
                 <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
             </filter>
         </defs>
-        <path d="M 0,50 A 50,50 0 0,1 50,0 H 0 Z" fill="#FBBF24" filter="url(#blur1)"/>
-        <path d="M 50,0 A 50,50 0 0,1 100,50 V 0 Z" fill="#F472B6" filter="url(#blur1)"/>
-        <path d="M 0,50 H 50 A 50,50 0 0,1 0,100 Z" fill="#67E8F9" filter="url(#blur1)"/>
-        <path d="M 50,50 H 100 V 100 A 50,50 0 0,1 50,50 Z" fill="#2DD4BF" filter="url(#blur1)" />
+        <path d="M0 25 C 25 25, 25 0, 50 0 L 50 50 L 0 50 Z" fill="#FBBF24" filter="url(#blur1)"/>
+        <path d="M100 25 C 75 25, 75 0, 50 0 L 50 50 L 100 50 Z" fill="#F472B6" filter="url(#blur1)"/>
+        <path d="M0 75 C 25 75, 25 100, 50 100 L 50 50 L 0 50 Z" fill="#67E8F9" filter="url(#blur1)"/>
+        <path d="M100 75 C 75 75, 75 100, 50 100 L 50 50 L 100 50 Z" fill="#2DD4BF" filter="url(#blur1)" />
 
-        <path d="M 0,50 A 50,50 0 0,1 50,0" fill="none" />
-        <path d="M 50,0 A 50,50 0 0,1 100,50" fill="none" />
-        <path d="M 0,50 A 50,50 0 0,1 50,100" fill="none" />
-        <path d="M 50,100 A 50,50 0 0,1 100,50" fill="none" />
-
-        <path d="M 0 50 Q 25 25, 50 0" fill="#FBBF24" />
-        <path d="M 50 0 Q 75 25, 100 50" fill="#F472B6" />
-        <path d="M 0 50 H 50 A 50 50 0 0 1 0 100Z" fill="#67E8F9" />
-        <path d="M 50 50 H 100 V 100 A 50 50 0 0 1 50 50Z" fill="#2DD4BF" />
+        <path d="M0 25 C 25 25, 25 0, 50 0" fill="#FBBF24" />
+        <path d="M100 25 C 75 25, 75 0, 50 0" fill="#F472B6" />
+        <path d="M0 75 C 25 75, 25 100, 50 100" fill="#67E8F9" />
+        <path d="M100 75 C 75 75, 75 100, 50 100" fill="#2DD4BF" />
     </svg>
 );
 
