@@ -1,9 +1,11 @@
 'use client';
 
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { OkrItem, OkrPillar } from '@/lib/types';
+import { OkrItem, OkrPillar, OkrPriority } from '@/lib/types';
 import { Target, KeyRound } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
 
 type OkrGridProps = {
   objectives: OkrItem[];
@@ -15,15 +17,15 @@ const pillars: OkrPillar[] = ['People', 'Product', 'Tech'];
 
 export function OkrGrid({ objectives, allOkrs, onGridItemClick }: OkrGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
       {pillars.map(pillar => (
         <div key={pillar} className="space-y-4">
           <Card className="bg-primary text-primary-foreground">
-            <CardHeader>
-              <CardTitle className="text-center text-lg font-bold tracking-wider">
+            <div className="p-3">
+              <h3 className="text-center text-lg font-bold tracking-wider">
                 {pillar}
-              </CardTitle>
-            </CardHeader>
+              </h3>
+            </div>
           </Card>
           {objectives
             .filter(obj => obj.pillar === pillar)
@@ -45,13 +47,22 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick }: OkrGridProps) 
   );
 }
 
+const priorityStyles: Record<OkrPriority, string> = {
+    P1: 'border-l-4 border-destructive',
+    P2: 'border-l-4 border-yellow-500',
+    P3: '',
+};
+
 function GridItem({ item, onClick }: { item: OkrItem; onClick: (id: string) => void }) {
   const isObjective = item.type === 'objective';
   const Icon = isObjective ? Target : KeyRound;
   
   return (
     <Card
-      className="cursor-pointer hover:shadow-lg hover:border-accent transition-all duration-200"
+      className={cn(
+        "cursor-pointer hover:shadow-lg hover:border-accent transition-all duration-200",
+        isObjective && item.priority && priorityStyles[item.priority]
+      )}
       onClick={() => onClick(item.id)}
     >
       <CardContent className="p-3">

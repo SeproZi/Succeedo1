@@ -37,7 +37,7 @@ type OkrCardProps = {
   allOkrs: OkrItem[];
   level: number;
   onUpdateProgress: (id: string, progress: number) => void;
-  onAddOrUpdate: (data: OkrItem | { parentId: string | null }) => void;
+  onAddOrUpdate: (data: Partial<OkrItem> | { parentId: string | null }) => void;
   onDelete: (id: string) => void;
   onSuggestKRs: () => void;
   onUpdateNotes: (id: string, notes: string) => void;
@@ -72,9 +72,18 @@ export function OkrCard({
     <CheckCircle2 className="h-6 w-6 text-green-500" />
   );
 
+  const priorityStyles = {
+    P1: 'border-l-4 border-destructive',
+    P2: 'border-l-4 border-yellow-500',
+    P3: '',
+  };
+
   return (
     <div style={{ marginLeft: level > 0 ? `${level * 1.5}rem` : '0' }}>
-      <Card className="overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+      <Card className={cn(
+        "overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300",
+        isObjective && okr.priority && priorityStyles[okr.priority]
+      )}>
         <CardHeader className="flex flex-row items-center justify-between p-4 bg-card">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {icon}

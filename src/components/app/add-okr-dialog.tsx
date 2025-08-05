@@ -37,6 +37,7 @@ const formSchema = z.object({
   type: z.enum(['objective', 'keyResult']),
   parentId: z.string().nullable(),
   pillar: z.enum(['People', 'Product', 'Tech']).optional(),
+  priority: z.enum(['P1', 'P2', 'P3']).optional(),
 });
 
 type AddOkrDialogProps = {
@@ -63,6 +64,7 @@ export function AddOkrDialog({
       type: (isEditing && okrData.type) || (okrData?.parentId ? 'keyResult' : 'objective'),
       parentId: okrData?.parentId || null,
       pillar: (isEditing && okrData.pillar) || undefined,
+      priority: (isEditing && okrData.priority) || 'P3',
     },
   });
 
@@ -74,6 +76,7 @@ export function AddOkrDialog({
         type: (okrData && 'type' in okrData && okrData.type) || (okrData?.parentId ? 'keyResult' : 'objective'),
         parentId: okrData?.parentId || null,
         pillar: (okrData && 'pillar' in okrData && okrData.pillar) || undefined,
+        priority: (okrData && 'priority' in okrData && okrData.priority) || 'P3',
       });
     }
   }, [okrData, form]);
@@ -81,6 +84,7 @@ export function AddOkrDialog({
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (values.type === 'keyResult') {
       values.pillar = undefined;
+      values.priority = undefined;
     } else if (values.type === 'objective') {
       values.parentId = null;
     }
@@ -172,28 +176,52 @@ export function AddOkrDialog({
             )}
             
             {type === 'objective' && (
+              <>
                 <FormField
-                control={form.control}
-                name="pillar"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pillar</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a pillar" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="People">People</SelectItem>
-                        <SelectItem value="Product">Product</SelectItem>
-                        <SelectItem value="Tech">Tech</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  control={form.control}
+                  name="pillar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pillar</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a pillar" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="People">People</SelectItem>
+                          <SelectItem value="Product">Product</SelectItem>
+                          <SelectItem value="Tech">Tech</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Priority</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a priority" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="P1">P1: Critical</SelectItem>
+                          <SelectItem value="P2">P2: High</SelectItem>
+                          <SelectItem value="P3">P3: Normal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
             
             <DialogFooter>

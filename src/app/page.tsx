@@ -11,17 +11,17 @@ import type { OkrItem, OkrPillar } from '@/lib/types';
 import { suggestKeyResultsAction } from '@/lib/actions';
 
 const initialData: OkrItem[] = [
-  { id: '1', title: 'Foster a world-class engineering team', type: 'objective', progress: 0, parentId: null, pillar: 'People' },
+  { id: '1', title: 'Foster a world-class engineering team', type: 'objective', progress: 0, parentId: null, pillar: 'People', priority: 'P1' },
   { id: '2', title: 'Hire 5 senior engineers', type: 'keyResult', progress: 40, parentId: '1', notes: '2 frontend, 2 backend, 1 SRE' },
   { id: '3', title: 'Implement a new professional development plan', type: 'keyResult', progress: 80, parentId: '1', notes: 'Mentorship program is live.' },
   { id: '10', title: 'Improve team satisfaction by 15%', type: 'keyResult', progress: 30, parentId: '1', notes: '' },
   
-  { id: '4', title: 'Launch New Product Line', type: 'objective', progress: 0, parentId: null, pillar: 'Product' },
+  { id: '4', title: 'Launch New Product Line', type: 'objective', progress: 0, parentId: null, pillar: 'Product', priority: 'P2' },
   { id: '5', title: 'Achieve $1M in revenue', type: 'keyResult', progress: 75, parentId: '4', notes: 'Initial revenue target is for Q3.' },
   { id: '6', title: 'Secure 10 enterprise clients', type: 'keyResult', progress: 50, parentId: '4', notes: '' },
   { id: '7', title: 'Increase Website Traffic by 50%', type: 'keyResult', progress: 40, parentId: '4', notes: 'Focus on SEO keywords related to our new product line.' },
 
-  { id: '8', title: 'Modernize Core Platform Technology', type: 'objective', progress: 0, parentId: null, pillar: 'Tech' },
+  { id: '8', title: 'Modernize Core Platform Technology', type: 'objective', progress: 0, parentId: null, pillar: 'Tech', priority: 'P3' },
   { id: '9', title: 'Migrate to a new cloud provider', type: 'keyResult', progress: 60, parentId: '8', notes: 'AWS migration is 60% complete.' },
   { id: '11', title: 'Reduce API latency by 30%', type: 'keyResult', progress: 90, parentId: '8', notes: '' },
   { id: '12', title: 'Achieve 99.9% uptime', type: 'keyResult', progress: 95, parentId: '8', notes: '' },
@@ -85,8 +85,8 @@ export default function OkrDashboardPage() {
     };
   }, [okrsWithCalculatedProgress]);
 
-  const handleOpenAddDialog = (data: OkrItem | { parentId: string | null } | null) => {
-    setEditingOkr(data);
+  const handleOpenAddDialog = (data: Partial<OkrItem> | { parentId: string | null } | null) => {
+    setEditingOkr(data as OkrItem | { parentId: string | null } | null);
     setAddDialogOpen(true);
   };
 
@@ -106,6 +106,7 @@ export default function OkrDashboardPage() {
         id: Date.now().toString(),
         progress: 0,
         notes: data.type === 'keyResult' ? '' : undefined,
+        priority: data.type === 'objective' ? data.priority : undefined,
       };
       setOkrs(prev => [...prev, newOkr]);
     }
@@ -178,7 +179,7 @@ export default function OkrDashboardPage() {
               <div className="text-center py-12 px-6 bg-card rounded-xl">
                   <h3 className="text-xl font-medium text-card-foreground">No Objectives Yet</h3>
                   <p className="text-muted-foreground mt-2 mb-4">Get started by adding your first company objective.</p>
-                  <button onClick={() => handleOpenAddDialog({ parentId: null })} className="bg-accent text-accent-foreground px-4 py-2 rounded-md font-semibold">Add Objective</button>
+                  <button onClick={() => handleOpenAddDialog({ parentId: null, type: 'objective' })} className="bg-accent text-accent-foreground px-4 py-2 rounded-md font-semibold">Add Objective</button>
               </div>
             )}
           </div>
@@ -199,7 +200,6 @@ export default function OkrDashboardPage() {
           isOpen={isAiDialogOpen}
           setOpen={setAiDialogOpen}
           objective={aiSuggestionObjective}
-          suggestKeyResultsAction={suggestKeyResultsAction}
           onAddKeyResult={(title) => {
             handleAddOrUpdateOkr({
               title,

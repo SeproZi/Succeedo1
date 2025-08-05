@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,14 +16,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { OkrItem } from '@/lib/types';
 import { Lightbulb, Plus, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { suggestKeyResultsAction } from '@/lib/actions';
+import { suggestKeyResultsAction } from '@/lib/actions';
 
 type AiSuggestionsDialogProps = {
   isOpen: boolean;
   setOpen: (isOpen: boolean) => void;
   objective: OkrItem;
   onAddKeyResult: (title: string) => void;
-  suggestKeyResultsAction: typeof suggestKeyResultsAction;
 };
 
 export function AiSuggestionsDialog({
@@ -31,14 +30,13 @@ export function AiSuggestionsDialog({
   setOpen,
   objective,
   onAddKeyResult,
-  suggestKeyResultsAction,
 }: AiSuggestionsDialogProps) {
   const [isPending, startTransition] = useTransition();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleGetSuggestions = () => {
+  const handleGetSuggestions = useCallback(() => {
     startTransition(async () => {
       setError(null);
       const result = await suggestKeyResultsAction({ objective: objective.title });
@@ -48,7 +46,14 @@ export function AiSuggestionsDialog({
         setSuggestions(result.keyResults || []);
       }
     });
-  };
+  },[objective.title]);
+
+
+  useEffect(() => {
+    if(isOpen) {
+        handleGetSuggestions();
+    }
+  }, [isOpen, handleGetSuggestions]);
 
   const handleAddAndClose = (title: string) => {
     onAddKeyResult(title);
@@ -61,11 +66,16 @@ export function AiSuggestionsDialog({
         setOpen(false);
     }
     setSuggestions(newSuggestions);
-
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+        if(!open) {
+            setSuggestions([]);
+            setError(null);
+        }
+        setOpen(open);
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline flex items-center gap-2">
@@ -108,8 +118,8 @@ export function AiSuggestionsDialog({
               </div>
             </ScrollArea>
           ) : (
-            <div className="text-center p-4 border-dashed border-2 rounded-lg">
-                <p className="text-muted-foreground">Click the button below to generate suggestions.</p>
+             !error && <div className="text-center p-4 border-dashed border-2 rounded-lg">
+                <p className="text-muted-foreground">No suggestions found. You can close this dialog.</p>
             </div>
           )}
         </div>
@@ -121,7 +131,7 @@ export function AiSuggestionsDialog({
                 disabled={isPending}
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"
             >
-                {isPending ? 'Generating...' : 'Generate Suggestions'}
+                {isPending ? 'Generating...' : 'Regenerate'}
             </Button>
         </DialogFooter>
       </DialogContent>
