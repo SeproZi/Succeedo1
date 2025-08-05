@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Sparkles, Loader2 } from 'lucide-react';
-import type { OkrItem, OkrOwner, BaseItem } from '@/lib/types';
+import type { OkrItem, OkrOwner, BaseItem, TimelinePeriod } from '@/lib/types';
 import { suggestKeyResultsAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useOkrStore } from '@/hooks/use-okr-store';
@@ -43,6 +43,8 @@ const formSchema = z.object({
   pillar: z.enum(['People', 'Product', 'Tech']).optional(),
   priority: z.enum(['P1', 'P2', 'P3']).optional(),
   notes: z.string().optional(),
+  year: z.number(),
+  period: z.enum(['P1', 'P2', 'P3']),
 });
 
 type AddOkrDialogProps = {
@@ -51,6 +53,12 @@ type AddOkrDialogProps = {
   okrData: Partial<OkrItem> | { parentId: string | null, owner: OkrOwner };
   owner: OkrOwner;
 };
+
+const availableYears = [
+    new Date().getFullYear() -1,
+    new Date().getFullYear(),
+    new Date().getFullYear() + 1
+];
 
 export function AddOkrDialog({
   isOpen,
@@ -61,10 +69,15 @@ export function AddOkrDialog({
   const isEditing = okrData && 'id' in okrData;
   const { toast } = useToast();
   const [isSuggesting, setIsSuggesting] = useState(false);
-  const { addOkr, updateOkr } = useOkrStore();
+  const { addOkr, updateOkr, currentYear, currentPeriod } = useOkrStore();
 
   const objectives = useOkrStore(state => 
-    state.data.okrs.filter(okr => okr.type === 'objective' && JSON.stringify(okr.owner) === JSON.stringify(owner))
+    state.data.okrs.filter(okr => 
+        okr.type === 'objective' && 
+        JSON.stringify(okr.owner) === JSON.stringify(owner) &&
+        okr.year === currentYear &&
+        okr.period === currentPeriod
+    )
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -77,6 +90,8 @@ export function AddOkrDialog({
       pillar: (isEditing && okrData.pillar) || undefined,
       priority: (isEditing && okrData.priority) || 'P3',
       notes: (isEditing && okrData.notes) || '',
+      year: (isEditing && okrData.year) || currentYear,
+      period: (isEditing && okrData.period) || currentPeriod,
     },
   });
 
@@ -90,9 +105,11 @@ export function AddOkrDialog({
         pillar: (okrData && 'pillar' in okrData && okrData.pillar) || undefined,
         priority: (okrData && 'priority' in okrData && okrData.priority) || 'P3',
         notes: (okrData && 'notes' in okrData && okrData.notes) || '',
+        year: (okrData && 'year' in okrData && okrData.year) || currentYear,
+        period: (okrData && 'period' in okrData && okrData.period) || currentPeriod,
       });
     }
-  }, [okrData, form]);
+  }, [okrData, form, currentYear, currentPeriod]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (values.type === 'objective') {
@@ -142,7 +159,7 @@ export function AddOkrDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline">
             {isEditing ? 'Edit Item' : 'Add New Item'}
@@ -154,7 +171,53 @@ export function AddOkrDialog({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="year"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Year</FormLabel>
+                      <Select onValueChange={(v) => field.onChange(Number(v))} defaultValue={String(field.value)}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a year" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableYears.map(y => (
+                            <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="period"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Period</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a period" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="P1">Period 1</SelectItem>
+                          <SelectItem value="P2">Period 2</SelectItem>
+                          <SelectItem value="P3">Period 3</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            </div>
             <FormField
               control={form.control}
               name="type"

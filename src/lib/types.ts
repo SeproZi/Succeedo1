@@ -1,5 +1,6 @@
 export type OkrPillar = 'People' | 'Product' | 'Tech';
 export type OkrPriority = 'P1' | 'P2' | 'P3';
+export type TimelinePeriod = 'P1' | 'P2' | 'P3';
 
 export interface BaseItem {
     id: string;
@@ -25,6 +26,8 @@ export type OkrItem = BaseItem & {
   notes?: string;
   pillar?: OkrPillar;
   priority?: OkrPriority;
+  year: number;
+  period: TimelinePeriod;
 };
 
 export type AppData = {

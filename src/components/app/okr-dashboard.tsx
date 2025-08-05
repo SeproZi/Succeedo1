@@ -9,7 +9,6 @@ import type { OkrItem, OkrPillar, OkrOwner } from '@/lib/types';
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useSidebar } from '../ui/sidebar';
 
 type OkrDashboardProps = {
     owner: OkrOwner;
@@ -18,7 +17,16 @@ type OkrDashboardProps = {
 
 export function OkrDashboard({ owner, title }: OkrDashboardProps) {
   const allOkrs = useOkrStore(state => state.data.okrs);
-  const okrs = useMemo(() => allOkrs.filter(okr => JSON.stringify(okr.owner) === JSON.stringify(owner)), [allOkrs, owner]);
+  const { currentYear, currentPeriod } = useOkrStore();
+
+  const okrs = useMemo(() => 
+    allOkrs.filter(okr => 
+        JSON.stringify(okr.owner) === JSON.stringify(owner) &&
+        okr.year === currentYear &&
+        okr.period === currentPeriod
+    ), 
+    [allOkrs, owner, currentYear, currentPeriod]
+  );
 
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [editingOkr, setEditingOkr] = useState<Partial<OkrItem> | { parentId: string | null } | null>(null);
@@ -124,7 +132,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
             ) : (
               <div className="text-center py-12 px-6 bg-card rounded-xl">
                   <h3 className="text-xl font-medium text-card-foreground">No Objectives Yet</h3>
-                  <p className="text-muted-foreground mt-2 mb-4">Get started by adding your first objective.</p>
+                  <p className="text-muted-foreground mt-2 mb-4">Get started by adding your first objective for {currentYear} - {currentPeriod}.</p>
                   <Button onClick={() => handleOpenAddDialog({ parentId: null, type: 'objective' })}>Add Objective</Button>
               </div>
             )}

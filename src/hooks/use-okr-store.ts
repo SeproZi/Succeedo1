@@ -1,7 +1,9 @@
 'use client';
 
 import { create } from 'zustand';
-import type { AppData, Department, OkrItem, Team } from '@/lib/types';
+import type { AppData, Department, OkrItem, Team, TimelinePeriod } from '@/lib/types';
+
+const currentYear = new Date().getFullYear();
 
 const initialData: AppData = {
     departments: [
@@ -18,24 +20,28 @@ const initialData: AppData = {
     ],
     okrs: [
         // Engineering Department
-        { id: '1001', title: 'Foster a world-class engineering team', type: 'objective', progress: 0, parentId: null, pillar: 'People', priority: 'P1', owner: { type: 'department', id: '1' } },
-        { id: '1002', title: 'Hire 5 senior engineers', type: 'keyResult', progress: 40, parentId: '1001', notes: '2 frontend, 2 backend, 1 SRE', priority: 'P1', owner: { type: 'department', id: '1' } },
-        { id: '1003', title: 'Implement a new professional development plan', type: 'keyResult', progress: 80, parentId: '1001', notes: 'Mentorship program is live.', priority: 'P2', owner: { type: 'department', id: '1' } },
+        { id: '1001', title: 'Foster a world-class engineering team', type: 'objective', progress: 0, parentId: null, pillar: 'People', priority: 'P1', owner: { type: 'department', id: '1' }, year: currentYear, period: 'P1' },
+        { id: '1002', title: 'Hire 5 senior engineers', type: 'keyResult', progress: 40, parentId: '1001', notes: '2 frontend, 2 backend, 1 SRE', priority: 'P1', owner: { type: 'department', id: '1' }, year: currentYear, period: 'P1' },
+        { id: '1003', title: 'Implement a new professional development plan', type: 'keyResult', progress: 80, parentId: '1001', notes: 'Mentorship program is live.', priority: 'P2', owner: { type: 'department', id: '1' }, year: currentYear, period: 'P1' },
         
         // Platform Team
-        { id: '1101', title: 'Modernize Core Platform Technology', type: 'objective', progress: 0, parentId: null, pillar: 'Tech', priority: 'P3', owner: { type: 'team', id: '101', departmentId: '1' } },
-        { id: '1102', title: 'Migrate to a new cloud provider', type: 'keyResult', progress: 60, parentId: '1101', notes: 'AWS migration is 60% complete.', priority: 'P2', owner: { type: 'team', id: '101', departmentId: '1' } },
-        { id: '1103', title: 'Reduce API latency by 30%', type: 'keyResult', progress: 90, parentId: '1101', notes: '', priority: 'P1', owner: { type: 'team', id: '101', departmentId: '1' } },
+        { id: '1101', title: 'Modernize Core Platform Technology', type: 'objective', progress: 0, parentId: null, pillar: 'Tech', priority: 'P3', owner: { type: 'team', id: '101', departmentId: '1' }, year: currentYear, period: 'P2' },
+        { id: '1102', title: 'Migrate to a new cloud provider', type: 'keyResult', progress: 60, parentId: '1101', notes: 'AWS migration is 60% complete.', priority: 'P2', owner: { type: 'team', id: '101', departmentId: '1' }, year: currentYear, period: 'P2' },
+        { id: '1103', title: 'Reduce API latency by 30%', type: 'keyResult', progress: 90, parentId: '1101', notes: '', priority: 'P1', owner: { type: 'team', id: '101', departmentId: '1' }, year: currentYear, period: 'P2' },
 
         // Product Department
-        { id: '2001', title: 'Launch New Product Line', type: 'objective', progress: 0, parentId: null, pillar: 'Product', priority: 'P2', owner: { type: 'department', id: '2' } },
-        { id: '2002', title: 'Achieve $1M in revenue', type: 'keyResult', progress: 75, parentId: '2001', notes: 'Initial revenue target is for Q3.', priority: 'P1', owner: { type: 'department', id: '2' } },
+        { id: '2001', title: 'Launch New Product Line', type: 'objective', progress: 0, parentId: null, pillar: 'Product', priority: 'P2', owner: { type: 'department', id: '2' }, year: currentYear, period: 'P3' },
+        { id: '2002', title: 'Achieve $1M in revenue', type: 'keyResult', progress: 75, parentId: '2001', notes: 'Initial revenue target is for Q3.', priority: 'P1', owner: { type: 'department', id: '2' }, year: currentYear, period: 'P3' },
     ],
 };
 
 
 interface OkrState {
   data: AppData;
+  currentYear: number;
+  currentPeriod: TimelinePeriod;
+  setYear: (year: number) => void;
+  setPeriod: (period: TimelinePeriod) => void;
   addDepartment: (title: string) => void;
   updateDepartment: (id: string, title: string) => void;
   deleteDepartment: (id: string) => void;
@@ -51,6 +57,10 @@ interface OkrState {
 
 export const useOkrStore = create<OkrState>((set) => ({
     data: initialData,
+    currentYear: new Date().getFullYear(),
+    currentPeriod: 'P1',
+    setYear: (year) => set({ currentYear: year }),
+    setPeriod: (period) => set({ currentPeriod: period }),
     addDepartment: (title) => set(state => ({
         data: { ...state.data, departments: [...state.data.departments, { id: Date.now().toString(), title }] }
     })),

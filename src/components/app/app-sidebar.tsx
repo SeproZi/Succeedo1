@@ -14,7 +14,7 @@ import {
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { Building, Users, ChevronsRight, Plus, MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +36,7 @@ const Logo = () => (
 export function AppSidebar() {
     const { data, addDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam } = useOkrStore();
     const params = useParams();
+    const router = useRouter();
     const { id: departmentId, teamId } = params;
     const { state } = useSidebar();
     const isCollapsed = state === 'collapsed';
@@ -60,8 +61,21 @@ export function AppSidebar() {
     const handleDeleteTeam = (teamId: string, teamTitle: string) => {
         if (confirm(`Are you sure you want to delete the "${teamTitle}" team? This will also delete all of its OKRs.`)) {
             deleteTeam(teamId);
+            // If the current page is the team being deleted, redirect
+            if (params.teamId === teamId) {
+                router.push(`/department/${params.id}`);
+            }
         }
     };
+
+    const handleDeleteDepartment = (departmentId: string, departmentTitle: string) => {
+        if (confirm(`Are you sure you want to delete the "${departmentTitle}" department and all its teams? This is irreversible.`)) {
+            deleteDepartment(departmentId);
+             if (params.id === departmentId) {
+                router.push('/department/1');
+            }
+        }
+    }
 
     return (
         <>
@@ -107,7 +121,7 @@ export function AppSidebar() {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent>
                                                 <DropdownMenuItem onClick={() => handleAddTeam(dept.id)}>Add Team</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => deleteDepartment(dept.id)} className="text-destructive">Delete Department</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleDeleteDepartment(dept.id, dept.title)} className="text-destructive">Delete Department</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
