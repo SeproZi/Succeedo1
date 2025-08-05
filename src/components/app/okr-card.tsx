@@ -140,7 +140,7 @@ export function OkrCard({
                     variant={okr.progress === 100 ? "outline" : "default"}
                     size="sm"
                     onClick={handleMarkAsDone}
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground h-8 text-xs px-2"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground h-7 text-xs px-2"
                 >
                     <Check className="mr-1 h-3 w-3" />
                     {okr.progress === 100 ? 'Reset' : 'Mark as Done'}
