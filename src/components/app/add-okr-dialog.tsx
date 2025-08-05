@@ -30,9 +30,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Sparkles, Loader2 } from 'lucide-react';
-import type { OkrItem } from '@/lib/types';
+import type { OkrItem, OkrOwner, BaseItem } from '@/lib/types';
 import { suggestKeyResultsAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useOkrStore } from '@/hooks/use-okr-store';
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -47,21 +48,25 @@ const formSchema = z.object({
 type AddOkrDialogProps = {
   isOpen: boolean;
   setOpen: (isOpen: boolean) => void;
-  okrData: Partial<OkrItem> | { parentId: string | null } | null;
-  onSave: (data: z.infer<typeof formSchema>) => void;
-  objectives: OkrItem[];
+  okrData: Partial<OkrItem> | { parentId: string | null, owner: OkrOwner };
+  owner: OkrOwner;
 };
 
 export function AddOkrDialog({
   isOpen,
   setOpen,
   okrData,
-  onSave,
-  objectives,
+  owner,
 }: AddOkrDialogProps) {
   const isEditing = okrData && 'id' in okrData;
   const { toast } = useToast();
   const [isSuggesting, setIsSuggesting] = useState(false);
+  const { addOkr, updateOkr } = useOkrStore();
+
+  const objectives = useOkrStore(state => 
+    state.data.okrs.filter(okr => okr.type === 'objective' && JSON.stringify(okr.owner) === JSON.stringify(owner))
+  );
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -93,7 +98,13 @@ export function AddOkrDialog({
     if (values.type === 'objective') {
       values.parentId = null;
     }
-    onSave(values);
+    
+    if (isEditing && values.id) {
+        updateOkr(values.id, { ...values, owner });
+    } else {
+        addOkr({ ...values, owner });
+    }
+    
     setOpen(false);
   };
   
@@ -113,7 +124,8 @@ export function AddOkrDialog({
     }
     setIsSuggesting(true);
     try {
-        const suggestions = await suggestKeyResultsAction(objective);
+        const result = await suggestKeyResultsAction(objective.title);
+        const suggestions = result.keyResults;
         if (suggestions.length > 0) {
             form.setValue('title', suggestions[0]);
             toast({ title: "Suggestion applied!", description: "The first AI suggestion has been applied to the title." });

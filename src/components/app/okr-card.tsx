@@ -32,33 +32,29 @@ import type { OkrItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Slider } from '@/components/ui/slider';
+import { useOkrStore } from '@/hooks/use-okr-store';
 
 type OkrCardProps = {
   okr: OkrItem;
   allOkrs: OkrItem[];
   level: number;
-  onUpdateProgress: (id: string, progress: number) => void;
   onAddOrUpdate: (data: Partial<OkrItem> | { parentId: string | null }) => void;
-  onDelete: (id: string) => void;
-  onUpdateNotes: (id: string, notes: string) => void;
 };
 
 export function OkrCard({
   okr,
   allOkrs,
   level,
-  onUpdateProgress,
   onAddOrUpdate,
-  onDelete,
-  onUpdateNotes,
 }: OkrCardProps) {
+  const { deleteOkr, updateOkrNotes, updateOkrProgress } = useOkrStore();
   const isObjective = okr.type === 'objective';
   const children = allOkrs.filter(item => item.parentId === okr.id);
   const [notes, setNotes] = useState(okr.notes ?? '');
   const { toast } = useToast();
 
   const handleSaveNotes = () => {
-    onUpdateNotes(okr.id, notes);
+    updateOkrNotes(okr.id, notes);
     toast({
         title: "Notes Saved",
         description: "Your notes have been successfully saved.",
@@ -67,7 +63,7 @@ export function OkrCard({
 
   const handleMarkAsDone = () => {
     const newProgress = okr.progress === 100 ? 0 : 100;
-    onUpdateProgress(okr.id, newProgress);
+    updateOkrProgress(okr.id, newProgress);
     toast({
         title: `Key Result ${newProgress === 100 ? 'Completed' : 'Reset'}`,
         description: `Progress set to ${newProgress}%`,
@@ -115,7 +111,7 @@ export function OkrCard({
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => onDelete(okr.id)}
+                  onClick={() => deleteOkr(okr.id)}
                   className="text-destructive focus:text-destructive"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -131,7 +127,7 @@ export function OkrCard({
              <div className="flex items-center gap-4">
                 <Slider
                     value={[okr.progress]}
-                    onValueChange={(value) => onUpdateProgress(okr.id, value[0])}
+                    onValueChange={(value) => updateOkrProgress(okr.id, value[0])}
                     max={100}
                     step={1}
                     className="flex-1"
@@ -185,10 +181,7 @@ export function OkrCard({
               okr={child}
               allOkrs={allOkrs}
               level={level + 1}
-              onUpdateProgress={onUpdateProgress}
               onAddOrUpdate={onAddOrUpdate}
-              onDelete={onDelete}
-              onUpdateNotes={onUpdateNotes}
             />
           ))}
         </div>
@@ -199,7 +192,7 @@ export function OkrCard({
           <Button 
               variant="outline" 
               className="w-full border-dashed"
-              onClick={() => onAddOrUpdate({ parentId: okr.id, type: 'keyResult' })}
+              onClick={() => onAddOrUpdate({ parentId: okr.id })}
           >
               <Plus className="mr-2 h-4 w-4" />
               Add Key Result

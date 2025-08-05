@@ -1,0 +1,19 @@
+'use client';
+import { OkrDashboard } from '@/components/app/okr-dashboard';
+import { useOkrStore } from '@/hooks/use-okr-store';
+
+export default function DepartmentOkrPage({ params }: { params: { id: string }}) {
+    const department = useOkrStore(state => state.data.departments.find(d => d.id === params.id));
+
+    if (!department) {
+        return <div>Department not found.</div>;
+    }
+
+    return (
+        <OkrDashboard
+            owner={{ type: 'department', id: params.id }}
+            title={`${department.title} Department`}
+            showAddButton
+        />
+    );
+}

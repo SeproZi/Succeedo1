@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'Succeedo',
+  title: 'Succeedo by Proceedo',
   description: 'A modern OKR planning and tracking app.',
 };
 
