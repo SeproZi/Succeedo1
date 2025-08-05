@@ -1,3 +1,5 @@
+export type OkrPillar = 'People' | 'Product' | 'Tech';
+
 export type OkrItem = {
   id: string;
   title: string;
@@ -5,4 +7,5 @@ export type OkrItem = {
   progress: number;
   parentId: string | null;
   notes?: string;
+  pillar?: OkrPillar;
 };
