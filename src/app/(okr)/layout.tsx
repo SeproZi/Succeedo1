@@ -5,6 +5,7 @@ import {
   Sidebar,
   SidebarInset,
 } from '@/components/ui/sidebar';
+import { OkrDashboard } from '@/components/app/okr-dashboard';
 
 export default function OkrLayout({
   children,
@@ -13,13 +14,11 @@ export default function OkrLayout({
 }) {
   return (
     <SidebarProvider>
-      <Sidebar collapsible="icon">
+      <Sidebar>
         <AppSidebar />
       </Sidebar>
       <SidebarInset>
-        <div className="flex flex-col min-h-screen bg-background text-foreground">
-          <main className="flex-1">{children}</main>
-        </div>
+          {children}
       </SidebarInset>
     </SidebarProvider>
   );

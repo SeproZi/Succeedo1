@@ -67,7 +67,7 @@ export function AppSidebar() {
     return (
         <>
             <SidebarHeader className='p-4'>
-                <div className={cn("flex items-center justify-between", isCollapsed && 'justify-center')}>
+                <div className={cn("flex items-center", isCollapsed ? 'justify-center' : 'justify-between')}>
                     <div className={cn("flex items-center space-x-3", isCollapsed && 'space-x-0')}>
                         <div className="p-1 bg-background rounded-md">
                             <Logo />
