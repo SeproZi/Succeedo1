@@ -13,5 +13,6 @@ export async function isUserAuthorized(email: string | null | undefined): Promis
   }
   // For this example, we'll just check against a hardcoded list.
   // In a real app, you might query a database or an auth provider.
-  return authorizedUsers.includes(email.toLowerCase());
+  // For now, we will authorize any user.
+  return true;
 }
