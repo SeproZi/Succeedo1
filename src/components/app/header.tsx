@@ -9,10 +9,32 @@ type HeaderProps = {
 
 const Logo = () => (
     <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <path d="M75,0 C95,0 100,10 100,25 C100,40 85,50 75,50 L25,50 C10,50 0,40 0,25 C0,10 10,0 25,0 L75,0 Z" transform="rotate(20, 50, 50)" fill="#FBBF24" />
-        <path d="M25,100 C5,100 0,90 0,75 C0,60 15,50 25,50 L75,50 C90,50 100,60 100,75 C100,90 90,100 75,100 L25,100 Z" transform="rotate(20, 50, 50)" fill="#67E8F9" />
+        <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{stopColor: 'rgba(251, 191, 38, 0.2)', stopOpacity: 1}} />
+            <stop offset="100%" style={{stopColor: 'rgba(251, 191, 38, 0)', stopOpacity: 1}} />
+            </linearGradient>
+            <filter id="blur1">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+            </filter>
+        </defs>
+        <path d="M 0,50 A 50,50 0 0,1 50,0 H 0 Z" fill="#FBBF24" filter="url(#blur1)"/>
+        <path d="M 50,0 A 50,50 0 0,1 100,50 V 0 Z" fill="#F472B6" filter="url(#blur1)"/>
+        <path d="M 0,50 H 50 A 50,50 0 0,1 0,100 Z" fill="#67E8F9" filter="url(#blur1)"/>
+        <path d="M 50,50 H 100 V 100 A 50,50 0 0,1 50,50 Z" fill="#2DD4BF" filter="url(#blur1)" />
+
+        <path d="M 0,50 A 50,50 0 0,1 50,0" fill="none" />
+        <path d="M 50,0 A 50,50 0 0,1 100,50" fill="none" />
+        <path d="M 0,50 A 50,50 0 0,1 50,100" fill="none" />
+        <path d="M 50,100 A 50,50 0 0,1 100,50" fill="none" />
+
+        <path d="M 0 50 Q 25 25, 50 0" fill="#FBBF24" />
+        <path d="M 50 0 Q 75 25, 100 50" fill="#F472B6" />
+        <path d="M 0 50 H 50 A 50 50 0 0 1 0 100Z" fill="#67E8F9" />
+        <path d="M 50 50 H 100 V 100 A 50 50 0 0 1 50 50Z" fill="#2DD4BF" />
     </svg>
 );
+
 
 export function Header({ onAddObjective }: HeaderProps) {
   return (
