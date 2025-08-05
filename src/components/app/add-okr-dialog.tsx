@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,7 +29,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Sparkles, Loader2 } from 'lucide-react';
 import type { OkrItem } from '@/lib/types';
+import { suggestKeyResultsAction } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -38,6 +41,7 @@ const formSchema = z.object({
   parentId: z.string().nullable(),
   pillar: z.enum(['People', 'Product', 'Tech']).optional(),
   priority: z.enum(['P1', 'P2', 'P3']).optional(),
+  notes: z.string().optional(),
 });
 
 type AddOkrDialogProps = {
@@ -56,6 +60,8 @@ export function AddOkrDialog({
   objectives,
 }: AddOkrDialogProps) {
   const isEditing = okrData && 'id' in okrData;
+  const { toast } = useToast();
+  const [isSuggesting, setIsSuggesting] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,6 +71,7 @@ export function AddOkrDialog({
       parentId: okrData?.parentId || null,
       pillar: (isEditing && okrData.pillar) || undefined,
       priority: (isEditing && okrData.priority) || 'P3',
+      notes: (isEditing && okrData.notes) || '',
     },
   });
 
@@ -77,6 +84,7 @@ export function AddOkrDialog({
         parentId: okrData?.parentId || null,
         pillar: (okrData && 'pillar' in okrData && okrData.pillar) || undefined,
         priority: (okrData && 'priority' in okrData && okrData.priority) || 'P3',
+        notes: (okrData && 'notes' in okrData && okrData.notes) || '',
       });
     }
   }, [okrData, form]);
@@ -90,6 +98,35 @@ export function AddOkrDialog({
   };
   
   const type = form.watch('type');
+  const parentId = form.watch('parentId');
+
+  const handleSuggestKRs = async () => {
+    const objectiveId = parentId;
+    if (!objectiveId) {
+        toast({ title: "Error", description: "Please select a parent objective first.", variant: "destructive" });
+        return;
+    }
+    const objective = objectives.find(o => o.id === objectiveId);
+    if (!objective) {
+        toast({ title: "Error", description: "Parent objective not found.", variant: "destructive" });
+        return;
+    }
+    setIsSuggesting(true);
+    try {
+        const suggestions = await suggestKeyResultsAction(objective);
+        if (suggestions.length > 0) {
+            form.setValue('title', suggestions[0]);
+            toast({ title: "Suggestion applied!", description: "The first AI suggestion has been applied to the title." });
+        } else {
+            toast({ title: "No suggestions", description: "The AI couldn't find any suggestions." });
+        }
+    } catch (error) {
+        console.error(error);
+        toast({ title: "Error", description: "Failed to get AI suggestions.", variant: "destructive" });
+    } finally {
+        setIsSuggesting(false);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
@@ -146,30 +183,40 @@ export function AddOkrDialog({
             />
 
             {type === 'keyResult' && (
-              <FormField
-                control={form.control}
-                name="parentId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Parent Objective</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value ?? ''}>
-                      <FormControl>
-                        <SelectTrigger disabled={!!okrData?.parentId}>
-                          <SelectValue placeholder="Select a parent objective" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {objectives.map(obj => (
-                          <SelectItem key={obj.id} value={obj.id}>
-                            {obj.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <>
+                  <FormField
+                    control={form.control}
+                    name="parentId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Parent Objective</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value ?? ''}>
+                          <FormControl>
+                            <SelectTrigger disabled={!!okrData?.parentId}>
+                              <SelectValue placeholder="Select a parent objective" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {objectives.map(obj => (
+                              <SelectItem key={obj.id} value={obj.id}>
+                                {obj.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={handleSuggestKRs} disabled={isSuggesting || !parentId}>
+                    {isSuggesting ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Sparkles className="mr-2 h-4 w-4" />
+                    )}
+                    Suggest with AI
+                  </Button>
+                </>
             )}
             
             {type === 'objective' && (

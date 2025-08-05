@@ -18,7 +18,7 @@ const pillarDetails = {
 
 export function PillarProgress({ overall, pillarProgress }: PillarProgressProps) {
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-sm bg-card/80 backdrop-blur-sm">
       <CardContent className="p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-center gap-4 p-2 rounded-lg">
@@ -35,7 +35,7 @@ export function PillarProgress({ overall, pillarProgress }: PillarProgressProps)
             const details = pillarDetails[pillar];
             return (
               <div key={pillar} className="flex items-center gap-4 p-2 rounded-lg">
-                <div className={`${details.color}/10 ${details.color.replace('bg','text')} p-3 rounded-lg`}>
+                <div className={`bg-opacity-10 text-primary p-3 rounded-lg ${details.color}`}>
                     <details.icon className="h-6 w-6 text-white" />
                 </div>
                 <div>

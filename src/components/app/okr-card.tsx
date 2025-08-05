@@ -9,6 +9,7 @@ import {
   Trash2,
   Notebook,
   Check,
+  Sparkles,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -78,22 +79,18 @@ export function OkrCard({
   ) : (
     <CheckCircle2 className="h-6 w-6 text-green-500" />
   );
-
+  
   const priorityStyles = {
-    P1: 'bg-red-500/10 border-red-500/30 text-red-900 dark:text-red-100',
-    P2: 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-100',
+    P1: 'bg-red-500/10 border-red-500/30 text-red-700',
+    P2: 'bg-amber-500/10 border-amber-500/30 text-amber-700',
     P3: 'bg-card border-border',
   };
 
   return (
     <div style={{ marginLeft: level > 0 ? `${level * 1.5}rem` : '0' }}>
       <Card className={cn(
-        "overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border-l-4",
-        okr.priority && {
-            'P1': 'border-l-red-500',
-            'P2': 'border-l-amber-500',
-            'P3': 'border-l-transparent',
-        }[okr.priority]
+        "overflow-hidden shadow-sm hover:shadow-md transition-all duration-300",
+        okr.priority && priorityStyles[okr.priority]
       )}>
         <CardHeader className="flex flex-row items-center justify-between p-4 bg-transparent">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -103,9 +100,11 @@ export function OkrCard({
             </span>
           </div>
           <div className="flex items-center gap-4 ml-4">
-            <div className="w-32 hidden sm:block">
-              <Progress value={okr.progress} className="h-3" />
-            </div>
+             {okr.type === 'keyResult' && (
+                <div className="w-32 hidden sm:block">
+                    <Progress value={okr.progress} className="h-2" />
+                </div>
+             )}
             <span className="font-semibold text-primary w-12 text-right">
               {okr.progress}%
             </span>
@@ -142,9 +141,10 @@ export function OkrCard({
                     className="flex-1"
                 />
                 <Button 
-                    variant={okr.progress === 100 ? "secondary" : "default"}
+                    variant={okr.progress === 100 ? "outline" : "default"}
                     size="sm"
                     onClick={handleMarkAsDone}
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
                 >
                     <Check className="mr-2 h-4 w-4" />
                     {okr.progress === 100 ? 'Reset' : 'Mark as Done'}
@@ -164,10 +164,10 @@ export function OkrCard({
                             placeholder="Add your notes here..."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            className="min-h-[100px]"
+                            className="min-h-[100px] bg-background"
                         />
                         <div className="flex justify-end">
-                            <Button size="sm" onClick={handleSaveNotes}>Save Notes</Button>
+                            <Button size="sm" onClick={handleSaveNotes} className="bg-accent hover:bg-accent/90 text-accent-foreground">Save Notes</Button>
                         </div>
                     </div>
                 </AccordionContent>
@@ -175,7 +175,6 @@ export function OkrCard({
             </Accordion>
           </CardContent>
         )}
-      </Card>
       
       {children.length > 0 && (
         <div
@@ -200,15 +199,18 @@ export function OkrCard({
       )}
 
       {isObjective && (
-        <Button 
-            variant="outline" 
-            className="mt-4 w-full border-dashed"
-            onClick={() => onAddOrUpdate({ parentId: okr.id, type: 'keyResult' })}
-        >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Key Result
-        </Button>
+        <div className="p-4 pt-0">
+          <Button 
+              variant="outline" 
+              className="w-full border-dashed"
+              onClick={() => onAddOrUpdate({ parentId: okr.id, type: 'keyResult' })}
+          >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Key Result
+          </Button>
+        </div>
       )}
+      </Card>
     </div>
   );
 }

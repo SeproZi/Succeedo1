@@ -19,9 +19,9 @@ export function OkrGrid({ objectives, onGridItemClick }: OkrGridProps) {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
       {pillars.map(pillar => (
         <div key={pillar} className="space-y-4">
-          <Card className="bg-primary/10 border-primary/20 border">
+          <Card className="bg-primary/5 border-primary/10 border shadow-sm">
             <div className="p-3">
-              <h3 className="text-center text-lg font-bold tracking-wider text-primary">
+              <h3 className="text-center text-lg font-bold tracking-wider uppercase text-primary">
                 {pillar}
               </h3>
             </div>
@@ -40,9 +40,9 @@ export function OkrGrid({ objectives, onGridItemClick }: OkrGridProps) {
 }
 
 const priorityStyles: Record<OkrPriority, string> = {
-    P1: 'border-l-red-500',
-    P2: 'border-l-amber-500',
-    P3: 'border-l-transparent',
+    P1: 'bg-red-500/10 border-red-500/20',
+    P2: 'bg-amber-500/10 border-amber-500/20',
+    P3: 'bg-card border-border',
 };
 
 function GridItem({ item, onClick }: { item: OkrItem; onClick: (id: string) => void }) {
@@ -52,14 +52,14 @@ function GridItem({ item, onClick }: { item: OkrItem; onClick: (id: string) => v
   return (
     <Card
       className={cn(
-        "cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4",
+        "cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1",
         item.priority && priorityStyles[item.priority]
       )}
       onClick={() => onClick(item.id)}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-            <Icon className={`h-5 w-5 mt-0.5 ${isObjective ? 'text-primary' : 'text-amber-500'}`} />
+            <Icon className={`h-5 w-5 mt-0.5 ${isObjective ? 'text-primary' : 'text-accent'}`} />
             <div className="flex-1">
                 <p className="font-semibold text-card-foreground leading-tight">{item.title}</p>
                 <div className="flex items-center gap-2 mt-2">
