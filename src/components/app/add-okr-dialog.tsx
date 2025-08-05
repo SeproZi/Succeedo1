@@ -29,11 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, Plus } from 'lucide-react';
 import type { OkrItem, OkrOwner, BaseItem, TimelinePeriod } from '@/lib/types';
 import { suggestKeyResultsAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useOkrStore } from '@/hooks/use-okr-store';
+import { Separator } from '../ui/separator';
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -189,6 +190,13 @@ export function AddOkrDialog({
                           {availableYears.map(y => (
                             <SelectItem key={y} value={String(y)}>{y}</SelectItem>
                           ))}
+                          <Separator className="my-1" />
+                           <div className="p-2">
+                            <Button variant="outline" size="sm" className="w-full" disabled>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Year
+                            </Button>
+                           </div>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -351,3 +359,5 @@ export function AddOkrDialog({
     </Dialog>
   );
 }
+
+    

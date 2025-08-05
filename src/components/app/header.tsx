@@ -11,6 +11,8 @@ import {
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { SidebarTrigger } from '../ui/sidebar';
 import type { TimelinePeriod } from '@/lib/types';
+import { Plus } from 'lucide-react';
+import { Separator } from '../ui/separator';
 
 const availableYears = [
     new Date().getFullYear() -1,
@@ -42,6 +44,13 @@ export function Header({ title }: { title: string }) {
                     {availableYears.map(year => (
                         <SelectItem key={year} value={String(year)}>{year}</SelectItem>
                     ))}
+                    <Separator className="my-1" />
+                    <div className="p-2">
+                        <Button variant="outline" size="sm" className="w-full" disabled>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Year
+                        </Button>
+                    </div>
                 </SelectContent>
             </Select>
             <Select value={currentPeriod} onValueChange={(val) => setPeriod(val as TimelinePeriod)}>
@@ -60,3 +69,5 @@ export function Header({ title }: { title: string }) {
     </header>
   );
 }
+
+    
