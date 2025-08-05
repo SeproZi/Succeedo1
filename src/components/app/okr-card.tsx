@@ -33,6 +33,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Slider } from '@/components/ui/slider';
 import { useOkrStore } from '@/hooks/use-okr-store';
+import { AiSuggestionsDialog } from './ai-suggestions-dialog';
+import { suggestKeyResultsAction } from '@/lib/actions';
 
 type OkrCardProps = {
   okr: OkrItem;
@@ -47,10 +49,11 @@ export function OkrCard({
   level,
   onAddOrUpdate,
 }: OkrCardProps) {
-  const { deleteOkr, updateOkrNotes, updateOkrProgress } = useOkrStore();
+  const { deleteOkr, updateOkrNotes, updateOkrProgress, addOkr } = useOkrStore();
   const isObjective = okr.type === 'objective';
   const children = allOkrs.filter(item => item.parentId === okr.id);
   const [notes, setNotes] = useState(okr.notes ?? '');
+  const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
   const { toast } = useToast();
 
   const handleSaveNotes = () => {
@@ -70,6 +73,19 @@ export function OkrCard({
     });
   };
 
+  const handleAddKRFromSuggestion = (krTitle: string) => {
+    addOkr({
+      title: krTitle,
+      type: 'keyResult',
+      parentId: okr.id,
+      owner: okr.owner,
+      year: okr.year,
+      period: okr.period,
+      priority: 'P3'
+    });
+    setSuggestionsOpen(false);
+  };
+
   const icon = isObjective ? (
     <Target className="h-6 w-6 text-primary" />
   ) : (
@@ -77,6 +93,7 @@ export function OkrCard({
   );
   
   return (
+    <>
     <div style={{ marginLeft: level > 0 ? `${level * 1.5}rem` : '0' }}>
       <Card className="overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
         <CardHeader className="flex flex-row items-center justify-between p-4 bg-transparent">
@@ -110,6 +127,13 @@ export function OkrCard({
                 <DropdownMenuItem onClick={() => onAddOrUpdate(okr)}>
                   Edit
                 </DropdownMenuItem>
+                {isObjective && (
+                    <DropdownMenuItem onClick={() => setSuggestionsOpen(true)}>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Suggest KRs with AI
+                    </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => deleteOkr(okr.id)}
                   className="text-destructive focus:text-destructive"
@@ -201,5 +225,18 @@ export function OkrCard({
       )}
       </Card>
     </div>
+    {isObjective && isSuggestionsOpen && (
+        <AiSuggestionsDialog
+            isOpen={isSuggestionsOpen}
+            setOpen={setSuggestionsOpen}
+            objective={okr}
+            onAddKR={handleAddKRFromSuggestion}
+            suggestAction={async (objective: OkrItem) => {
+                const result = await suggestKeyResultsAction(objective.title);
+                return result.keyResults;
+            }}
+        />
+    )}
+    </>
   );
 }
