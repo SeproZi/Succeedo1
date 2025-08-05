@@ -8,6 +8,7 @@ import {
   Plus,
   Trash2,
   Notebook,
+  Sparkles,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -39,6 +40,7 @@ type OkrCardProps = {
   onAddOrUpdate: (data: Partial<OkrItem> | { parentId: string | null }) => void;
   onDelete: (id: string) => void;
   onUpdateNotes: (id: string, notes: string) => void;
+  onSuggestKRs?: (objective: OkrItem) => void;
 };
 
 export function OkrCard({
@@ -49,6 +51,7 @@ export function OkrCard({
   onAddOrUpdate,
   onDelete,
   onUpdateNotes,
+  onSuggestKRs,
 }: OkrCardProps) {
   const isObjective = okr.type === 'objective';
   const children = allOkrs.filter(item => item.parentId === okr.id);
@@ -104,9 +107,13 @@ export function OkrCard({
               <DropdownMenuContent align="end">
                 {isObjective && (
                   <>
+                     <DropdownMenuItem onClick={() => onSuggestKRs?.(okr)}>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      <span>Suggest KRs with AI</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onAddOrUpdate({ parentId: okr.id })}>
                       <Plus className="mr-2 h-4 w-4" />
-                      <span>Add Item</span>
+                      <span>Add Key Result</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>

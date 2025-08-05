@@ -6,6 +6,8 @@ import { PillarProgress } from '@/components/app/pillar-progress';
 import { OkrGrid } from '@/components/app/okr-grid';
 import { OkrCard } from '@/components/app/okr-card';
 import { AddOkrDialog } from '@/components/app/add-okr-dialog';
+import { AiSuggestionsDialog } from '@/components/app/ai-suggestions-dialog';
+import { suggestKeyResultsAction } from '@/lib/actions';
 import type { OkrItem, OkrPillar } from '@/lib/types';
 
 const initialData: OkrItem[] = [
@@ -30,6 +32,8 @@ export default function OkrDashboardPage() {
   const [okrs, setOkrs] = useState<OkrItem[]>(initialData);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [editingOkr, setEditingOkr] = useState<OkrItem | { parentId: string | null } | null>(null);
+  const [isSuggestDialogOpen, setSuggestDialogOpen] = useState(false);
+  const [suggestionTarget, setSuggestionTarget] = useState<OkrItem | null>(null);
 
   const okrCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -41,7 +45,6 @@ export default function OkrDashboardPage() {
       if (child.type === 'keyResult') {
         return sum + child.progress;
       }
-      // Note: This recursive call for sub-objectives is not used in the current flat structure, but good for future-proofing
       return sum + calculateProgress(child.id, allOkrs); 
     }, 0);
 
@@ -86,6 +89,11 @@ export default function OkrDashboardPage() {
     setAddDialogOpen(true);
   };
 
+  const handleOpenSuggestDialog = (objective: OkrItem) => {
+    setSuggestionTarget(objective);
+    setSuggestDialogOpen(true);
+  };
+
   const handleAddOrUpdateOkr = (data: Omit<OkrItem, 'progress' | 'id'> & { id?: string }) => {
     if ('id' in data && data.id) {
       // Update
@@ -126,6 +134,16 @@ export default function OkrDashboardPage() {
      }, 1000)
   };
 
+  const handleAddKRFromSuggestion = (krTitle: string) => {
+    if (suggestionTarget) {
+      handleAddOrUpdateOkr({
+        title: krTitle,
+        type: 'keyResult',
+        parentId: suggestionTarget.id,
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <Header onAddObjective={() => handleOpenAddDialog({ parentId: null, type: 'objective' })} />
@@ -162,6 +180,7 @@ export default function OkrDashboardPage() {
                       onAddOrUpdate={handleOpenAddDialog}
                       onDelete={handleDeleteOkr}
                       onUpdateNotes={handleUpdateNotes}
+                      onSuggestKRs={handleOpenSuggestDialog}
                     />
                  </div>
               ))
@@ -182,6 +201,16 @@ export default function OkrDashboardPage() {
           okrData={editingOkr}
           onSave={handleAddOrUpdateOkr}
           objectives={allObjectives}
+        />
+      )}
+      
+      {isSuggestDialogOpen && suggestionTarget && (
+        <AiSuggestionsDialog
+          isOpen={isSuggestDialogOpen}
+          setOpen={setSuggestDialogOpen}
+          objective={suggestionTarget}
+          onAddKR={handleAddKRFromSuggestion}
+          suggestAction={suggestKeyResultsAction}
         />
       )}
     </div>
