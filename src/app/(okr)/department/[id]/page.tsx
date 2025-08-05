@@ -1,6 +1,8 @@
 'use client';
 import { OkrDashboard } from '@/components/app/okr-dashboard';
 import { useOkrStore } from '@/hooks/use-okr-store';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 export default function DepartmentOkrPage({ params }: { params: { id: string }}) {
     const department = useOkrStore(state => state.data.departments.find(d => d.id === params.id));
@@ -13,7 +15,6 @@ export default function DepartmentOkrPage({ params }: { params: { id: string }})
         <OkrDashboard
             owner={{ type: 'department', id: params.id }}
             title={`${department.title} Department`}
-            showAddButton
         />
     );
 }

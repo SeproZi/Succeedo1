@@ -13,7 +13,6 @@ export default function TeamOkrPage({ params }: { params: { id: string; teamId: 
         <OkrDashboard
             owner={{ type: 'team', id: params.teamId, departmentId: params.id }}
             title={`${team.title} Team`}
-            showAddButton
         />
     );
 }

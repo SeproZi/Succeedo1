@@ -9,10 +9,11 @@ import {
     SidebarMenuSub,
     SidebarMenuSubItem,
     SidebarMenuSubButton,
-    useSidebar
+    useSidebar,
+    SidebarTrigger
 } from '@/components/ui/sidebar';
 import { useOkrStore } from '@/hooks/use-okr-store';
-import { Building, Users, ChevronsRight, Plus, MoreHorizontal } from 'lucide-react';
+import { Building, Users, ChevronsRight, Plus, MoreHorizontal, PanelLeft, PanelRight } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -22,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 
 const Logo = () => (
     <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -36,7 +38,8 @@ export function AppSidebar() {
     const { data, addDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam } = useOkrStore();
     const params = useParams();
     const { id: departmentId, teamId } = params;
-    const { state } = useSidebar();
+    const { state, toggleSidebar } = useSidebar();
+    const isCollapsed = state === 'collapsed';
 
     const handleAddDepartment = () => {
         const title = prompt('Enter department name:');
@@ -64,18 +67,25 @@ export function AppSidebar() {
     return (
         <>
             <SidebarHeader className='p-4'>
-                <div className="flex items-center space-x-3">
-                    <div className="p-1 bg-background rounded-md">
-                        <Logo />
+                <div className={cn("flex items-center justify-between", isCollapsed && 'justify-center')}>
+                    <div className={cn("flex items-center space-x-3", isCollapsed && 'space-x-0')}>
+                        <div className="p-1 bg-background rounded-md">
+                            <Logo />
+                        </div>
+                       {!isCollapsed && (
+                         <div>
+                            <h1 className="text-2xl font-bold font-headline text-sidebar-primary-foreground">
+                               Succeedo
+                            </h1>
+                            <p className="text-xs text-sidebar-foreground/70 -mt-1">powered by Proceedo</p>
+                        </div>
+                       )}
                     </div>
-                   {state === 'expanded' && (
-                     <div>
-                        <h1 className="text-2xl font-bold font-headline text-sidebar-primary-foreground">
-                           Succeedo
-                        </h1>
-                        <p className="text-xs text-sidebar-foreground/70 -mt-1">powered by Proceedo</p>
-                    </div>
-                   )}
+                    {!isCollapsed && (
+                         <Button variant="ghost" size="icon" onClick={toggleSidebar} className='h-7 w-7'>
+                            <PanelLeft/>
+                         </Button>
+                    )}
                 </div>
             </SidebarHeader>
             <SidebarContent>

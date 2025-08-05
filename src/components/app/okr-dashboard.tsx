@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef } from 'react';
-import { Header } from '@/components/app/header';
 import { PillarProgress } from '@/components/app/pillar-progress';
 import { OkrGrid } from '@/components/app/okr-grid';
 import { OkrCard } from '@/components/app/okr-card';
@@ -9,14 +8,15 @@ import { AddOkrDialog } from '@/components/app/add-okr-dialog';
 import type { OkrItem, OkrPillar, OkrOwner } from '@/lib/types';
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { useSidebar } from '../ui/sidebar';
 
 type OkrDashboardProps = {
     owner: OkrOwner;
     title: string;
-    showAddButton: boolean;
 };
 
-export function OkrDashboard({ owner, title, showAddButton }: OkrDashboardProps) {
+export function OkrDashboard({ owner, title }: OkrDashboardProps) {
   const allOkrs = useOkrStore(state => state.data.okrs);
   const okrs = useMemo(() => allOkrs.filter(okr => JSON.stringify(okr.owner) === JSON.stringify(owner)), [allOkrs, owner]);
 
@@ -86,12 +86,15 @@ export function OkrDashboard({ owner, title, showAddButton }: OkrDashboardProps)
 
   return (
     <>
-      <Header 
-        title={title}
-        showAddButton={showAddButton}
-        onAddObjective={() => handleOpenAddDialog({ parentId: null, type: 'objective' })} 
-      />
-      <div className="space-y-8 mt-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-8">
+        <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold font-headline text-primary">{title}</h1>
+            <Button onClick={() => handleOpenAddDialog({ parentId: null, type: 'objective' })}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Objective
+            </Button>
+        </div>
+
         <div className="mb-8">
             <PillarProgress overall={overallProgress} pillarProgress={pillarProgress} />
         </div>
