@@ -1,17 +1,16 @@
 'use client';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useAuth } from '@/components/app/auth-provider';
 
 export default function HomePage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace('/department/1');
-  }, [router]);
+  const { loading } = useAuth();
 
   return (
     <div className="flex h-screen items-center justify-center bg-background">
-      <p className="text-muted-foreground">Redirecting to your dashboard...</p>
+      {loading ? (
+        <p className="text-muted-foreground">Loading...</p>
+      ) : (
+        <p className="text-muted-foreground">Redirecting to login...</p>
+      )}
     </div>
   );
 }

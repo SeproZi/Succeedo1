@@ -1,5 +1,6 @@
 'use client';
 import { AppSidebar } from '@/components/app/app-sidebar';
+import { AuthProvider } from '@/components/app/auth-provider';
 import {
   SidebarProvider,
   Sidebar,
@@ -13,14 +14,16 @@ export default function OkrLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
-      <Sidebar collapsible="icon">
-        <AppSidebar />
-        <SidebarToggleButton />
-      </Sidebar>
-      <SidebarInset>
-          {children}
-      </SidebarInset>
-    </SidebarProvider>
+    <AuthProvider>
+        <SidebarProvider>
+            <Sidebar collapsible="icon">
+                <AppSidebar />
+                <SidebarToggleButton />
+            </Sidebar>
+            <SidebarInset>
+                {children}
+            </SidebarInset>
+        </SidebarProvider>
+    </AuthProvider>
   );
 }
