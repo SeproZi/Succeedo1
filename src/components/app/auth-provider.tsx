@@ -2,7 +2,7 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useOkrStore } from '@/hooks/use-okr-store';
-import { User, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { User, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { checkUser } from '@/ai/flows/check-user';
 
@@ -12,7 +12,6 @@ interface AuthContextType {
   error: string | null;
   signUpWithEmailPassword: (email: string, password: string) => Promise<void>;
   loginWithEmailPassword: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   logout: () => void;
 }
@@ -79,37 +78,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithGoogle = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-
-        if (user.email) {
-            const { authorized } = await checkUser(user.email);
-            if (!authorized) {
-                await user.delete(); // Delete the newly created user
-                await auth.signOut(); // Sign out the unauthorized user
-                throw new Error('Email address not authorized.');
-            }
-            setAuthorizedUser(user);
-        } else {
-             throw new Error('Could not retrieve email from Google account.');
-        }
-
-    } catch (err: any) {
-        console.error(err);
-        setError(err.message);
-        // Ensure user is signed out on error
-        await auth.signOut();
-        setAuthorizedUser(null);
-    } finally {
-        setLoading(false);
-    }
-  };
-
   const sendPasswordReset = async (email: string) => {
       return sendPasswordResetEmail(auth, email);
   }
@@ -126,7 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     signUpWithEmailPassword,
     loginWithEmailPassword,
-    loginWithGoogle,
     sendPasswordReset,
     logout,
   };
