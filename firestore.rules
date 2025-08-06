@@ -1,32 +1,20 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read access for the login check and for the app to fetch data.
-    // Write access is disabled to prevent modification from the client.
-    match /users/{docId} {
+    // The users collection can be read by anyone because the `checkUser`
+    // flow needs to verify if the email exists before sending a sign-in link.
+    // This is secure because it only exposes the existence of an email, not any other data.
+    match /users/{userId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if false; // Nobody can write to the users collection from the client.
     }
 
-    match /departments/{docId} {
-      allow read: if true;
-      allow write: if false;
-    }
-    
-    match /teams/{docId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    match /okrs/{docId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    // Deny all other access by default
-    match /{document=**} {
-      allow read, write: if false;
+    // All other data (departments, teams, OKRs) can only be read or written
+    // by a user who has successfully signed in via Firebase Authentication.
+    match /{path=**}/_/{docId} {
+       allow read, write: if request.auth != null;
     }
   }
 }

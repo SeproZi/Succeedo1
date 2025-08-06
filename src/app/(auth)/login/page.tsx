@@ -7,15 +7,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/components/app/auth-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
+import { Terminal, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const { loginWithEmail, loading, error } = useAuth();
   const [email, setEmail] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await loginWithEmail(email);
+    if (!error) {
+      setEmailSent(true);
+    }
   };
 
   return (
@@ -33,27 +37,35 @@ export default function LoginPage() {
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={loading}
-                />
-              </div>
-              <Button 
-                  type="submit"
-                  className="w-full" 
-                  disabled={loading}
-              >
-                  {loading ? 'Signing in...' : 'Sign In'}
-              </Button>
-            </form>
+            {emailSent && !error ? (
+                <Alert>
+                    <Mail className="h-4 w-4" />
+                    <AlertTitle>Check your email</AlertTitle>
+                    <AlertDescription>A sign-in link has been sent to your email address.</AlertDescription>
+                </Alert>
+            ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+                  <Button 
+                      type="submit"
+                      className="w-full" 
+                      disabled={loading}
+                  >
+                      {loading ? 'Sending link...' : 'Send Sign-In Link'}
+                  </Button>
+                </form>
+            )}
         </CardContent>
       </Card>
     </div>

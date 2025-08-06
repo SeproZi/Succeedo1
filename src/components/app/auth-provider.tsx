@@ -1,12 +1,14 @@
 
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useOkrStore } from '@/hooks/use-okr-store';
+import { Auth, User, getAuth, isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from 'firebase/auth';
+import { auth, actionCodeSettings } from '@/lib/firebase';
 import { checkUser } from '@/ai/flows/check-user';
 
 interface AuthContextType {
-  authorizedEmail: string | null; 
+  authorizedUser: User | null; 
   loading: boolean;
   error: string | null;
   loginWithEmail: (email: string) => Promise<void>;
@@ -15,27 +17,50 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTHORIZED_EMAIL_KEY = 'authorizedEmail';
+const USER_EMAIL_KEY = 'emailForSignIn';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authorizedEmail, setAuthorizedEmail] = useState<string | null>(null);
+  const [authorizedUser, setAuthorizedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { initData, clearData, data } = useOkrStore();
 
   useEffect(() => {
-    const storedEmail = localStorage.getItem(AUTHORIZED_EMAIL_KEY);
-    if (storedEmail) {
-      setAuthorizedEmail(storedEmail);
-    }
-    setLoading(false);
+    const handleSignIn = async () => {
+        if (isSignInWithEmailLink(auth, window.location.href)) {
+            let email = window.localStorage.getItem(USER_EMAIL_KEY);
+            if (!email) {
+                email = window.prompt('Please provide your email for confirmation');
+            }
+            if(email) {
+                setLoading(true);
+                try {
+                    const { user } = await signInWithEmailLink(auth, email, window.location.href);
+                    setAuthorizedUser(user);
+                    window.localStorage.removeItem(USER_EMAIL_KEY);
+                } catch(err: any) {
+                    console.error(err);
+                    setError("Failed to sign in with email link. " + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            }
+        } else {
+             const unsubscribe = auth.onAuthStateChanged(user => {
+                setAuthorizedUser(user);
+                setLoading(false);
+            });
+            return () => unsubscribe();
+        }
+    };
+    handleSignIn();
   }, []);
 
   useEffect(() => {
-    if (authorizedEmail && data.departments.length === 0) {
+    if (authorizedUser && data.departments.length === 0) {
       initData();
     }
-  }, [authorizedEmail, initData, data.departments.length]);
+  }, [authorizedUser, initData, data.departments.length]);
 
 
   const loginWithEmail = async (email: string) => {
@@ -46,11 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await checkUser({ email: email.toLowerCase() });
 
         if (!response.isAuthorized) {
-            setError("Your email is not authorized to access this application.");
-        } else {
-            setAuthorizedEmail(email);
-            localStorage.setItem(AUTHORIZED_EMAIL_KEY, email);
+            setError("Your email is not authorized for this application.");
+            setLoading(false);
+            return;
         }
+        await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+        window.localStorage.setItem(USER_EMAIL_KEY, email);
+        setError(null);
     } catch (err: any) {
         console.error(err);
         setError("An error occurred during login: " + err.message);
@@ -59,14 +86,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem(AUTHORIZED_EMAIL_KEY);
-    setAuthorizedEmail(null);
+  const logout = async () => {
+    await auth.signOut();
+    setAuthorizedUser(null);
     clearData();
   };
 
   const value = {
-    authorizedEmail,
+    authorizedUser,
     loading,
     error,
     loginWithEmail,
