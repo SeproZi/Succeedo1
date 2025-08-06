@@ -61,6 +61,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
   const okrsWithCalculatedProgress = useMemo(() => {
     return okrs.map(okr => {
       if (okr.type === 'objective') {
+        // Pass the full `okrs` list to `calculateProgress`
         return { ...okr, progress: calculateProgress(okr.id, okrs) };
       }
       return okr;
