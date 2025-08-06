@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.externals.push('handlebars');
+    return config;
+  }
 };
 
 export default nextConfig;
