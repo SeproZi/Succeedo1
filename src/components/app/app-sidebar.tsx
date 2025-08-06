@@ -165,13 +165,15 @@ export function AppSidebar() {
                 <SidebarMenu>
                      <SidebarMenuItem>
                         <Link href="/company-overview" passHref>
-                            <SidebarMenuButton 
+                            <SidebarMenuButton
                                 asChild
                                 isActive={pathname === '/company-overview'}
                                 tooltip="Company Overview"
                             >
-                                <LayoutGrid />
-                                <span>Company Overview</span>
+                                <>
+                                    <LayoutGrid />
+                                    <span>Company Overview</span>
+                                </>
                             </SidebarMenuButton>
                         </Link>
                     </SidebarMenuItem>
@@ -187,8 +189,10 @@ export function AppSidebar() {
                                             isActive={departmentId === dept.id && !teamId}
                                             tooltip={dept.title}
                                         >
-                                            <Building />
-                                            <span>{dept.title}</span>
+                                            <>
+                                                <Building />
+                                                <span>{dept.title}</span>
+                                            </>
                                         </SidebarMenuButton>
                                     </Link>
                                     <div className="absolute right-1 top-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity">
