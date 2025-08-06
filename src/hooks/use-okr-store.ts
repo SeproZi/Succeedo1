@@ -62,11 +62,8 @@ const initialState = {
 const useOkrStoreImpl = create<OkrState>((set, get) => ({
     ...initialState,
     initData: async () => {
+        set({ loading: true });
         try {
-            // Avoid re-fetching if data is already present for the current user
-            if (!get().loading && get().data.departments.length > 0) return;
-
-            set({ loading: true });
             const departmentsSnapshot = await getDocs(collection(db, "departments"));
             const departments = departmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department)).sort((a,b) => a.title.localeCompare(b.title));
 
@@ -312,3 +309,5 @@ export const useOkrStore = (selector?: (state: OkrState) => any) => {
 };
 
 useOkrStore.getState = useOkrStoreImpl.getState;
+
+    
