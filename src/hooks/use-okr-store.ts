@@ -230,13 +230,19 @@ const useOkrStore = create<OkrState>((set, get) => ({
         const user = auth.currentUser;
         if (!user) return;
         try {
-            const newOkrData: Omit<Omit<OkrItem, 'id'>, 'progress'> & { progress: number } = { ...okr, progress: 0 };
+            const newOkrData: Omit<OkrItem, 'id' | 'progress'> & { progress: number } = { ...okr, progress: 0 };
             
+            // This is the key change: remove any `undefined` fields and the `id` field before saving.
             Object.keys(newOkrData).forEach(key => {
-                if (newOkrData[key as keyof typeof newOkrData] === undefined) {
-                    delete newOkrData[key as keyof typeof newOkrData];
+                const K = key as keyof typeof newOkrData;
+                if (newOkrData[K] === undefined) {
+                    delete newOkrData[K];
                 }
             });
+            if ('id' in newOkrData) {
+                delete (newOkrData as any).id;
+            }
+
 
             const docRef = await addDoc(collection(db, 'okrs'), newOkrData);
             set(state => ({
