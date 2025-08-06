@@ -26,6 +26,8 @@ import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from './auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useState } from 'react';
+import { AddDepartmentDialog } from './add-department-dialog';
 
 const Logo = () => (
     <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -44,12 +46,17 @@ export function AppSidebar() {
     const { state } = useSidebar();
     const isCollapsed = state === 'collapsed';
     const { user, signOutUser } = useAuth();
+    const [isAddDepartmentOpen, setAddDepartmentOpen] = useState(false);
 
-    const handleAddDepartment = () => {
-        const title = prompt('Enter department name:');
-        if (title) addDepartment(title);
+    const handleSaveDepartment = (title: string) => {
+        if (title) {
+            const newId = Date.now().toString();
+            addDepartment(title, newId);
+            setAddDepartmentOpen(false);
+            router.push(`/department/${newId}`);
+        }
     };
-
+    
     const handleAddTeam = (deptId: string) => {
         const title = prompt('Enter team name:');
         if (title) addTeam(title, deptId);
@@ -76,7 +83,14 @@ export function AppSidebar() {
         if (confirm(`Are you sure you want to delete the "${departmentTitle}" department and all its teams? This is irreversible.`)) {
             deleteDepartment(departmentId);
              if (params.id === departmentId) {
-                router.push('/department/1');
+                if (data.departments.length > 1) {
+                    const nextDept = data.departments.find(d => d.id !== departmentId);
+                    if (nextDept) {
+                        router.push(`/department/${nextDept.id}`);
+                    }
+                } else {
+                    router.push('/department/new');
+                }
             }
         }
     }
@@ -162,7 +176,7 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarContent>
             <SidebarFooter>
-                <Button variant="ghost" className="w-full justify-start" onClick={handleAddDepartment}>
+                <Button variant="ghost" className="w-full justify-start" onClick={() => setAddDepartmentOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     {state === 'expanded' && <span>Add Department</span>}
                 </Button>
@@ -188,6 +202,13 @@ export function AppSidebar() {
                     </div>
                 )}
             </SidebarFooter>
+             <AddDepartmentDialog 
+                isOpen={isAddDepartmentOpen}
+                setOpen={setAddDepartmentOpen}
+                onSave={handleSaveDepartment}
+                title="Create a New Department"
+                description="Give your new department a name. You can add teams to it later."
+            />
         </>
     );
 }
