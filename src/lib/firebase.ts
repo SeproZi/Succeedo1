@@ -7,12 +7,12 @@ import { getFirestore } from "firebase/firestore";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-// IMPORTANT: Replace this with your actual Firebase project configuration
+// IMPORTANT: This configuration is now corrected with your project's details.
 const firebaseConfig = {
   apiKey: "AIzaSyDNTbT-SuOATom7t5e8c0ygZjMSiaf9aGo",
   authDomain: "test-prcas-cm.firebaseapp.com",
   projectId: "test-prcas-cm",
-  storageBucket: "test-prcas-cm.firebasestorage.app",
+  storageBucket: "test-prcas-cm.appspot.com",
   messagingSenderId: "926638638358",
   appId: "1:926638638358:web:b48e457a61780649f7bc37",
   measurementId: "G-LT26RP9GXH"
