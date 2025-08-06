@@ -33,10 +33,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (authorizedUser && data.departments.length === 0) {
-      initData();
+    if (authorizedUser) {
+      if (data.departments.length === 0 && data.teams.length === 0 && data.okrs.length === 0) {
+        initData();
+      }
     }
-  }, [authorizedUser, initData, data.departments.length]);
+  }, [authorizedUser, initData, data]);
 
 
   const signUpWithEmailPassword = async (email: string, password:string) => {
