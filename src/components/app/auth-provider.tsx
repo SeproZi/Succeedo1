@@ -3,29 +3,10 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { User } from 'firebase/auth';
-import { isUserAuthorized } from '@/lib/user-service';
+import { User, onAuthStateChanged, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { useOkrStore } from '@/hooks/use-okr-store';
-
-// Mock user object for email-only auth
-const createMockUser = (email: string): User => ({
-  uid: email,
-  email: email,
-  displayName: email.split('@')[0],
-  photoURL: null,
-  emailVerified: true,
-  isAnonymous: false,
-  metadata: {},
-  providerData: [],
-  providerId: 'password',
-  tenantId: null,
-  delete: async () => {},
-  getIdToken: async () => '',
-  getIdTokenResult: async () => ({ token: '', expirationTime: '', authTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null, claims: {} }),
-  reload: async () => {},
-  toJSON: () => ({}),
-});
-
+import { isUserAuthorized } from '@/lib/user-service';
 
 interface AuthContextType {
   user: User | null;
@@ -46,20 +27,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data, initData, loading: storeLoading } = useOkrStore();
 
   useEffect(() => {
-    const checkAuthAndFetchData = async () => {
-        const storedEmail = localStorage.getItem('userEmail');
-        if (storedEmail) {
-            const mockUser = createMockUser(storedEmail);
-            setUser(mockUser);
-            await initData();
-        } else {
-            if (pathname !== '/login') {
-                router.replace('/login');
-            }
+    // Handle email link sign-in
+    const handleEmailLinkSignIn = async () => {
+      if (isSignInWithEmailLink(auth, window.location.href)) {
+        let email = window.localStorage.getItem('emailForSignIn');
+        if (!email) {
+          email = window.prompt('Please provide your email for confirmation');
         }
-        setLoading(false);
+        if (email) {
+          try {
+            await signInWithEmailLink(auth, email, window.location.href);
+            window.localStorage.removeItem('emailForSignIn');
+            // Clean the URL
+            window.history.replaceState(null, '', window.location.pathname);
+          } catch (err: any) {
+            setError(err.message);
+          }
+        } else {
+            setError("Email is required to complete sign-in.");
+        }
+      }
     };
-    checkAuthAndFetchData();
+
+    handleEmailLinkSignIn();
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUser(user);
+        await initData();
+      } else {
+        setUser(null);
+        if (pathname !== '/login') {
+            router.replace('/login');
+        }
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -72,35 +77,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
        }
     }
-  }, [loading, storeLoading, user, data.departments, pathname, router])
-
+  }, [loading, storeLoading, user, data.departments, pathname, router]);
 
   const signInWithEmail = async (email: string) => {
     setError(null);
     setLoading(true);
-    const authorized = await isUserAuthorized(email);
-    if (authorized) {
-      const mockUser = createMockUser(email);
-      localStorage.setItem('userEmail', email);
-      setUser(mockUser);
-      await initData(); // This will also trigger the second useEffect
-    } else {
-      setError('This email address is not authorized.');
+    try {
+      const authorized = await isUserAuthorized(email);
+      if (!authorized) {
+          throw new Error('This email address is not authorized.');
+      }
+      
+      const actionCodeSettings = {
+        url: window.location.origin,
+        handleCodeInApp: true,
+      };
+
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      window.localStorage.setItem('emailForSignIn', email);
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
 
-
   const signOutUser = async () => {
-    localStorage.removeItem('userEmail');
+    await auth.signOut();
     setUser(null);
     router.replace('/login');
   };
   
-  if (loading && pathname !== '/login') {
+  if (loading || (!user && pathname !== '/login')) {
     return (
         <div className="flex h-screen items-center justify-center bg-background">
-            <p className="text-muted-foreground">Loading authentication...</p>
+            <p className="text-muted-foreground">Loading...</p>
         </div>
     );
   }
