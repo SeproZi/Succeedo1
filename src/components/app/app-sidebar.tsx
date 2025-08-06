@@ -13,7 +13,7 @@ import {
     SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { useOkrStore } from '@/hooks/use-okr-store';
-import { Building, Users, ChevronsRight, Plus, MoreHorizontal, LogOut } from 'lucide-react';
+import { Building, Users, ChevronsRight, Plus, MoreHorizontal, LogOut, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -160,6 +160,18 @@ export function AppSidebar() {
             </SidebarHeader>
             <SidebarContent>
                 <SidebarMenu>
+                     <SidebarMenuItem>
+                        <Link href="/company-overview">
+                            <SidebarMenuButton 
+                                isActive={router.pathname === '/company-overview'}
+                                tooltip="Company Overview"
+                            >
+                                <LayoutGrid />
+                                <span>Company Overview</span>
+                            </SidebarMenuButton>
+                        </Link>
+                    </SidebarMenuItem>
+                    <SidebarSeparator />
                     {data.departments.map(dept => {
                         const teams = data.teams.filter(t => t.departmentId === dept.id);
                         return (
