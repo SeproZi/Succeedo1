@@ -8,15 +8,41 @@ import { useAuth } from '@/components/app/auth-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 function LoginForm() {
-  const { loginWithEmailPassword, loading, error } = useAuth();
+  const { loginWithEmailPassword, sendPasswordReset, loading, error } = useAuth();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await loginWithEmailPassword(email, password);
+  };
+  
+  const handlePasswordReset = async () => {
+    if (!email) {
+        toast({
+            title: "Email Required",
+            description: "Please enter your email address to reset your password.",
+            variant: "destructive",
+        });
+        return;
+    }
+    try {
+        await sendPasswordReset(email);
+        toast({
+            title: "Password Reset Email Sent",
+            description: "Check your inbox for a link to reset your password.",
+        });
+    } catch (err: any) {
+        toast({
+            title: "Error",
+            description: err.message,
+            variant: "destructive",
+        });
+    }
   };
 
   return (
@@ -34,7 +60,17 @@ function LoginForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password-login">Password</Label>
+        <div className="flex items-center justify-between">
+            <Label htmlFor="password-login">Password</Label>
+            <Button 
+              type="button"
+              variant="link"
+              className="p-0 h-auto text-xs"
+              onClick={handlePasswordReset}
+            >
+                Forgot Password?
+            </Button>
+        </div>
         <Input
           id="password-login"
           type="password"

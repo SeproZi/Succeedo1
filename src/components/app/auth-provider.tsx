@@ -2,7 +2,7 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useOkrStore } from '@/hooks/use-okr-store';
-import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { User, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 interface AuthContextType {
@@ -11,6 +11,7 @@ interface AuthContextType {
   error: string | null;
   signUpWithEmailPassword: (email: string, password: string) => Promise<void>;
   loginWithEmailPassword: (email: string, password: string) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -69,6 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const sendPasswordReset = async (email: string) => {
+      return sendPasswordResetEmail(auth, email);
+  }
+
   const logout = async () => {
     await auth.signOut();
     setAuthorizedUser(null);
@@ -81,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     signUpWithEmailPassword,
     loginWithEmailPassword,
+    sendPasswordReset,
     logout,
   };
 
