@@ -32,6 +32,7 @@ import { AddTeamDialog } from './add-team-dialog';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { EditTeamDialog } from './edit-team-dialog';
 import { EditDepartmentDialog } from './edit-department-dialog';
+import { useAuth } from './auth-provider';
 
 const Logo = () => (
     <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -44,6 +45,7 @@ const Logo = () => (
 
 export function AppSidebar() {
     const { data, addDepartment, updateDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam } = useOkrStore();
+    const { logout } = useAuth();
     const params = useParams();
     const router = useRouter();
     const pathname = usePathname();
@@ -240,6 +242,10 @@ export function AppSidebar() {
                     {state === 'expanded' && <span>Add Department</span>}
                 </Button>
                 <SidebarSeparator />
+                <Button variant="ghost" className="w-full justify-start" onClick={logout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                     {state === 'expanded' && <span>Log Out</span>}
+                </Button>
             </SidebarFooter>
             <AddDepartmentDialog 
                 isOpen={isAddDepartmentOpen}

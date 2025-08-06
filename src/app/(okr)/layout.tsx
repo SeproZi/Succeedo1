@@ -16,16 +16,16 @@ export default function OkrLayout({
 }: {
   children: React.ReactNode;
 }) {
-    const { user, loading } = useAuth();
+    const { authorizedEmail, loading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading && !user) {
+        if (!loading && !authorizedEmail) {
             router.replace('/login');
         }
-    }, [user, loading, router]);
+    }, [authorizedEmail, loading, router]);
 
-    if (loading || !user) {
+    if (loading || !authorizedEmail) {
         return (
             <div className="flex h-screen items-center justify-center">
                 <p>Loading...</p>

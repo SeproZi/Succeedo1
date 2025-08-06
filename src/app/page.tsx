@@ -6,20 +6,20 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 function HomePage() {
-  const { user, loading } = useAuth();
+  const { authorizedEmail, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading) {
-      if (user) {
-        // If user is logged in, redirect to the company overview page
+      if (authorizedEmail) {
+        // If user is "logged in", redirect to the company overview page
         router.replace('/company-overview');
       } else {
-        // If user is not logged in, redirect to login page
+        // If user is not "logged in", redirect to login page
         router.replace('/login');
       }
     }
-  }, [user, loading, router]);
+  }, [authorizedEmail, loading, router]);
 
   // You can show a loading spinner here while the redirect is happening
   return (
