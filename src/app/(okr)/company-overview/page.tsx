@@ -5,6 +5,7 @@ import { PillarProgress } from '@/components/app/pillar-progress';
 import type { OkrItem, OkrPillar } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import { Progress } from '@/components/ui/progress';
 
 export default function CompanyOverviewPage() {
     const { data: { okrs, departments } } = useOkrStore();
@@ -105,7 +106,11 @@ export default function CompanyOverviewPage() {
                                     <CardTitle className="text-xl font-headline">{dept.title}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <PillarProgress overall={dept.progress} pillarProgress={dept.pillarProgress} />
+                                    <div className="flex items-center gap-4">
+                                        <p className="text-sm font-medium text-muted-foreground whitespace-nowrap">Overall Progress</p>
+                                        <Progress value={dept.progress} className="h-2.5" />
+                                        <p className="text-lg font-bold text-primary">{dept.progress}%</p>
+                                    </div>
                                 </CardContent>
                             </Card>
                         </Link>
