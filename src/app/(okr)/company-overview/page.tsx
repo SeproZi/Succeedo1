@@ -2,14 +2,32 @@
 import { useMemo, useCallback } from 'react';
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { PillarProgress } from '@/components/app/pillar-progress';
-import type { OkrItem, OkrPillar } from '@/lib/types';
+import type { OkrItem, OkrPillar, TimelinePeriod } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CompanyOverviewPage() {
-    const { data: { okrs, departments } } = useOkrStore();
+    const { 
+        data: { okrs, departments },
+        currentYear,
+        currentPeriod,
+        setYear,
+        setPeriod,
+        availableYears,
+        addYear
+    } = useOkrStore();
+    const { toast } = useToast();
     const pillars: OkrPillar[] = ['People', 'Product', 'Tech'];
+
+    const filteredOkrs = useMemo(() => {
+        return okrs.filter(okr => okr.year === currentYear && okr.period === currentPeriod);
+    }, [okrs, currentYear, currentPeriod]);
 
     const calculateProgress = useCallback((okrId: string, allItems: OkrItem[]): number => {
         const children = allItems.filter(okr => okr.parentId === okrId);
@@ -19,13 +37,13 @@ export default function CompanyOverviewPage() {
     }, []);
 
     const okrsWithCalculatedProgress = useMemo(() => {
-        return okrs.map(okr => {
+        return filteredOkrs.map(okr => {
             if (okr.type === 'objective') {
-                return { ...okr, progress: calculateProgress(okr.id, okrs) };
+                return { ...okr, progress: calculateProgress(okr.id, filteredOkrs) };
             }
             return okr;
         });
-    }, [okrs, calculateProgress]);
+    }, [filteredOkrs, calculateProgress]);
 
     const companyPillarProgress = useMemo(() => {
         const objectives = okrsWithCalculatedProgress.filter(okr => okr.type === 'objective');
@@ -81,10 +99,54 @@ export default function CompanyOverviewPage() {
         });
     }, [departments, okrsWithCalculatedProgress, pillars]);
 
+  const handleAddYear = () => {
+    const newYearString = prompt('Enter the year to add:');
+    if (newYearString) {
+        const newYear = parseInt(newYearString, 10);
+        if (!isNaN(newYear) && newYear > 2000) {
+            addYear(newYear);
+            toast({ title: "Year Added", description: `Year ${newYear} has been added.`});
+        } else {
+            toast({ title: "Invalid Year", description: "Please enter a valid year.", variant: "destructive"});
+        }
+    }
+  };
+
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
-        <h1 className="text-3xl font-bold font-headline text-primary">Company Overview</h1>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+            <h1 className="text-3xl font-bold font-headline text-primary">Company Overview</h1>
+            <div className="flex flex-wrap items-center gap-4">
+                <Select value={String(currentYear)} onValueChange={(val) => setYear(Number(val))}>
+                    <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableYears.map(year => (
+                            <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                        ))}
+                        <Separator className="my-1" />
+                        <div className="p-2">
+                            <Button variant="outline" size="sm" className="w-full" onClick={handleAddYear}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Year
+                            </Button>
+                        </div>
+                    </SelectContent>
+                </Select>
+                <Select value={currentPeriod} onValueChange={(val) => setPeriod(val as TimelinePeriod)}>
+                    <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="P1">Period 1</SelectItem>
+                        <SelectItem value="P2">Period 2</SelectItem>
+                        <SelectItem value="P3">Period 3</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
 
         <Card className="shadow-md">
             <CardHeader>
