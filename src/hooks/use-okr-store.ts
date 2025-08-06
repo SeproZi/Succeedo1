@@ -289,25 +289,19 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
     },
 }));
 
+// This effect will run once, setting up the auth listener.
+auth.onAuthStateChanged(user => {
+    if (user) {
+        useOkrStoreImpl.getState().initData();
+    } else {
+        useOkrStoreImpl.getState().clearData();
+    }
+});
+
 
 export const useOkrStore = (selector?: (state: OkrState) => any) => {
     const state = useOkrStoreImpl(selector);
-    const { initData, clearData, loading } = useOkrStoreImpl();
-
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(user => {
-            if (user) {
-                initData();
-            } else {
-                clearData();
-            }
-        });
-        return () => unsubscribe();
-    }, [initData, clearData]);
-
     return state;
 };
 
 useOkrStore.getState = useOkrStoreImpl.getState;
-
-    
