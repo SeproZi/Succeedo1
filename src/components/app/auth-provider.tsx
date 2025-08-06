@@ -4,6 +4,7 @@ import { createContext, useContext, ReactNode, useState, useEffect } from 'react
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { User, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { checkUser } from '@/ai/flows/check-user';
 
 interface AuthContextType {
   authorizedUser: User | null; 
@@ -42,6 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
+      // First, check if the user is in the authorized list
+      const { authorized } = await checkUser(email);
+      if (!authorized) {
+        throw new Error('Email address not authorized for sign-up.');
+      }
+
+      // If authorized, proceed with creating the user
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       setAuthorizedUser(user);
     } catch (err: any) {

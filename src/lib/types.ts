@@ -48,3 +48,13 @@ export const SuggestKeyResultsOutputSchema = z.object({
     keyResults: z.array(z.string()).describe('An array of 3-5 suggested key results.'),
 });
 export type SuggestKeyResultsOutput = z.infer<typeof SuggestKeyResultsOutputSchema>;
+
+export const CheckUserInputSchema = z.object({
+    email: z.string().email().describe('The email address to check.'),
+});
+export type CheckUserInput = z.infer<typeof CheckUserInputSchema>;
+
+export const CheckUserOutputSchema = z.object({
+    authorized: z.boolean().describe('Whether the user is authorized.'),
+});
+export type CheckUserOutput = z.infer<typeof CheckUserOutputSchema>;
