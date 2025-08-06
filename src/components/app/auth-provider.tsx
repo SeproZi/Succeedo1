@@ -29,15 +29,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data, initData, loading: storeLoading, clearData } = useOkrStore();
 
   useEffect(() => {
-    // 2. Handle the sign-in link when the user clicks it
+    // Handle the sign-in link when the user clicks it
     const handleEmailLinkSignIn = async () => {
         if (isSignInWithEmailLink(auth, window.location.href)) {
             let email = window.localStorage.getItem('emailForSignIn');
             if (!email) {
-                // User opened the link on a different device. To prevent session fixation
-                // attacks, ask the user to provide the email again.
                 email = window.prompt('Please provide your email for confirmation');
-                if (!email) {
+                 if (!email) {
                     setError("Sign-in failed. Email is required to complete the sign-in process.");
                     setLoading(false);
                     router.replace('/login');
@@ -46,10 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
             setLoading(true);
             try {
-                // The onAuthStateChanged observer will handle the user state update
-                // and navigation automatically upon successful sign-in.
-                await firebaseSignInWithEmailLink(auth, email, window.location.href);
+                const result = await firebaseSignInWithEmailLink(auth, email, window.location.href);
+                // onAuthStateChanged will handle the rest
                 window.localStorage.removeItem('emailForSignIn');
+
             } catch (err: any) {
                 console.error("Firebase sign-in error:", err);
                 setError(`Failed to sign in. The link may be invalid or expired. (Error: ${err.code})`);
@@ -66,9 +64,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       setSuccessMessage(null);
       if (user) {
-        setUser(user);
-        await initData();
-        
+        const authorized = await isUserAuthorized(user.email);
+        if (authorized) {
+            setUser(user);
+            await initData();
+        } else {
+            setUser(null);
+            clearData();
+            setError("Your email is not authorized to access this application.");
+            await signOut(auth); // Sign out unauthorized user
+            router.replace('/login');
+        }
       } else {
         setUser(null);
         clearData();
@@ -102,16 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     
     try {
-        const authorized = await isUserAuthorized(email);
-        if (!authorized) {
-            setError("Your email is not authorized to access this application.");
-            setLoading(false);
-            return;
-        }
-
         const actionCodeSettings = {
-            // URL to redirect back to.
-            // This URL must be in the authorized domains list in the Firebase Console.
             url: window.location.origin + '/login',
             handleCodeInApp: true,
         };
