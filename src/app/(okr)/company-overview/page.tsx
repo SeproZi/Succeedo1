@@ -1,4 +1,3 @@
-
 'use client';
 import { useMemo, useCallback } from 'react';
 import useOkrStore from '@/hooks/use-okr-store';
@@ -12,10 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CompanyOverviewPage() {
     const { 
         data: { okrs, departments },
+        loading,
         currentYear,
         currentPeriod,
         setYear,
@@ -113,6 +114,28 @@ export default function CompanyOverviewPage() {
     }
   };
 
+  if (loading) {
+    return (
+        <div className="p-4 sm:p-6 lg:p-8 space-y-8">
+             <div className="flex flex-wrap items-center justify-between gap-4">
+                <Skeleton className="h-9 w-64" />
+                <div className="flex flex-wrap items-center gap-4">
+                    <Skeleton className="h-10 w-[120px]" />
+                    <Skeleton className="h-10 w-[120px]" />
+                </div>
+            </div>
+            <Skeleton className="h-[120px] w-full" />
+            <div className="space-y-6">
+                <Skeleton className="h-8 w-56" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Skeleton className="h-[120px] w-full" />
+                    <Skeleton className="h-[120px] w-full" />
+                </div>
+            </div>
+        </div>
+    )
+  }
+
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
@@ -189,3 +212,5 @@ export default function CompanyOverviewPage() {
     </div>
   );
 }
+
+    

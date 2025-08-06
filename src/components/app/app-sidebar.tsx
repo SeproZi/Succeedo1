@@ -1,4 +1,3 @@
-
 'use client';
 import {
     SidebarContent,
@@ -12,6 +11,7 @@ import {
     SidebarMenuSubButton,
     useSidebar,
     SidebarSeparator,
+    SidebarMenuSkeleton,
 } from '@/components/ui/sidebar';
 import useOkrStore from '@/hooks/use-okr-store';
 import { Building, Users, ChevronsRight, Plus, MoreHorizontal, LogOut, LayoutGrid } from 'lucide-react';
@@ -182,7 +182,13 @@ export function AppSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarSeparator />
-                    {data.departments.map(dept => {
+                     {loading && (
+                        <div className="p-2 space-y-2">
+                           <SidebarMenuSkeleton showIcon />
+                           <SidebarMenuSkeleton showIcon />
+                        </div>
+                     )}
+                    {!loading && data.departments.map(dept => {
                         const teams = data.teams.filter(t => t.departmentId === dept.id);
                         return (
                             <SidebarMenuItem key={dept.id}>
@@ -300,3 +306,5 @@ export function AppSidebar() {
         </>
     );
 }
+
+    

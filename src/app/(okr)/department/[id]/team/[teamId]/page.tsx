@@ -1,4 +1,3 @@
-
 'use client';
 import { OkrDashboard } from '@/components/app/okr-dashboard';
 import useOkrStore from '@/hooks/use-okr-store';
@@ -8,10 +7,20 @@ export default function TeamOkrPage() {
     const params = useParams();
     const id = params.id as string;
     const teamId = params.teamId as string;
-    const team = useOkrStore(state => state.data.teams.find(t => t.id === teamId && t.departmentId === id));
+    const { data: { teams }, loading } = useOkrStore();
+    const team = teams.find(t => t.id === teamId && t.departmentId === id);
+
+    if (loading) {
+        return (
+             <OkrDashboard
+                owner={{ type: 'team', id: teamId, departmentId: id }}
+                title="Loading..."
+            />
+        )
+    }
 
     if (!team) {
-        return <div>Team not found.</div>;
+        return <div className="p-8">Team not found.</div>;
     }
 
     return (
@@ -21,3 +30,5 @@ export default function TeamOkrPage() {
         />
     );
 }
+
+    

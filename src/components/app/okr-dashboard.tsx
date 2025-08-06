@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useCallback, useRef } from 'react';
@@ -14,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Separator } from '../ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { SidebarTrigger } from '../ui/sidebar';
+import { Skeleton } from '../ui/skeleton';
 
 type OkrDashboardProps = {
     owner: OkrOwner;
@@ -23,6 +23,7 @@ type OkrDashboardProps = {
 export function OkrDashboard({ owner, title }: OkrDashboardProps) {
   const { 
     data: { okrs: allOkrs }, 
+    loading,
     currentYear, 
     currentPeriod, 
     setYear, 
@@ -117,6 +118,31 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
         }
     }
   };
+  
+  if (loading) {
+    return (
+        <div className="p-4 sm:p-6 lg:p-8 space-y-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Skeleton className="h-9 w-9 md:hidden" />
+                    <Skeleton className="h-9 w-48" />
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                    <Skeleton className="h-10 w-[120px]" />
+                    <Skeleton className="h-10 w-[120px]" />
+                    <Skeleton className="h-10 w-36" />
+                </div>
+            </div>
+             <Skeleton className="h-[96px] w-full" />
+             <Skeleton className="h-[200px] w-full" />
+             <div className="space-y-6">
+                <Skeleton className="h-9 w-64" />
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+             </div>
+        </div>
+    )
+  }
 
   return (
     <>
@@ -209,3 +235,5 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     </>
   );
 }
+
+    
