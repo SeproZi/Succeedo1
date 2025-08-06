@@ -1,3 +1,4 @@
+
 'use client';
 import {
     SidebarContent,
@@ -62,18 +63,19 @@ export function AppSidebar() {
     const [itemToDelete, setItemToDelete] = useState<{id: string; title: string; type: 'department' | 'team'} | null>(null);
 
 
-    const handleSaveDepartment = (title: string) => {
+    const handleSaveDepartment = async (title: string) => {
         if (title) {
-            const newId = Date.now().toString();
-            addDepartment(title, newId);
+            const newId = await addDepartment(title);
             setAddDepartmentOpen(false);
-            router.push(`/department/${newId}`);
+            if (newId) {
+                router.push(`/department/${newId}`);
+            }
         }
     };
     
-    const handleSaveTeam = (title: string) => {
+    const handleSaveTeam = async (title: string) => {
         if (title && selectedDepartment) {
-            addTeam(title, selectedDepartment);
+            await addTeam(title, selectedDepartment);
             setAddTeamOpen(false);
             setSelectedDepartment(null);
         }
@@ -102,24 +104,24 @@ export function AppSidebar() {
         }
     };
 
-    const handleSaveEdit = (newTitle: string) => {
+    const handleSaveEdit = async (newTitle: string) => {
         if (!itemToEdit) return;
 
         if (itemToEdit.type === 'department') {
-            updateDepartment(itemToEdit.id, newTitle);
+            await updateDepartment(itemToEdit.id, newTitle);
         } else {
-            updateTeam(itemToEdit.id, newTitle);
+            await updateTeam(itemToEdit.id, newTitle);
         }
         setEditTeamOpen(false);
         setEditDeptOpen(false);
         setItemToEdit(null);
     };
 
-    const confirmDelete = () => {
+    const confirmDelete = async () => {
         if (!itemToDelete) return;
 
         if (itemToDelete.type === 'department') {
-            deleteDepartment(itemToDelete.id);
+            await deleteDepartment(itemToDelete.id);
             if (params.id === itemToDelete.id) {
                 const nextDept = data.departments.find(d => d.id !== itemToDelete.id);
                 if (nextDept) {
@@ -129,7 +131,7 @@ export function AppSidebar() {
                 }
             }
         } else if (itemToDelete.type === 'team') {
-            deleteTeam(itemToDelete.id);
+            await deleteTeam(itemToDelete.id);
             if (params.teamId === itemToDelete.id) {
                 router.push(`/department/${params.id}`);
             }

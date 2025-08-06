@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -42,30 +43,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
-  const { data } = useOkrStore();
+  const { data, initData, loading: storeLoading } = useOkrStore();
 
   useEffect(() => {
-    const storedEmail = localStorage.getItem('userEmail');
-    if (storedEmail) {
-        const mockUser = createMockUser(storedEmail);
-        setUser(mockUser);
-        if (pathname === '/login' || pathname === '/') {
+    const checkAuthAndFetchData = async () => {
+        const storedEmail = localStorage.getItem('userEmail');
+        if (storedEmail) {
+            const mockUser = createMockUser(storedEmail);
+            setUser(mockUser);
+            await initData();
+        } else {
+            if (pathname !== '/login') {
+                router.replace('/login');
+            }
+        }
+        setLoading(false);
+    };
+    checkAuthAndFetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !storeLoading && user) {
+       if (pathname === '/login' || pathname === '/') {
             if (data.departments.length > 0) {
               router.replace(`/department/${data.departments[0].id}`);
             } else {
-              // Handle case with no departments, maybe a welcome page or dashboard home
-              // For now, let's create a placeholder page or redirect to a safe spot
-              router.replace('/department/new'); // Or some other appropriate route
+              router.replace('/department/new');
             }
-        }
-    } else {
-        if (pathname !== '/login') {
-            router.replace('/login');
-        }
+       }
     }
-    setLoading(false);
+  }, [loading, storeLoading, user, data.departments, pathname, router])
 
-  }, [router, pathname, data.departments]);
 
   const signInWithEmail = async (email: string) => {
     setError(null);
@@ -75,15 +83,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const mockUser = createMockUser(email);
       localStorage.setItem('userEmail', email);
       setUser(mockUser);
-      if (data.departments.length > 0) {
-        router.replace(`/department/${data.departments[0].id}`);
-      } else {
-        router.replace('/department/new'); 
-      }
+      await initData(); // This will also trigger the second useEffect
     } else {
       setError('This email address is not authorized.');
+      setLoading(false);
     }
-    setLoading(false);
   };
 
 
