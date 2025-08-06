@@ -70,7 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // The onAuthStateChanged listener will handle setting the user and initializing data.
     } catch (err: any)      {
       console.error(err);
-      setError('Invalid email or password.');
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        setError('Invalid email or password. Please try again.');
+      } else {
+        setError('An unexpected error occurred. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }
