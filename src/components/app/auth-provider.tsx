@@ -36,20 +36,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (!email) {
                 // User opened the link on a different device. To prevent session fixation
                 // attacks, ask the user to provide the email again.
-                // For simplicity, we'll show an error. A real app would have a form.
-                setError("Sign-in link used on a different device or browser. Please try signing in again.");
-                setLoading(false);
-                router.replace('/login');
-                return;
+                email = window.prompt('Please provide your email for confirmation');
+                if (!email) {
+                    setError("Sign-in failed. Email is required to complete the sign-in process.");
+                    setLoading(false);
+                    router.replace('/login');
+                    return;
+                }
             }
             setLoading(true);
             try {
-                const result = await firebaseSignInWithEmailLink(auth, email, window.location.href);
-                window.localStorage.removeItem('emailForSignIn');
                 // The onAuthStateChanged observer will handle the user state update
-            } catch (err) {
-                console.error(err);
-                setError("Failed to sign in. The link may be invalid or expired.");
+                // and navigation automatically upon successful sign-in.
+                await firebaseSignInWithEmailLink(auth, email, window.location.href);
+                window.localStorage.removeItem('emailForSignIn');
+            } catch (err: any) {
+                console.error("Firebase sign-in error:", err);
+                setError(`Failed to sign in. The link may be invalid or expired. (Error: ${err.code})`);
                 setLoading(false);
                 router.replace('/login');
             }
@@ -69,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setUser(null);
         clearData();
-        if (pathname !== '/login') {
+        if (pathname !== '/login' && !isSignInWithEmailLink(auth, window.location.href)) {
             router.replace('/login');
         }
       }
@@ -77,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [initData, clearData, pathname, router]);
 
 
   useEffect(() => {
@@ -98,25 +101,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSuccessMessage(null);
     setLoading(true);
     
-    // 1. Check if the user is in the database
-    const authorized = await isUserAuthorized(email);
-    if (!authorized) {
-        setError("Your email is not authorized to access this application.");
-        setLoading(false);
-        return;
-    }
-
     try {
-      const actionCodeSettings = {
-        url: window.location.origin, // URL to redirect back to
-        handleCodeInApp: true,
-      };
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-      window.localStorage.setItem('emailForSignIn', email); // Store email
-      setSuccessMessage(`A sign-in link has been sent to ${email}. Please check your inbox.`);
-    } catch (err) {
-      console.error(err);
-      setError("An error occurred. Could not send sign-in link.");
+        const authorized = await isUserAuthorized(email);
+        if (!authorized) {
+            setError("Your email is not authorized to access this application.");
+            setLoading(false);
+            return;
+        }
+
+        const actionCodeSettings = {
+            // URL to redirect back to.
+            // This URL must be in the authorized domains list in the Firebase Console.
+            url: window.location.origin + '/login',
+            handleCodeInApp: true,
+        };
+        await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+        window.localStorage.setItem('emailForSignIn', email);
+        setSuccessMessage(`A sign-in link has been sent to ${email}. Please check your inbox.`);
+    } catch (err: any) {
+        console.error("Sign-in initiation error:", err);
+        setError(`An error occurred. Could not send sign-in link. (Error: ${err.code})`);
     } finally {
         setLoading(false);
     }
@@ -124,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOutUser = async () => {
     await signOut(auth);
-    // onAuthStateChanged will handle redirection to /login
+    // onAuthStateChanged will handle clearing data and redirection to /login
   };
   
   // This handles the initial page load and sign-in link processing
