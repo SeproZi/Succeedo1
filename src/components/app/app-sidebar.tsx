@@ -30,6 +30,7 @@ import { useState } from 'react';
 import { AddDepartmentDialog } from './add-department-dialog';
 import { AddTeamDialog } from './add-team-dialog';
 import { ConfirmationDialog } from './confirmation-dialog';
+import { EditTeamDialog } from './edit-team-dialog';
 
 const Logo = () => (
     <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -52,8 +53,10 @@ export function AppSidebar() {
     const [isAddTeamOpen, setAddTeamOpen] = useState(false);
     const [isDeleteDeptOpen, setDeleteDeptOpen] = useState(false);
     const [isDeleteTeamOpen, setDeleteTeamOpen] = useState(false);
+    const [isEditTeamOpen, setEditTeamOpen] = useState(false);
 
     const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+    const [itemToEdit, setItemToEdit] = useState<{id: string, title: string} | null>(null);
     const [itemToDelete, setItemToDelete] = useState<{id: string; title: string; type: 'department' | 'team'} | null>(null);
 
 
@@ -88,11 +91,17 @@ export function AppSidebar() {
         }
     };
     
-    const handleEditTeam = (teamId: string, currentTitle: string) => {
-        const title = prompt('Enter new team name:', currentTitle);
-        if (title && title !== currentTitle) {
-            updateTeam(teamId, title);
+    const openEditTeamDialog = (team: {id: string, title: string}) => {
+        setItemToEdit(team);
+        setEditTeamOpen(true);
+    };
+
+    const handleSaveTeamEdit = (newTitle: string) => {
+        if (itemToEdit && newTitle) {
+            updateTeam(itemToEdit.id, newTitle);
         }
+        setEditTeamOpen(false);
+        setItemToEdit(null);
     };
 
     const confirmDelete = () => {
@@ -186,7 +195,7 @@ export function AppSidebar() {
                                                           </Button>
                                                       </DropdownMenuTrigger>
                                                       <DropdownMenuContent>
-                                                          <DropdownMenuItem onClick={() => handleEditTeam(team.id, team.title)}>Edit Team</DropdownMenuItem>
+                                                          <DropdownMenuItem onClick={() => openEditTeamDialog(team)}>Edit Team</DropdownMenuItem>
                                                           <DropdownMenuItem onClick={() => openDeleteDialog(team.id, team.title, 'team')} className="text-destructive">Delete Team</DropdownMenuItem>
                                                       </DropdownMenuContent>
                                                   </DropdownMenu>
@@ -239,6 +248,14 @@ export function AppSidebar() {
                 setOpen={setAddTeamOpen}
                 onSave={handleSaveTeam}
             />
+            {itemToEdit && (
+                <EditTeamDialog
+                    isOpen={isEditTeamOpen}
+                    setOpen={setEditTeamOpen}
+                    onSave={handleSaveTeamEdit}
+                    currentTitle={itemToEdit.title}
+                />
+            )}
             <ConfirmationDialog
                 isOpen={isDeleteDeptOpen}
                 setOpen={setDeleteDeptOpen}
