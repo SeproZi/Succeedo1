@@ -20,7 +20,7 @@ interface OkrState {
   addYear: (year: number) => void;
   setYear: (year: number) => void;
   setPeriod: (period: TimelinePeriod) => void;
-  addDepartment: (title: string) => void;
+  addDepartment: (title: string, id: string) => void;
   updateDepartment: (id: string, title: string) => void;
   deleteDepartment: (id: string) => void;
   addTeam: (title: string, departmentId: string) => void;
@@ -55,8 +55,8 @@ export const useOkrStore = create<OkrState>((set) => ({
     }),
     setYear: (year) => set({ currentYear: year }),
     setPeriod: (period) => set({ currentPeriod: period }),
-    addDepartment: (title) => set(state => ({
-        data: { ...state.data, departments: [...state.data.departments, { id: Date.now().toString(), title }] }
+    addDepartment: (title, id) => set(state => ({
+        data: { ...state.data, departments: [...state.data.departments, { id, title }] }
     })),
     updateDepartment: (id, title) => set(state => ({
         data: { ...state.data, departments: state.data.departments.map(d => d.id === id ? { ...d, title } : d) }
