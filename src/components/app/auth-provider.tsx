@@ -1,4 +1,3 @@
-
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -71,16 +70,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [authInitialized, loading, storeLoading, user, data.departments, pathname, router]);
 
   const signInWithGoogle = async () => {
-    setError(null);
     setLoading(true);
+    setError(null);
     const provider = new GoogleAuthProvider();
     try {
-        await signInWithPopup(auth, provider);
-        // onAuthStateChanged will handle the rest of the logic
+      await signInWithPopup(auth, provider);
+      // onAuthStateChanged will handle routing and data loading.
     } catch (err: any) {
-        console.error("Google sign-in error:", err);
-        setError(`Failed to sign in. (Error: ${err.code})`);
-        setLoading(false);
+      console.error("Google sign-in error:", err);
+      // Let Firebase's popup show the error, but still update state
+      setError("Failed to sign in. See console or popup for details.");
+      setLoading(false);
     }
   };
 
