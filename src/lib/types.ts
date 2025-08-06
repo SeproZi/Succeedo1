@@ -8,7 +8,6 @@ export type TimelinePeriod = 'P1' | 'P2' | 'P3';
 export interface BaseItem {
     id: string;
     title: string;
-    uid: string;
 }
 
 export interface Department extends BaseItem {}

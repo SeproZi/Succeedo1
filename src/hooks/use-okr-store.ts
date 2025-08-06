@@ -33,7 +33,7 @@ interface OkrState {
   addTeam: (title: string, departmentId: string) => Promise<void>;
   updateTeam: (id: string, title: string) => Promise<void>;
   deleteTeam: (id: string) => Promise<void>;
-  addOkr: (okr: Omit<OkrItem, 'id' | 'progress' | 'uid'>) => Promise<void>;
+  addOkr: (okr: Omit<OkrItem, 'id' | 'progress'>) => Promise<void>;
   updateOkr: (id: string, updates: Partial<Omit<OkrItem, 'id'>>) => Promise<void>;
   deleteOkr: (id: string) => Promise<void>;
   updateOkrProgress: (id: string, progress: number) => Promise<void>;
@@ -65,15 +65,13 @@ const useOkrStore = create<OkrState>((set, get) => ({
         if (user) {
             set({ loading: true });
             try {
-                const userQuery = where('uid', '==', user.uid);
-
-                const departmentsSnapshot = await getDocs(query(collection(db, "departments"), userQuery));
+                const departmentsSnapshot = await getDocs(query(collection(db, "departments")));
                 const departments = departmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department)).sort((a,b) => a.title.localeCompare(b.title));
 
-                const teamsSnapshot = await getDocs(query(collection(db, "teams"), userQuery));
+                const teamsSnapshot = await getDocs(query(collection(db, "teams")));
                 const teams = teamsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team)).sort((a,b) => a.title.localeCompare(b.title));
                 
-                const okrsSnapshot = await getDocs(query(collection(db, 'okrs'), userQuery));
+                const okrsSnapshot = await getDocs(query(collection(db, 'okrs')));
                 const okrs = okrsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OkrItem));
 
                 const newData = { departments, teams, okrs };
@@ -99,14 +97,14 @@ const useOkrStore = create<OkrState>((set, get) => ({
         try {
             if (id) {
                 // This path is for initial department creation on a new account, which doesn't need a DB write yet.
-                const newDepartment: Department = { id, title, uid: user.uid };
+                const newDepartment: Department = { id, title };
                  set(state => ({
                     data: { ...state.data, departments: [...state.data.departments, newDepartment].sort((a,b) => a.title.localeCompare(b.title)) }
                 }));
                 return id;
             }
-            const docRef = await addDoc(collection(db, 'departments'), { title, uid: user.uid });
-            const newDepartment: Department = { id: docRef.id, title, uid: user.uid };
+            const docRef = await addDoc(collection(db, 'departments'), { title });
+            const newDepartment: Department = { id: docRef.id, title };
             set(state => ({
                 data: { ...state.data, departments: [...state.data.departments, newDepartment].sort((a,b) => a.title.localeCompare(b.title)) }
             }));
@@ -137,18 +135,17 @@ const useOkrStore = create<OkrState>((set, get) => ({
             const deptRef = doc(db, 'departments', id);
             batch.delete(deptRef);
 
-            const teamsQuery = query(collection(db, 'teams'), where('departmentId', '==', id), where('uid', '==', user.uid));
+            const teamsQuery = query(collection(db, 'teams'), where('departmentId', '==', id));
             const teamsSnapshot = await getDocs(teamsQuery);
             const teamIds = teamsSnapshot.docs.map(d => d.id);
             teamsSnapshot.forEach(doc => batch.delete(doc.ref));
 
-            const okrBaseQuery = query(collection(db, 'okrs'), where('uid', '==', user.uid));
-            const deptOkrsQuery = query(okrBaseQuery, where('owner.type', '==', 'department'), where('owner.id', '==', id));
+            const deptOkrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'department'), where('owner.id', '==', id));
             const deptOkrsSnapshot = await getDocs(deptOkrsQuery);
             deptOkrsSnapshot.forEach(doc => batch.delete(doc.ref));
 
             if (teamIds.length > 0) {
-                const teamOkrsQuery = query(okrBaseQuery, where('owner.type', '==', 'team'), where('owner.id', 'in', teamIds));
+                const teamOkrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'team'), where('owner.id', 'in', teamIds));
                 const teamOkrsSnapshot = await getDocs(teamOkrsQuery);
                 teamOkrsSnapshot.forEach(doc => batch.delete(doc.ref));
             }
@@ -177,8 +174,8 @@ const useOkrStore = create<OkrState>((set, get) => ({
         const user = auth.currentUser;
         if (!user) return;
         try {
-            const docRef = await addDoc(collection(db, 'teams'), { title, departmentId, uid: user.uid });
-            const newTeam: Team = { id: docRef.id, title, departmentId, uid: user.uid };
+            const docRef = await addDoc(collection(db, 'teams'), { title, departmentId });
+            const newTeam: Team = { id: docRef.id, title, departmentId };
             set(state => ({
                 data: { ...state.data, teams: [...state.data.teams, newTeam].sort((a,b) => a.title.localeCompare(b.title)) }
             }));
@@ -207,7 +204,7 @@ const useOkrStore = create<OkrState>((set, get) => ({
             const teamRef = doc(db, 'teams', id);
             batch.delete(teamRef);
             
-            const okrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'team'), where('owner.id', '==', id), where('uid', '==', user.uid));
+            const okrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'team'), where('owner.id', '==', id));
             const okrsSnapshot = await getDocs(okrsQuery);
             okrsSnapshot.forEach(doc => batch.delete(doc.ref));
 
@@ -233,7 +230,7 @@ const useOkrStore = create<OkrState>((set, get) => ({
         const user = auth.currentUser;
         if (!user) return;
         try {
-            const newOkrData: Omit<OkrItem, 'id'> = { ...okr, progress: 0, uid: user.uid };
+            const newOkrData: Omit<OkrItem, 'id'> = { ...okr, progress: 0 };
             
             Object.keys(newOkrData).forEach(key => {
                 if (newOkrData[key as keyof typeof newOkrData] === undefined) {
@@ -268,7 +265,7 @@ const useOkrStore = create<OkrState>((set, get) => ({
             const okrRef = doc(db, 'okrs', id);
             batch.delete(okrRef);
 
-            const childrenQuery = query(collection(db, 'okrs'), where('parentId', '==', id), where('uid', '==', user.uid));
+            const childrenQuery = query(collection(db, 'okrs'), where('parentId', '==', id));
             const childrenSnapshot = await getDocs(childrenQuery);
             childrenSnapshot.forEach(doc => batch.delete(doc.ref));
 
