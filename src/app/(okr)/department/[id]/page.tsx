@@ -2,7 +2,8 @@
 import { OkrDashboard } from '@/components/app/okr-dashboard';
 import { useOkrStore } from '@/hooks/use-okr-store';
 
-export default function DepartmentOkrPage({ params: { id } }: { params: { id: string }}) {
+export default function DepartmentOkrPage({ params }: { params: { id: string }}) {
+    const { id } = params;
     const department = useOkrStore(state => state.data.departments.find(d => d.id === id));
 
     if (!department) {
