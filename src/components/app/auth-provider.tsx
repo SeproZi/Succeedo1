@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { useRouter, usePathname } from 'next/navigation';
 import { User } from 'firebase/auth';
 import { isUserAuthorized } from '@/lib/user-service';
+import { useOkrStore } from '@/hooks/use-okr-store';
 
 // Mock user object for email-only auth
 const createMockUser = (email: string): User => ({
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const { data } = useOkrStore();
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('userEmail');
@@ -48,7 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const mockUser = createMockUser(storedEmail);
         setUser(mockUser);
         if (pathname === '/login' || pathname === '/') {
-          router.replace('/department/1');
+            if (data.departments.length > 0) {
+              router.replace(`/department/${data.departments[0].id}`);
+            } else {
+              // Handle case with no departments, maybe a welcome page or dashboard home
+              // For now, let's create a placeholder page or redirect to a safe spot
+              router.replace('/department/new'); // Or some other appropriate route
+            }
         }
     } else {
         if (pathname !== '/login') {
@@ -57,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setLoading(false);
 
-  }, [router, pathname]);
+  }, [router, pathname, data.departments]);
 
   const signInWithEmail = async (email: string) => {
     setError(null);
@@ -67,7 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const mockUser = createMockUser(email);
       localStorage.setItem('userEmail', email);
       setUser(mockUser);
-      router.replace('/department/1');
+      if (data.departments.length > 0) {
+        router.replace(`/department/${data.departments[0].id}`);
+      } else {
+        router.replace('/department/new'); 
+      }
     } else {
       setError('This email address is not authorized.');
     }

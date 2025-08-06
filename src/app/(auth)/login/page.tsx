@@ -32,7 +32,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-headline">Succeedo</CardTitle>
+          <CardTitle className="text-2xl font-headline">OKR Vision</CardTitle>
           <CardDescription>Sign in to access your OKR dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
