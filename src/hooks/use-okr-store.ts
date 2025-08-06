@@ -46,7 +46,7 @@ const getInitialYears = (data: AppData) => {
     years.add(year);
     years.add(year + 1);
     data.okrs.forEach(okr => years.add(okr.year));
-    return Array.from(years).sort();
+    return Array.from(years).sort((a,b) => a-b);
 }
 
 export const useOkrStore = create<OkrState>((set, get) => ({
@@ -58,10 +58,10 @@ export const useOkrStore = create<OkrState>((set, get) => ({
     initData: async () => {
         try {
             const departmentsSnapshot = await getDocs(collection(db, "departments"));
-            const departments = departmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department));
+            const departments = departmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department)).sort((a,b) => a.title.localeCompare(b.title));
 
             const teamsSnapshot = await getDocs(collection(db, "teams"));
-            const teams = teamsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
+            const teams = teamsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team)).sort((a,b) => a.title.localeCompare(b.title));
             
             const okrsSnapshot = await getDocs(collection(db, 'okrs'));
             const okrs = okrsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OkrItem));
@@ -76,7 +76,7 @@ export const useOkrStore = create<OkrState>((set, get) => ({
     },
     addYear: (year) => set(state => {
         if (state.availableYears.includes(year)) return state;
-        const newYears = [...state.availableYears, year].sort();
+        const newYears = [...state.availableYears, year].sort((a,b) => a-b);
         return { availableYears: newYears };
     }),
     setYear: (year) => set({ currentYear: year }),
@@ -86,7 +86,7 @@ export const useOkrStore = create<OkrState>((set, get) => ({
             const docRef = await addDoc(collection(db, 'departments'), { title });
             const newDepartment = { id: docRef.id, title };
             set(state => ({
-                data: { ...state.data, departments: [...state.data.departments, newDepartment] }
+                data: { ...state.data, departments: [...state.data.departments, newDepartment].sort((a,b) => a.title.localeCompare(b.title)) }
             }));
             return docRef.id;
         } catch (error) {
@@ -99,7 +99,7 @@ export const useOkrStore = create<OkrState>((set, get) => ({
             const deptRef = doc(db, 'departments', id);
             await updateDoc(deptRef, { title });
             set(state => ({
-                data: { ...state.data, departments: state.data.departments.map(d => d.id === id ? { ...d, title } : d) }
+                data: { ...state.data, departments: state.data.departments.map(d => d.id === id ? { ...d, title } : d).sort((a,b) => a.title.localeCompare(b.title)) }
             }));
         } catch (error) {
             console.error("Error updating department:", error);
@@ -154,7 +154,7 @@ export const useOkrStore = create<OkrState>((set, get) => ({
             const docRef = await addDoc(collection(db, 'teams'), { title, departmentId });
             const newTeam = { id: docRef.id, title, departmentId };
             set(state => ({
-                data: { ...state.data, teams: [...state.data.teams, newTeam] }
+                data: { ...state.data, teams: [...state.data.teams, newTeam].sort((a,b) => a.title.localeCompare(b.title)) }
             }));
         } catch (error) {
             console.error("Error adding team:", error);
@@ -165,7 +165,7 @@ export const useOkrStore = create<OkrState>((set, get) => ({
             const teamRef = doc(db, 'teams', id);
             await updateDoc(teamRef, { title });
             set(state => ({
-                data: { ...state.data, teams: state.data.teams.map(t => t.id === id ? { ...t, title } : t) }
+                data: { ...state.data, teams: state.data.teams.map(t => t.id === id ? { ...t, title } : t).sort((a,b) => a.title.localeCompare(b.title)) }
             }));
         } catch (error) {
             console.error("Error updating team:", error);

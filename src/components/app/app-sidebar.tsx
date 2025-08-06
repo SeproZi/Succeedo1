@@ -16,7 +16,7 @@ import {
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { Building, Users, ChevronsRight, Plus, MoreHorizontal, LogOut, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +47,7 @@ export function AppSidebar() {
     const { data, addDepartment, updateDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam } = useOkrStore();
     const params = useParams();
     const router = useRouter();
+    const pathname = usePathname();
     const { id: departmentId, teamId } = params;
     const { state } = useSidebar();
     const isCollapsed = state === 'collapsed';
@@ -165,7 +166,7 @@ export function AppSidebar() {
                      <SidebarMenuItem>
                         <Link href="/company-overview">
                             <SidebarMenuButton 
-                                isActive={router.pathname === '/company-overview'}
+                                isActive={pathname === '/company-overview'}
                                 tooltip="Company Overview"
                             >
                                 <LayoutGrid />

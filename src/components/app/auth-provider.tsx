@@ -68,7 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!loading && !storeLoading && user) {
        if (pathname === '/login' || pathname === '/') {
             if (data.departments.length > 0) {
-              router.replace(`/department/${data.departments[0].id}`);
+              const firstDept = data.departments.sort((a,b) => a.title.localeCompare(b.title))[0];
+              router.replace(`/department/${firstDept.id}`);
             } else {
               router.replace('/department/new');
             }
@@ -81,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     setLoading(true);
     try {
+      // We are checking against the Firestore 'users' collection now.
       const authorized = await isUserAuthorized(email);
       if (!authorized) {
         throw new Error('This email address is not authorized.');

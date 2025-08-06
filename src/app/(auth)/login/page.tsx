@@ -25,7 +25,6 @@ export default function LoginPage() {
     },
   });
 
-  // This is a mock sign-in. In a real app, you'd have a password.
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     signInWithEmail(values.email);
   };

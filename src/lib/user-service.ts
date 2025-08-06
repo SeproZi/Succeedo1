@@ -1,21 +1,23 @@
 
 'use server';
 
-// This is a mock service. In a real application, you would look up the user 
-// in a database or an authentication service.
-const authorizedUsers = [
-    'user@google.com',
-    'sedat.c@boeing.com',
-    'atilla.seprodi@visma.com',
-    // Add your test email here
-    'test@example.com' 
-];
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "./firebase";
 
 export async function isUserAuthorized(email: string | null | undefined): Promise<boolean> {
   if (!email) {
     return false;
   }
-  // For now, we'll use a simple array check.
-  // In a real app, you would have more complex logic, but this allows us to proceed.
-  return authorizedUsers.includes(email);
+  
+  try {
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+    
+    return !querySnapshot.empty;
+  } catch (error) {
+    console.error("Error checking user authorization in Firestore:", error);
+    // In case of a Firestore error, deny access to be safe.
+    return false;
+  }
 }
