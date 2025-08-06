@@ -1,9 +1,12 @@
 'use client';
 import { OkrDashboard } from '@/components/app/okr-dashboard';
 import { useOkrStore } from '@/hooks/use-okr-store';
+import { useParams } from 'next/navigation';
 
-export default function TeamOkrPage({ params }: { params: { id: string; teamId: string }}) {
-    const { id, teamId } = params;
+export default function TeamOkrPage() {
+    const params = useParams();
+    const id = params.id as string;
+    const teamId = params.teamId as string;
     const team = useOkrStore(state => state.data.teams.find(t => t.id === teamId && t.departmentId === id));
 
     if (!team) {
