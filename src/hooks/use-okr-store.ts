@@ -219,10 +219,14 @@ export const useOkrStore = create<OkrState>((set, get) => ({
     },
     addOkr: async (okr) => {
         try {
-            const newOkr = { ...okr, progress: 0 };
-            const docRef = await addDoc(collection(db, 'okrs'), newOkr);
+            const newOkrData = { ...okr, progress: 0 };
+            if (newOkrData.pillar === undefined) {
+                (newOkrData as any).pillar = null;
+            }
+
+            const docRef = await addDoc(collection(db, 'okrs'), newOkrData);
             set(state => ({
-                data: { ...state.data, okrs: [...state.data.okrs, { ...newOkr, id: docRef.id }] }
+                data: { ...state.data, okrs: [...state.data.okrs, { ...newOkrData, id: docRef.id } as OkrItem] }
             }));
         } catch(error) {
             console.error("Error adding OKR: ", error);
