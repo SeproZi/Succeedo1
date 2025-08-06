@@ -221,7 +221,10 @@ export const useOkrStore = create<OkrState>((set, get) => ({
         try {
             const newOkrData = { ...okr, progress: 0 };
             if (newOkrData.pillar === undefined) {
-                (newOkrData as any).pillar = null;
+                (newOkrData as Partial<OkrItem>).pillar = null;
+            }
+             if (newOkrData.priority === undefined) {
+                (newOkrData as Partial<OkrItem>).priority = null;
             }
 
             const docRef = await addDoc(collection(db, 'okrs'), newOkrData);

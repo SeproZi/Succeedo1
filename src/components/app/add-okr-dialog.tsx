@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Sparkles, Loader2, Plus } from 'lucide-react';
-import type { OkrItem, OkrOwner, BaseItem, TimelinePeriod } from '@/lib/types';
+import type { OkrItem, OkrOwner, OkrPillar, OkrPriority, TimelinePeriod } from '@/lib/types';
 import { suggestKeyResultsAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useOkrStore } from '@/hooks/use-okr-store';
@@ -42,12 +42,30 @@ const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters long.'),
   type: z.enum(['objective', 'keyResult']),
   parentId: z.string().nullable(),
-  pillar: z.enum(['People', 'Product', 'Tech']).optional(),
-  priority: z.enum(['P1', 'P2', 'P3']).optional(),
+  pillar: z.enum(['People', 'Product', 'Tech'], { required_error: 'A pillar is required for an objective.' }).optional(),
+  priority: z.enum(['P1', 'P2', 'P3'], { required_error: 'A priority is required.' }).optional(),
   notes: z.string().optional(),
   year: z.number(),
   period: z.enum(['P1', 'P2', 'P3']),
+}).superRefine((data, ctx) => {
+    if (data.type === 'objective') {
+        if (!data.pillar) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['pillar'],
+                message: 'A pillar is required for an objective.',
+            });
+        }
+        if (!data.priority) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['priority'],
+                message: 'A priority is required for an objective.',
+            });
+        }
+    }
 });
+
 
 type AddOkrDialogProps = {
   isOpen: boolean;
@@ -84,7 +102,7 @@ export function AddOkrDialog({
       type: (isEditing && okrData.type) || (okrData?.parentId ? 'keyResult' : 'objective'),
       parentId: okrData?.parentId || null,
       pillar: (isEditing && okrData.pillar) || undefined,
-      priority: (isEditing && okrData.priority) || 'P3',
+      priority: (isEditing && okrData.priority) || undefined,
       notes: (isEditing && okrData.notes) || '',
       year: (isEditing && okrData.year) || currentYear,
       period: (isEditing && okrData.period) || currentPeriod,
@@ -99,7 +117,7 @@ export function AddOkrDialog({
         type: (okrData && 'type' in okrData && okrData.type) || (okrData?.parentId ? 'keyResult' : 'objective'),
         parentId: okrData?.parentId || null,
         pillar: (okrData && 'pillar' in okrData && okrData.pillar) || undefined,
-        priority: (okrData && 'priority' in okrData && okrData.priority) || 'P3',
+        priority: (okrData && 'priority' in okrData && okrData.priority) || undefined,
         notes: (okrData && 'notes' in okrData && okrData.notes) || '',
         year: (okrData && 'year' in okrData && okrData.year) || currentYear,
         period: (okrData && 'period' in okrData && okrData.period) || currentPeriod,
@@ -113,9 +131,9 @@ export function AddOkrDialog({
     }
     
     if (isEditing && values.id) {
-        await updateOkr(values.id, { ...values, owner });
+        await updateOkr(values.id, { ...values, owner, pillar: values.pillar as OkrPillar, priority: values.priority as OkrPriority });
     } else {
-        await addOkr({ ...values, owner });
+        await addOkr({ ...values, owner, pillar: values.pillar as OkrPillar, priority: values.priority as OkrPriority });
     }
     
     setOpen(false);
