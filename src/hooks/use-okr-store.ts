@@ -218,12 +218,12 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
     },
     addOkr: async (okr) => {
         try {
-            const newOkrData = { ...okr, progress: 0 };
+            const newOkrData: Omit<OkrItem, 'id'> = { ...okr, progress: 0 };
              if (newOkrData.pillar === undefined) {
-                (newOkrData as Partial<OkrItem>).pillar = null;
+                (newOkrData as Partial<OkrItem>).pillar = null as any;
             }
              if (newOkrData.priority === undefined) {
-                (newOkrData as Partial<OkrItem>).priority = null;
+                (newOkrData as Partial<OkrItem>).priority = null as any;
             }
 
             const docRef = await addDoc(collection(db, 'okrs'), newOkrData);
