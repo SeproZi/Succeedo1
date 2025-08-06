@@ -177,7 +177,9 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
                 Objectives Details
             </h2>
             {topLevelOkrs.length > 0 ? (
-              topLevelOkrs.map(okr => (
+              topLevelOkrs
+                .filter(okr => okr && okr.id)
+                .map(okr => (
                  <div key={okr.id} ref={el => okrCardRefs.current[okr.id] = el} className="scroll-mt-24">
                     <OkrCard
                       okr={okr}
