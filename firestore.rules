@@ -1,20 +1,26 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // The users collection can be read by anyone because the `checkUser`
-    // flow needs to verify if the email exists before sending a sign-in link.
-    // This is secure because it only exposes the existence of an email, not any other data.
+    // The users collection is world-readable because the checkUser flow
+    // needs to check if a user is authorized before they are logged in.
+    // The app's security model relies on this check to prevent unauthorized
+    // users from accessing the app.
     match /users/{userId} {
       allow read: if true;
-      allow write: if false; // Nobody can write to the users collection from the client.
+      allow write: if false; // Only trusted server processes should write to users
     }
 
-    // All other data (departments, teams, OKRs) can only be read or written
-    // by a user who has successfully signed in via Firebase Authentication.
-    match /{path=**}/_/{docId} {
-       allow read, write: if request.auth != null;
+    // All other collections should only be accessible by authenticated users.
+    // This is secure because only authorized users can receive a sign-in link.
+    match /departments/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /teams/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /okrs/{docId} {
+      allow read, write: if request.auth != null;
     }
   }
 }
