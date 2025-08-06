@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export type OkrPillar = 'People' | 'Product' | 'Tech';
@@ -7,6 +8,7 @@ export type TimelinePeriod = 'P1' | 'P2' | 'P3';
 export interface BaseItem {
     id: string;
     title: string;
+    uid: string;
 }
 
 export interface Department extends BaseItem {}
@@ -58,3 +60,5 @@ export const CheckUserOutputSchema = z.object({
     authorized: z.boolean().describe('Whether the user is authorized.'),
 });
 export type CheckUserOutput = z.infer<typeof CheckUserOutputSchema>;
+
+    
