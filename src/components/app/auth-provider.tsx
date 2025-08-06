@@ -3,10 +3,31 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, onAuthStateChanged, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { isUserAuthorized } from '@/lib/user-service';
+
+// This is a mock user for demonstration purposes.
+// In a real application, you would get this from your auth provider.
+const MOCK_USER: Omit<User, 'providerData'> = {
+  uid: 'mock-user-id',
+  email: 'user@google.com',
+  displayName: 'Mock User',
+  photoURL: null,
+  emailVerified: true,
+  isAnonymous: false,
+  metadata: {},
+  providerId: 'password',
+  tenantId: null,
+  refreshToken: '',
+  delete: async () => {},
+  getIdToken: async () => '',
+  getIdTokenResult: async () => ({} as any),
+  reload: async () => {},
+  toJSON: () => ({}),
+};
+
 
 interface AuthContextType {
   user: User | null;
@@ -27,44 +48,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data, initData, loading: storeLoading } = useOkrStore();
 
   useEffect(() => {
-    // Handle email link sign-in
-    const handleEmailLinkSignIn = async () => {
-      if (isSignInWithEmailLink(auth, window.location.href)) {
-        let email = window.localStorage.getItem('emailForSignIn');
-        if (!email) {
-          email = window.prompt('Please provide your email for confirmation');
-        }
-        if (email) {
-          try {
-            await signInWithEmailLink(auth, email, window.location.href);
-            window.localStorage.removeItem('emailForSignIn');
-            // Clean the URL
-            window.history.replaceState(null, '', window.location.pathname);
-          } catch (err: any) {
-            setError(err.message);
-          }
-        } else {
-            setError("Email is required to complete sign-in.");
-        }
-      }
-    };
-
-    handleEmailLinkSignIn();
-
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUser(user);
-        await initData();
-      } else {
-        setUser(null);
-        if (pathname !== '/login') {
+    // In a real app, you'd use onAuthStateChanged here.
+    // For now, we'll simulate a logged-in user to bypass the login screen
+    // if they are not on the login page.
+    const checkAuth = async () => {
+        const storedUser = sessionStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+            await initData();
+        } else if (pathname !== '/login') {
             router.replace('/login');
         }
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+        setLoading(false);
+    }
+    checkAuth();
   }, []);
 
   useEffect(() => {
@@ -79,22 +76,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [loading, storeLoading, user, data.departments, pathname, router]);
 
+
   const signInWithEmail = async (email: string) => {
     setError(null);
     setLoading(true);
     try {
       const authorized = await isUserAuthorized(email);
       if (!authorized) {
-          throw new Error('This email address is not authorized.');
+        throw new Error('This email address is not authorized.');
       }
       
-      const actionCodeSettings = {
-        url: window.location.origin,
-        handleCodeInApp: true,
-      };
-
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-      window.localStorage.setItem('emailForSignIn', email);
+      // This is a mock sign-in. We are not actually calling Firebase auth
+      // but simulating a successful login if the email is in our authorized list.
+      const mockUserInfo = { ...MOCK_USER, email, displayName: email.split('@')[0] };
+      setUser(mockUserInfo as User);
+      sessionStorage.setItem('user', JSON.stringify(mockUserInfo));
+      
+      // After setting the user, the useEffect above will handle redirection.
 
     } catch (err: any) {
       setError(err.message);
@@ -104,8 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOutUser = async () => {
-    await auth.signOut();
     setUser(null);
+    sessionStorage.removeItem('user');
     router.replace('/login');
   };
   
