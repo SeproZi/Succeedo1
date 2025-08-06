@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -106,15 +107,15 @@ export function AddOkrDialog({
     }
   }, [okrData, form, currentYear, currentPeriod]);
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (values.type === 'objective') {
       values.parentId = null;
     }
     
     if (isEditing && values.id) {
-        updateOkr(values.id, { ...values, owner });
+        await updateOkr(values.id, { ...values, owner });
     } else {
-        addOkr({ ...values, owner });
+        await addOkr({ ...values, owner });
     }
     
     setOpen(false);

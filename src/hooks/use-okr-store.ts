@@ -32,11 +32,11 @@ interface OkrState {
   addTeam: (title: string, departmentId: string) => Promise<void>;
   updateTeam: (id: string, title: string) => Promise<void>;
   deleteTeam: (id: string) => Promise<void>;
-  addOkr: (okr: Omit<OkrItem, 'id' | 'progress'>) => void;
-  updateOkr: (id: string, updates: Partial<Omit<OkrItem, 'id'>>) => void;
-  deleteOkr: (id: string) => void;
-  updateOkrProgress: (id: string, progress: number) => void;
-  updateOkrNotes: (id: string, notes: string) => void;
+  addOkr: (okr: Omit<OkrItem, 'id' | 'progress'>) => Promise<void>;
+  updateOkr: (id: string, updates: Partial<Omit<OkrItem, 'id'>>) => Promise<void>;
+  deleteOkr: (id: string) => Promise<void>;
+  updateOkrProgress: (id: string, progress: number) => Promise<void>;
+  updateOkrNotes: (id: string, notes: string) => Promise<void>;
 }
 
 const getInitialYears = (data: AppData) => {
@@ -63,8 +63,8 @@ export const useOkrStore = create<OkrState>((set, get) => ({
             const teamsSnapshot = await getDocs(collection(db, "teams"));
             const teams = teamsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
             
-            // TODO: Fetch OKRs later
-            const okrs: OkrItem[] = [];
+            const okrsSnapshot = await getDocs(collection(db, 'okrs'));
+            const okrs = okrsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OkrItem));
 
             const newData = { departments, teams, okrs };
             
@@ -111,23 +111,37 @@ export const useOkrStore = create<OkrState>((set, get) => ({
             const deptRef = doc(db, 'departments', id);
             batch.delete(deptRef);
 
+            // Delete teams in the department
             const teamsQuery = query(collection(db, 'teams'), where('departmentId', '==', id));
             const teamsSnapshot = await getDocs(teamsQuery);
-            teamsSnapshot.forEach(doc => {
-                batch.delete(doc.ref);
-                // TODO: Delete associated OKRs
-            });
-            
+            const teamIds = teamsSnapshot.docs.map(d => d.id);
+            teamsSnapshot.forEach(doc => batch.delete(doc.ref));
+
+            // Delete OKRs owned by the department
+            const deptOkrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'department'), where('owner.id', '==', id));
+            const deptOkrsSnapshot = await getDocs(deptOkrsQuery);
+            deptOkrsSnapshot.forEach(doc => batch.delete(doc.ref));
+
+            // Delete OKRs owned by teams in the department
+            if (teamIds.length > 0) {
+                const teamOkrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'team'), where('owner.id', 'in', teamIds));
+                const teamOkrsSnapshot = await getDocs(teamOkrsQuery);
+                teamOkrsSnapshot.forEach(doc => batch.delete(doc.ref));
+            }
+
             await batch.commit();
 
             set(state => {
                 const teamsToDelete = state.data.teams.filter(t => t.departmentId === id).map(t => t.id);
+                const okrIdsToDelete = state.data.okrs
+                    .filter(okr => (okr.owner.type === 'department' && okr.owner.id === id) || (okr.owner.type === 'team' && teamsToDelete.includes(okr.owner.id)))
+                    .map(okr => okr.id);
+
                 return {
                     data: {
-                        ...state.data,
                         departments: state.data.departments.filter(d => d.id !== id),
                         teams: state.data.teams.filter(t => t.departmentId !== id),
-                        // okrs: state.data.okrs.filter(o => !okrsToDelete.includes(o.id)), // Add back when OKRs are managed
+                        okrs: state.data.okrs.filter(o => !okrIdsToDelete.includes(o.id) && o.parentId && !okrIdsToDelete.includes(o.parentId)),
                     }
                 };
             });
@@ -159,33 +173,98 @@ export const useOkrStore = create<OkrState>((set, get) => ({
     },
     deleteTeam: async (id) => {
         try {
+            const batch = writeBatch(db);
             const teamRef = doc(db, 'teams', id);
-            await deleteDoc(teamRef);
-            // TODO: Delete associated OKRs
-            set(state => ({
-                data: {
-                    ...state.data,
-                    teams: state.data.teams.filter(t => t.id !== id),
-                    // okrs: state.data.okrs.filter(o => o.owner.type === 'team' && o.owner.id !== id),
+            batch.delete(teamRef);
+            
+            // Delete OKRs for this team
+            const okrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'team'), where('owner.id', '==', id));
+            const okrsSnapshot = await getDocs(okrsQuery);
+            okrsSnapshot.forEach(doc => batch.delete(doc.ref));
+
+            await batch.commit();
+
+            set(state => {
+                 const okrIdsToDelete = state.data.okrs
+                    .filter(okr => okr.owner.type === 'team' && okr.owner.id === id)
+                    .map(okr => okr.id);
+                return {
+                    data: {
+                        ...state.data,
+                        teams: state.data.teams.filter(t => t.id !== id),
+                        okrs: state.data.okrs.filter(o => !okrIdsToDelete.includes(o.id) && o.parentId && !okrIdsToDelete.includes(o.parentId)),
+                    }
                 }
-            }));
+            });
         } catch (error) {
             console.error("Error deleting team:", error);
         }
     },
-    addOkr: (okr) => set(state => ({
-        data: { ...state.data, okrs: [...state.data.okrs, { ...okr, id: Date.now().toString(), progress: 0 }] }
-    })),
-    updateOkr: (id, updates) => set(state => ({
-        data: { ...state.data, okrs: state.data.okrs.map(o => o.id === id ? { ...o, ...updates } : o) }
-    })),
-    deleteOkr: (id) => set(state => ({
-        data: { ...state.data, okrs: state.data.okrs.filter(o => o.id !== id && o.parentId !== id) }
-    })),
-    updateOkrProgress: (id, progress) => set(state => ({
-        data: { ...state.data, okrs: state.data.okrs.map(o => o.id === id ? { ...o, progress } : o) }
-    })),
-    updateOkrNotes: (id, notes) => set(state => ({
-        data: { ...state.data, okrs: state.data.okrs.map(o => o.id === id ? { ...o, notes } : o) }
-    })),
+    addOkr: async (okr) => {
+        try {
+            const newOkr = { ...okr, progress: 0 };
+            const docRef = await addDoc(collection(db, 'okrs'), newOkr);
+            set(state => ({
+                data: { ...state.data, okrs: [...state.data.okrs, { ...newOkr, id: docRef.id }] }
+            }));
+        } catch(error) {
+            console.error("Error adding OKR: ", error);
+        }
+    },
+    updateOkr: async (id, updates) => {
+        try {
+            const okrRef = doc(db, 'okrs', id);
+            await updateDoc(okrRef, updates);
+            set(state => ({
+                data: { ...state.data, okrs: state.data.okrs.map(o => o.id === id ? { ...o, ...updates } : o) }
+            }));
+        } catch(error) {
+            console.error("Error updating OKR: ", error);
+        }
+    },
+    deleteOkr: async (id) => {
+        try {
+            const batch = writeBatch(db);
+            const okrRef = doc(db, 'okrs', id);
+            batch.delete(okrRef);
+
+            // Also delete children KRs
+            const childrenQuery = query(collection(db, 'okrs'), where('parentId', '==', id));
+            const childrenSnapshot = await getDocs(childrenQuery);
+            childrenSnapshot.forEach(doc => batch.delete(doc.ref));
+
+            await batch.commit();
+
+            set(state => {
+                const childrenIds = state.data.okrs.filter(o => o.parentId === id).map(o => o.id);
+                return {
+                    data: { ...state.data, okrs: state.data.okrs.filter(o => o.id !== id && !childrenIds.includes(o.id)) }
+                }
+            });
+        } catch (error) {
+            console.error("Error deleting OKR: ", error);
+        }
+    },
+    updateOkrProgress: async (id, progress) => {
+        try {
+            const okrRef = doc(db, 'okrs', id);
+            await updateDoc(okrRef, { progress });
+            set(state => ({
+                data: { ...state.data, okrs: state.data.okrs.map(o => o.id === id ? { ...o, progress } : o) }
+            }));
+        } catch (error) {
+            console.error("Error updating OKR progress: ", error);
+        }
+    },
+    updateOkrNotes: async (id, notes) => {
+        try {
+            const okrRef = doc(db, 'okrs', id);
+            await updateDoc(okrRef, { notes });
+            set(state => ({
+                data: { ...state.data, okrs: state.data.okrs.map(o => o.id === id ? { ...o, notes } : o) }
+            }));
+        } catch (error) {
+            console.error("Error updating OKR notes: ", error);
+        }
+    },
 }));
