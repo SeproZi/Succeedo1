@@ -23,6 +23,7 @@ interface OkrState {
   currentPeriod: TimelinePeriod;
   availableYears: number[];
   initData: () => Promise<void>;
+  clearData: () => void;
   addYear: (year: number) => void;
   setYear: (year: number) => void;
   setPeriod: (period: TimelinePeriod) => void;
@@ -49,14 +50,19 @@ const getInitialYears = (data: AppData) => {
     return Array.from(years).sort((a,b) => a-b);
 }
 
-export const useOkrStore = create<OkrState>((set, get) => ({
+const initialState = {
     data: { departments: [], teams: [], okrs: [] },
     loading: true,
     currentYear: new Date().getFullYear(),
-    currentPeriod: 'P1',
+    currentPeriod: 'P1' as TimelinePeriod,
     availableYears: [],
+};
+
+export const useOkrStore = create<OkrState>((set, get) => ({
+    ...initialState,
     initData: async () => {
         try {
+            set({ loading: true });
             const departmentsSnapshot = await getDocs(collection(db, "departments"));
             const departments = departmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department)).sort((a,b) => a.title.localeCompare(b.title));
 
@@ -74,6 +80,7 @@ export const useOkrStore = create<OkrState>((set, get) => ({
             set({ loading: false });
         }
     },
+    clearData: () => set({...initialState}),
     addYear: (year) => set(state => {
         if (state.availableYears.includes(year)) return state;
         const newYears = [...state.availableYears, year].sort((a,b) => a-b);

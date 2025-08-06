@@ -1,39 +1,17 @@
-
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { isUserAuthorized } from '@/lib/user-service';
-
-// This is a mock user for demonstration purposes.
-// In a real application, you would get this from your auth provider.
-const MOCK_USER: Omit<User, 'providerData'> = {
-  uid: 'mock-user-id',
-  email: 'user@google.com',
-  displayName: 'Mock User',
-  photoURL: null,
-  emailVerified: true,
-  isAnonymous: false,
-  metadata: {},
-  providerId: 'password',
-  tenantId: null,
-  refreshToken: '',
-  delete: async () => {},
-  getIdToken: async () => '',
-  getIdTokenResult: async () => ({} as any),
-  reload: async () => {},
-  toJSON: () => ({}),
-};
-
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  signInWithEmail: (email: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOutUser: () => Promise<void>;
 }
 
@@ -45,24 +23,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
-  const { data, initData, loading: storeLoading } = useOkrStore();
+  const { data, initData, loading: storeLoading, clearData } = useOkrStore();
 
   useEffect(() => {
-    // In a real app, you'd use onAuthStateChanged here.
-    // For now, we'll simulate a logged-in user to bypass the login screen
-    // if they are not on the login page.
-    const checkAuth = async () => {
-        const storedUser = sessionStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-            await initData();
-        } else if (pathname !== '/login') {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
+      if (user) {
+        // User is signed in, now check if they are authorized.
+        const authorized = await isUserAuthorized(user.email);
+        if (authorized) {
+          setUser(user);
+          await initData();
+        } else {
+          // Not authorized, sign them out.
+          await signOut(auth);
+          setUser(null);
+          setError("You are not authorized to access this application.");
+          router.replace('/login');
+        }
+      } else {
+        // User is signed out.
+        setUser(null);
+        if (pathname !== '/login') {
             router.replace('/login');
         }
-        setLoading(false);
-    }
-    checkAuth();
-  }, []);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [pathname, router, initData]);
+
 
   useEffect(() => {
     if (!loading && !storeLoading && user) {
@@ -77,39 +68,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [loading, storeLoading, user, data.departments, pathname, router]);
 
-
-  const signInWithEmail = async (email: string) => {
+  const signInWithGoogle = async () => {
     setError(null);
     setLoading(true);
     try {
-      // We are checking against the Firestore 'users' collection now.
-      const authorized = await isUserAuthorized(email);
-      if (!authorized) {
-        throw new Error('This email address is not authorized.');
-      }
-      
-      // This is a mock sign-in. We are not actually calling Firebase auth
-      // but simulating a successful login if the email is in our authorized list.
-      const mockUserInfo = { ...MOCK_USER, email, displayName: email.split('@')[0] };
-      setUser(mockUserInfo as User);
-      sessionStorage.setItem('user', JSON.stringify(mockUserInfo));
-      
-      // After setting the user, the useEffect above will handle redirection.
-
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      // onAuthStateChanged will handle the rest: authorization check and redirection.
     } catch (err: any) {
-      setError(err.message);
-    } finally {
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in cancelled. Please try again.');
+      } else {
+        setError("An error occurred during sign-in. Please try again.");
+      }
+      console.error(err);
       setLoading(false);
     }
   };
 
   const signOutUser = async () => {
-    setUser(null);
-    sessionStorage.removeItem('user');
-    router.replace('/login');
+    await signOut(auth);
+    // onAuthStateChanged will handle redirection to /login
   };
   
-  if (loading || (!user && pathname !== '/login')) {
+  if (loading) {
     return (
         <div className="flex h-screen items-center justify-center bg-background">
             <p className="text-muted-foreground">Loading...</p>
@@ -118,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, signInWithEmail, signOutUser }}>
+    <AuthContext.Provider value={{ user, loading, error, signInWithGoogle, signOutUser }}>
       {children}
     </AuthContext.Provider>
   );
