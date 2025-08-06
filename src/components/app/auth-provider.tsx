@@ -5,7 +5,7 @@ import { createContext, useContext, ReactNode, useState, useEffect } from 'react
 import { getAuth, isSignInWithEmailLink, onAuthStateChanged, sendSignInLinkToEmail, signInWithEmailLink, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { isUserAuthorized } from '@/lib/user-service';
-import { useToast } from '../ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;

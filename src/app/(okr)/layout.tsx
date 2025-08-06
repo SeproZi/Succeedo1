@@ -1,7 +1,7 @@
 
 'use client';
 import { AppSidebar } from '@/components/app/app-sidebar';
-import { AuthProvider, useAuth } from '@/components/app/auth-provider';
+import { useAuth } from '@/components/app/auth-provider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import {
@@ -11,7 +11,11 @@ import {
   SidebarToggleButton,
 } from '@/components/ui/sidebar';
 
-function ProtectedLayout({ children }: { children: React.ReactNode }) {
+export default function OkrLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
     const { user, loading } = useAuth();
     const router = useRouter();
 
@@ -39,19 +43,4 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
             </SidebarInset>
         </SidebarProvider>
     );
-}
-
-
-export default function OkrLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <AuthProvider>
-        <ProtectedLayout>
-            {children}
-        </ProtectedLayout>
-    </AuthProvider>
-  );
 }

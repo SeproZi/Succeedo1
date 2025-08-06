@@ -5,14 +5,14 @@ import { useAuth } from '@/components/app/auth-provider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-export default function HomePage() {
+function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading) {
       if (user) {
-        // If user is logged in, redirect to the first department or new department page
+        // If user is logged in, redirect to the company overview page
         router.replace('/company-overview');
       } else {
         // If user is not logged in, redirect to login page
@@ -28,3 +28,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+export default HomePage;
