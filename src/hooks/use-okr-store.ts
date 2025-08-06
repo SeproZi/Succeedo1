@@ -216,7 +216,6 @@ const useOkrStore = create<OkrState>((set, get) => ({
         try {
             const newOkrData: Omit<OkrItem, 'id'> = { ...okr, progress: 0 };
             
-            // Remove undefined fields before sending to Firestore
             Object.keys(newOkrData).forEach(key => {
                 if (newOkrData[key as keyof typeof newOkrData] === undefined) {
                     delete newOkrData[key as keyof typeof newOkrData];
@@ -288,15 +287,4 @@ const useOkrStore = create<OkrState>((set, get) => ({
     },
 }));
 
-auth.onAuthStateChanged(user => {
-    if (user) {
-        useOkrStore.getState().initData();
-    } else {
-        useOkrStore.getState().clearData();
-    }
-});
-
-
 export default useOkrStore;
-
-    

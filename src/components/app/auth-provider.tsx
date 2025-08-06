@@ -3,7 +3,7 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import useOkrStore from '@/hooks/use-okr-store';
-import { User, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
+import { User, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { checkUser } from '@/ai/flows/check-user';
 
@@ -23,15 +23,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authorizedUser, setAuthorizedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { initData, clearData, data } = useOkrStore();
+  const { initData, clearData } = useOkrStore();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setAuthorizedUser(user);
       if (user) {
-        if (data.departments.length === 0 && data.teams.length === 0 && data.okrs.length === 0) {
-          await initData();
-        }
+        await initData();
       } else {
         clearData();
       }
@@ -51,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      setAuthorizedUser(user);
+      // The onAuthStateChanged listener will handle setting the user and initializing data.
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/email-already-in-use') {
@@ -68,11 +66,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
-      setAuthorizedUser(user);
+      await signInWithEmailAndPassword(auth, email, password);
+      // The onAuthStateChanged listener will handle setting the user and initializing data.
     } catch (err: any)      {
       console.error(err);
-      setError(err.message);
+      setError('Invalid email or password.');
     } finally {
       setLoading(false);
     }
@@ -84,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     await auth.signOut();
+    // The onAuthStateChanged listener will handle clearing data.
   };
 
   const value = {
