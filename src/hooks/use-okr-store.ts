@@ -15,6 +15,7 @@ import {
     writeBatch,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useEffect } from 'react';
 
 interface OkrState {
   data: AppData;
@@ -61,6 +62,7 @@ const initialState = {
 export const useOkrStore = create<OkrState>((set, get) => ({
     ...initialState,
     initData: async () => {
+        if (get().data.departments.length > 0) return; // Already initialized
         try {
             set({ loading: true });
             const departmentsSnapshot = await getDocs(collection(db, "departments"));
@@ -80,7 +82,7 @@ export const useOkrStore = create<OkrState>((set, get) => ({
             set({ loading: false });
         }
     },
-    clearData: () => set({...initialState}),
+    clearData: () => set({...initialState, loading: false }),
     addYear: (year) => set(state => {
         if (state.availableYears.includes(year)) return state;
         const newYears = [...state.availableYears, year].sort((a,b) => a-b);
@@ -275,3 +277,11 @@ export const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
 }));
+
+// Hook to initialize on mount
+export const useInitializeOkrStore = () => {
+    const initData = useOkrStore(state => state.initData);
+    useEffect(() => {
+        initData();
+    }, [initData]);
+};

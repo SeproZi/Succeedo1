@@ -1,11 +1,10 @@
-
 'use client';
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { isUserAuthorized } from '@/lib/user-service';
 import { useToast } from '@/hooks/use-toast';
+import { useOkrStore } from '@/hooks/use-okr-store';
 
 interface AuthContextType {
   user: User | null;
@@ -22,27 +21,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { initData, clearData } = useOkrStore();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
-            setLoading(true);
-            const authorized = await isUserAuthorized(user.email!);
-            if (authorized) {
-                setUser(user);
-            } else {
-                setError('Your email is not authorized to access this application.');
-                await signOut(auth); // Sign out unauthorized user
-                setUser(null);
-            }
+            setUser(user);
+            await initData();
         } else {
             setUser(null);
+            clearData();
         }
         setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [initData, clearData]);
 
 
   const signInWithGoogle = async () => {
@@ -63,8 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     await signOut(auth);
-    setUser(null);
-    setError(null);
   };
 
   const value = {
