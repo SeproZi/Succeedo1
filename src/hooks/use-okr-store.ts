@@ -277,11 +277,3 @@ export const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
 }));
-
-// Hook to initialize on mount
-export const useInitializeOkrStore = () => {
-    const initData = useOkrStore(state => state.initData);
-    useEffect(() => {
-        initData();
-    }, [initData]);
-};

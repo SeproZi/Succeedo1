@@ -1,7 +1,8 @@
+
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
+import { createContext, useContext, ReactNode, useState, useEffect, useCallback } from 'react';
+import { onAuthStateChanged, signInWithEmailLink, sendSignInLinkToEmail, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useOkrStore } from '@/hooks/use-okr-store';
@@ -10,18 +11,53 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  signInWithGoogle: () => Promise<void>;
+  successMessage: string | null;
+  signInWithEmail: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const EMAIL_FOR_SIGN_IN_KEY = 'emailForSignIn';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { toast } = useToast();
   const { initData, clearData } = useOkrStore();
+
+  const handleSignInCompletion = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+
+    if (auth.isSignInWithEmailLink(window.location.href)) {
+        let email = window.localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY);
+        if (!email) {
+            email = window.prompt('Please provide your email for confirmation');
+        }
+        if (!email) {
+            setError("Email is required to complete sign-in.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await signInWithEmailLink(auth, email, window.location.href);
+            window.localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
+            // onAuthStateChanged will handle the user state update and data loading
+        } catch (err: any) {
+            setError(err.message);
+            toast({ title: "Sign-in Error", description: err.message, variant: "destructive" });
+        } finally {
+            setLoading(false);
+        }
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    handleSignInCompletion();
+  }, [handleSignInCompletion]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -39,18 +75,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [initData, clearData]);
 
 
-  const signInWithGoogle = async () => {
+  const signInWithEmail = async (email: string) => {
     setLoading(true);
     setError(null);
-    const provider = new GoogleAuthProvider();
+    setSuccessMessage(null);
+    
+    const actionCodeSettings = {
+        url: window.location.origin,
+        handleCodeInApp: true,
+    };
+
     try {
-        await signInWithPopup(auth, provider);
-        // onAuthStateChanged will handle the rest
+        await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+        window.localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, email);
+        setSuccessMessage(`A sign-in link has been sent to ${email}. Please check your inbox.`);
     } catch (err: any) {
-        if (err.code !== 'auth/popup-closed-by-user') {
-            setError(err.message);
-            toast({ title: "Sign-in Error", description: err.message, variant: "destructive" });
-        }
+        setError(err.message);
+        toast({ title: "Sign-in Error", description: err.message, variant: "destructive" });
+    } finally {
         setLoading(false);
     }
   };
@@ -63,7 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     loading,
     error,
-    signInWithGoogle,
+    successMessage,
+    signInWithEmail,
     logout,
   };
 
