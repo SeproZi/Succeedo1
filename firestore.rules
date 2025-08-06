@@ -2,13 +2,15 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow server-side access to check for authorized users
     match /users/{userId} {
+      // Allow read access to the users collection for the server-side check.
       allow read: if true;
-      allow write: if false; // Keep writes restricted
+      
+      // Deny all writes to the users collection from the client.
+      allow write: if false;
     }
-
-    // Deny all other access by default for security
+    
+    // Explicitly deny access to all other collections for security.
     match /{document=**} {
       allow read, write: if false;
     }
