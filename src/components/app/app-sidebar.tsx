@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
-import { useAuth } from './auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useState } from 'react';
 import { AddDepartmentDialog } from './add-department-dialog';
@@ -51,7 +50,6 @@ export function AppSidebar() {
     const { id: departmentId, teamId } = params;
     const { state } = useSidebar();
     const isCollapsed = state === 'collapsed';
-    const { user, signOutUser } = useAuth();
     const [isAddDepartmentOpen, setAddDepartmentOpen] = useState(false);
     const [isAddTeamOpen, setAddTeamOpen] = useState(false);
     const [isDeleteDeptOpen, setDeleteDeptOpen] = useState(false);
@@ -242,26 +240,6 @@ export function AppSidebar() {
                     {state === 'expanded' && <span>Add Department</span>}
                 </Button>
                 <SidebarSeparator />
-                {user && (
-                    <div className="p-2 flex flex-col gap-2">
-                        <div className={cn("flex items-center gap-2", isCollapsed && "justify-center")}>
-                             <Avatar className="h-8 w-8">
-                                <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
-                                <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            {!isCollapsed && (
-                                <div className="flex-1 overflow-hidden">
-                                    <p className="text-sm font-semibold truncate">{user.displayName}</p>
-                                    <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
-                                </div>
-                            )}
-                        </div>
-                        <Button variant="ghost" className="w-full justify-start" onClick={signOutUser}>
-                            <LogOut className="mr-2 h-4 w-4" />
-                            {state === 'expanded' && <span>Sign Out</span>}
-                        </Button>
-                    </div>
-                )}
             </SidebarFooter>
             <AddDepartmentDialog 
                 isOpen={isAddDepartmentOpen}

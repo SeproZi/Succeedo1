@@ -1,16 +1,15 @@
-'use client';
-import { useAuth } from '@/components/app/auth-provider';
+
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function HomePage() {
-  const { loading } = useAuth();
-
   return (
-    <div className="flex h-screen items-center justify-center bg-background">
-      {loading ? (
-        <p className="text-muted-foreground">Loading...</p>
-      ) : (
-        <p className="text-muted-foreground">Redirecting...</p>
-      )}
+    <div className="flex h-screen items-center justify-center bg-background flex-col gap-4">
+      <h1 className="text-4xl font-headline">Welcome to Succeedo</h1>
+      <p className="text-muted-foreground">The authentication system has been reset.</p>
+      <Button asChild>
+        <Link href="/login">Go to Login Page</Link>
+      </Button>
     </div>
   );
 }

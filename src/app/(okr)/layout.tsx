@@ -1,3 +1,4 @@
+
 'use client';
 import { AppSidebar } from '@/components/app/app-sidebar';
 import { AuthProvider } from '@/components/app/auth-provider';
