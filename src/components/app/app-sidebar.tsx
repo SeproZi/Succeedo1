@@ -164,8 +164,9 @@ export function AppSidebar() {
             <SidebarContent>
                 <SidebarMenu>
                      <SidebarMenuItem>
-                        <Link href="/company-overview">
+                        <Link href="/company-overview" legacyBehavior passHref>
                             <SidebarMenuButton 
+                                asChild
                                 isActive={pathname === '/company-overview'}
                                 tooltip="Company Overview"
                             >
@@ -180,8 +181,9 @@ export function AppSidebar() {
                         return (
                             <SidebarMenuItem key={dept.id}>
                                 <div className="relative group/item">
-                                    <Link href={`/department/${dept.id}`}>
+                                    <Link href={`/department/${dept.id}`} legacyBehavior passHref>
                                         <SidebarMenuButton 
+                                            asChild
                                             isActive={departmentId === dept.id && !teamId}
                                             tooltip={dept.title}
                                         >
@@ -208,8 +210,8 @@ export function AppSidebar() {
                                     <SidebarMenuSub>
                                         {teams.map(team => (
                                             <SidebarMenuSubItem key={team.id} className="relative group/sub-item">
-                                                <Link href={`/department/${dept.id}/team/${team.id}`}>
-                                                    <SidebarMenuSubButton isActive={teamId === team.id}>
+                                                <Link href={`/department/${dept.id}/team/${team.id}`} legacyBehavior passHref>
+                                                    <SidebarMenuSubButton asChild isActive={teamId === team.id}>
                                                         <Users />
                                                         <span>{team.title}</span>
                                                     </SidebarMenuSubButton>
