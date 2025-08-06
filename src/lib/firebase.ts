@@ -1,3 +1,4 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
@@ -5,7 +6,7 @@ import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration from your project settings
 const firebaseConfig = {
-  apiKey: "AIzaSyDNTbT-SuOATom7t5e8c0ygZjMSiaf9aGo",
+  apiKey: "AIzaSyDNTbT-SuOATom7t5e8cOygZjMSiaf9aGo",
   authDomain: "test-prcas-cm.firebaseapp.com",
   projectId: "test-prcas-cm",
   storageBucket: "test-prcas-cm.firebasestorage.app",
