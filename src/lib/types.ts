@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export type OkrPillar = 'People' | 'Product' | 'Tech';
 export type OkrPriority = 'P1' | 'P2' | 'P3';
 export type TimelinePeriod = 'P1' | 'P2' | 'P3';
@@ -35,3 +37,24 @@ export type AppData = {
     teams: Team[];
     okrs: OkrItem[];
 };
+
+// AI Flow Schemas
+export const CheckUserInputSchema = z.object({
+  email: z.string().describe('The email address to check.'),
+});
+export type CheckUserInput = z.infer<typeof CheckUserInputSchema>;
+
+export const CheckUserOutputSchema = z.object({
+    isAuthorized: z.boolean().describe('Whether the user is authorized or not.'),
+});
+export type CheckUserOutput = z.infer<typeof CheckUserOutputSchema>;
+
+export const SuggestKeyResultsInputSchema = z.object({
+  objectiveTitle: z.string().describe('The title of the objective.'),
+});
+export type SuggestKeyResultsInput = z.infer<typeof SuggestKeyResultsInputSchema>;
+
+export const SuggestKeyResultsOutputSchema = z.object({
+    keyResults: z.array(z.string()).describe('An array of 3-5 suggested key results.'),
+});
+export type SuggestKeyResultsOutput = z.infer<typeof SuggestKeyResultsOutputSchema>;

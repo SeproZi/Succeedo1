@@ -1,25 +1,13 @@
+
 'use server';
 /**
  * @fileOverview Suggests key results for a given objective.
  * 
  * - suggestKeyResults - A function that suggests key results.
- * - SuggestKeyResultsInput - The input type for the suggestKeyResults function.
- * - SuggestKeyResultsOutput - The return type for the suggestKeyResults function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
-
-const SuggestKeyResultsInputSchema = z.object({
-  objectiveTitle: z.string().describe('The title of the objective.'),
-});
-export type SuggestKeyResultsInput = z.infer<typeof SuggestKeyResultsInputSchema>;
-
-const SuggestKeyResultsOutputSchema = z.object({
-    keyResults: z.array(z.string()).describe('An array of 3-5 suggested key results.'),
-});
-export type SuggestKeyResultsOutput = z.infer<typeof SuggestKeyResultsOutputSchema>;
-
+import { SuggestKeyResultsInputSchema, SuggestKeyResultsOutputSchema } from '@/lib/types';
 
 const prompt = ai.definePrompt({
     name: 'suggestKeyResultsPrompt',

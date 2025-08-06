@@ -1,7 +1,8 @@
 
 'use server';
 
-import { suggestKeyResults, SuggestKeyResultsOutput } from "@/ai/flows/suggest-key-results";
+import { suggestKeyResults } from "@/ai/flows/suggest-key-results";
+import type { SuggestKeyResultsOutput } from "@/lib/types";
 
 export async function suggestKeyResultsAction(objectiveTitle: string): Promise<SuggestKeyResultsOutput> {
     try {
