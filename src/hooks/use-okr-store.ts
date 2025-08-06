@@ -15,7 +15,6 @@ import {
     writeBatch,
 } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-import { useEffect } from 'react';
 
 interface OkrState {
   data: AppData;
@@ -62,23 +61,25 @@ const initialState = {
 const useOkrStore = create<OkrState>((set, get) => ({
     ...initialState,
     initData: async () => {
-        set({ loading: true });
-        try {
-            const departmentsSnapshot = await getDocs(collection(db, "departments"));
-            const departments = departmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department)).sort((a,b) => a.title.localeCompare(b.title));
+        if (auth.currentUser) {
+            set({ loading: true });
+            try {
+                const departmentsSnapshot = await getDocs(collection(db, "departments"));
+                const departments = departmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department)).sort((a,b) => a.title.localeCompare(b.title));
 
-            const teamsSnapshot = await getDocs(collection(db, "teams"));
-            const teams = teamsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team)).sort((a,b) => a.title.localeCompare(b.title));
-            
-            const okrsSnapshot = await getDocs(collection(db, 'okrs'));
-            const okrs = okrsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OkrItem));
+                const teamsSnapshot = await getDocs(collection(db, "teams"));
+                const teams = teamsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team)).sort((a,b) => a.title.localeCompare(b.title));
+                
+                const okrsSnapshot = await getDocs(collection(db, 'okrs'));
+                const okrs = okrsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OkrItem));
 
-            const newData = { departments, teams, okrs };
-            
-            set({ data: newData, loading: false, availableYears: getInitialYears(newData) });
-        } catch (error) {
-            console.error("Error fetching initial data from Firestore:", error);
-            set({ loading: false });
+                const newData = { departments, teams, okrs };
+                
+                set({ data: newData, loading: false, availableYears: getInitialYears(newData) });
+            } catch (error) {
+                console.error("Error fetching initial data from Firestore:", error);
+                set({ loading: false });
+            }
         }
     },
     clearData: () => set({ ...initialState, loading: false }),
@@ -279,6 +280,13 @@ const useOkrStore = create<OkrState>((set, get) => ({
     },
 }));
 
-export default useOkrStore;
+auth.onAuthStateChanged(user => {
+    if (user) {
+        useOkrStore.getState().initData();
+    } else {
+        useOkrStore.getState().clearData();
+    }
+});
 
-    
+
+export default useOkrStore;
