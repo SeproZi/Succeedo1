@@ -39,16 +39,6 @@ export type AppData = {
 };
 
 // AI Flow Schemas
-export const CheckUserInputSchema = z.object({
-  email: z.string().describe('The email address to check.'),
-});
-export type CheckUserInput = z.infer<typeof CheckUserInputSchema>;
-
-export const CheckUserOutputSchema = z.object({
-    isAuthorized: z.boolean().describe('Whether the user is authorized or not.'),
-});
-export type CheckUserOutput = z.infer<typeof CheckUserOutputSchema>;
-
 export const SuggestKeyResultsInputSchema = z.object({
   objectiveTitle: z.string().describe('The title of the objective.'),
 });

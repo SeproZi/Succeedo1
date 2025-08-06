@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [authorizedUser, initData, data.departments.length]);
 
 
-  const signUpWithEmailPassword = async (email: string, password: string) => {
+  const signUpWithEmailPassword = async (email: string, password:string) => {
     setLoading(true);
     setError(null);
     try {
@@ -45,7 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthorizedUser(user);
     } catch (err: any) {
       console.error(err);
-      setError(err.message);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email address is already in use. Please sign in instead.');
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -57,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       setAuthorizedUser(user);
-    } catch (err: any) {
+    } catch (err: any)      {
       console.error(err);
       setError(err.message);
     } finally {
