@@ -7,7 +7,6 @@ import { getFirestore } from "firebase/firestore";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-// IMPORTANT: This configuration is now corrected with your project's details.
 const firebaseConfig = {
   apiKey: "AIzaSyDNTbT-SuOATom7t5e8c0ygZjMSiaf9aGo",
   authDomain: "test-prcas-cm.firebaseapp.com",
