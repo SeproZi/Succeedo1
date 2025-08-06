@@ -62,7 +62,6 @@ const initialState = {
 export const useOkrStore = create<OkrState>((set, get) => ({
     ...initialState,
     initData: async () => {
-        if (get().data.departments.length > 0) return; // Already initialized
         try {
             set({ loading: true });
             const departmentsSnapshot = await getDocs(collection(db, "departments"));
