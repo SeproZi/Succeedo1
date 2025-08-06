@@ -164,7 +164,7 @@ export function AppSidebar() {
             <SidebarContent>
                 <SidebarMenu>
                      <SidebarMenuItem>
-                        <Link href="/company-overview" legacyBehavior passHref>
+                        <Link href="/company-overview" passHref>
                             <SidebarMenuButton 
                                 asChild
                                 isActive={pathname === '/company-overview'}
@@ -181,7 +181,7 @@ export function AppSidebar() {
                         return (
                             <SidebarMenuItem key={dept.id}>
                                 <div className="relative group/item">
-                                    <Link href={`/department/${dept.id}`} legacyBehavior passHref>
+                                    <Link href={`/department/${dept.id}`} passHref>
                                         <SidebarMenuButton 
                                             asChild
                                             isActive={departmentId === dept.id && !teamId}
@@ -210,10 +210,12 @@ export function AppSidebar() {
                                     <SidebarMenuSub>
                                         {teams.map(team => (
                                             <SidebarMenuSubItem key={team.id} className="relative group/sub-item">
-                                                <Link href={`/department/${dept.id}/team/${team.id}`} legacyBehavior passHref>
+                                                <Link href={`/department/${dept.id}/team/${team.id}`} passHref>
                                                     <SidebarMenuSubButton asChild isActive={teamId === team.id}>
-                                                        <Users />
-                                                        <span>{team.title}</span>
+                                                        <>
+                                                            <Users />
+                                                            <span>{team.title}</span>
+                                                        </>
                                                     </SidebarMenuSubButton>
                                                 </Link>
                                                 <div className="absolute right-1 top-0.5 opacity-0 group-hover/sub-item:opacity-100 transition-opacity">
