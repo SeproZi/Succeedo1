@@ -305,5 +305,5 @@ export function AppSidebar() {
                 description={`Are you sure you want to delete the "${itemToDelete?.title}" team? This will also delete all of its OKRs. This action cannot be undone.`}
             />
         </>
-    
-    
+    );
+}

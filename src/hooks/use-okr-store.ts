@@ -91,6 +91,7 @@ export const useOkrStore = create<OkrState>((set, get) => ({
             return docRef.id;
         } catch (error) {
             console.error("Error adding department:", error);
+            return undefined;
         }
     },
     updateDepartment: async (id, title) => {
