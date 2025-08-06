@@ -26,7 +26,7 @@ import {
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AddDepartmentDialog } from './add-department-dialog';
 import { AddTeamDialog } from './add-team-dialog';
 import { ConfirmationDialog } from './confirmation-dialog';
@@ -44,7 +44,7 @@ const Logo = () => (
 );
 
 export function AppSidebar() {
-    const { data, addDepartment, updateDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam } = useOkrStore();
+    const { data, addDepartment, updateDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam, loading } = useOkrStore();
     const { logout } = useAuth();
     const params = useParams();
     const router = useRouter();
@@ -62,6 +62,12 @@ export function AppSidebar() {
     const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
     const [itemToEdit, setItemToEdit] = useState<{id: string, title: string, type: 'department' | 'team'} | null>(null);
     const [itemToDelete, setItemToDelete] = useState<{id: string; title: string; type: 'department' | 'team'} | null>(null);
+
+    useEffect(() => {
+        if (!loading && data.departments.length === 0 && pathname !== '/department/new') {
+            router.push('/department/new');
+        }
+    }, [data.departments, loading, router, pathname]);
 
 
     const handleSaveDepartment = async (title: string) => {
