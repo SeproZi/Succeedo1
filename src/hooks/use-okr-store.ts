@@ -64,13 +64,22 @@ const useOkrStore = create<OkrState>((set, get) => ({
         set({ loading: true });
         try {
             const departmentsSnapshot = await getDocs(query(collection(db, "departments")));
-            const departments = departmentsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Department)).sort((a,b) => a.title.localeCompare(b.title));
+            const departments = departmentsSnapshot.docs.map(doc => {
+                const data = doc.data();
+                return { ...data, id: doc.id } as Department;
+            }).sort((a,b) => a.title.localeCompare(b.title));
 
             const teamsSnapshot = await getDocs(query(collection(db, "teams")));
-            const teams = teamsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Team)).sort((a,b) => a.title.localeCompare(b.title));
+            const teams = teamsSnapshot.docs.map(doc => {
+                const data = doc.data();
+                return { ...data, id: doc.id } as Team;
+            }).sort((a,b) => a.title.localeCompare(b.title));
             
             const okrsSnapshot = await getDocs(query(collection(db, 'okrs')));
-            const okrs = okrsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as OkrItem));
+            const okrs = okrsSnapshot.docs.map(doc => {
+                const data = doc.data();
+                return { ...data, id: doc.id } as OkrItem;
+            });
 
             const newData = { departments, teams, okrs };
             
@@ -216,12 +225,12 @@ const useOkrStore = create<OkrState>((set, get) => ({
             
             const dataToSave: { [key: string]: any } = { ...newOkrData };
             
-            // This is the key change: remove any `undefined` fields and the `id` field before saving.
             Object.keys(dataToSave).forEach(key => {
                 if (dataToSave[key] === undefined) {
                     delete dataToSave[key];
                 }
             });
+            
             if ('id' in dataToSave) {
                 delete dataToSave.id;
             }
