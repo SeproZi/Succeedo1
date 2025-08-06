@@ -66,18 +66,21 @@ const useOkrStore = create<OkrState>((set, get) => ({
             const departmentsSnapshot = await getDocs(query(collection(db, "departments")));
             const departments = departmentsSnapshot.docs.map(doc => {
                 const data = doc.data();
+                delete (data as any).id;
                 return { ...data, id: doc.id } as Department;
             }).sort((a,b) => a.title.localeCompare(b.title));
 
             const teamsSnapshot = await getDocs(query(collection(db, "teams")));
             const teams = teamsSnapshot.docs.map(doc => {
                 const data = doc.data();
+                delete (data as any).id;
                 return { ...data, id: doc.id } as Team;
             }).sort((a,b) => a.title.localeCompare(b.title));
             
             const okrsSnapshot = await getDocs(query(collection(db, 'okrs')));
             const okrs = okrsSnapshot.docs.map(doc => {
                 const data = doc.data();
+                delete (data as any).id;
                 return { ...data, id: doc.id } as OkrItem;
             });
 
@@ -232,7 +235,7 @@ const useOkrStore = create<OkrState>((set, get) => ({
             });
             
             if ('id' in dataToSave) {
-                delete dataToSave.id;
+                delete (dataToSave as any).id;
             }
 
             const docRef = await addDoc(collection(db, 'okrs'), dataToSave);
