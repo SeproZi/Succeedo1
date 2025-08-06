@@ -59,7 +59,7 @@ const initialState = {
     availableYears: [],
 };
 
-const useOkrStoreImpl = create<OkrState>((set, get) => ({
+const useOkrStore = create<OkrState>((set, get) => ({
     ...initialState,
     initData: async () => {
         set({ loading: true });
@@ -214,16 +214,6 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
     addOkr: async (okr) => {
         try {
             const newOkrData: Omit<OkrItem, 'id'> = { ...okr, progress: 0 };
-             if (newOkrData.pillar === undefined) {
-                (newOkrData as Partial<OkrItem>).pillar = null as any;
-            }
-             if (newOkrData.priority === undefined) {
-                (newOkrData as Partial<OkrItem>).priority = null as any;
-            }
-             if (newOkrData.notes === undefined) {
-                (newOkrData as Partial<OkrItem>).notes = '';
-            }
-
             const docRef = await addDoc(collection(db, 'okrs'), newOkrData);
             set(state => ({
                 data: { ...state.data, okrs: [...state.data.okrs, { ...newOkrData, id: docRef.id } as OkrItem] }
@@ -289,19 +279,6 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
     },
 }));
 
-// This effect will run once, setting up the auth listener.
-auth.onAuthStateChanged(user => {
-    if (user) {
-        useOkrStoreImpl.getState().initData();
-    } else {
-        useOkrStoreImpl.getState().clearData();
-    }
-});
+export default useOkrStore;
 
-
-export const useOkrStore = (selector?: (state: OkrState) => any) => {
-    const state = useOkrStoreImpl(selector);
-    return state;
-};
-
-useOkrStore.getState = useOkrStoreImpl.getState;
+    

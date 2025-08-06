@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useOkrStore } from '@/hooks/use-okr-store';
+import useOkrStore from '@/hooks/use-okr-store';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { AddDepartmentDialog } from '@/components/app/add-department-dialog';

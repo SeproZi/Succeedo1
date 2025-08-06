@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { useOkrStore } from '@/hooks/use-okr-store';
+import useOkrStore from '@/hooks/use-okr-store';
 import { User, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { checkUser } from '@/ai/flows/check-user';
@@ -23,13 +23,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authorizedUser, setAuthorizedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { initData, clearData, data } = useOkrStore();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setAuthorizedUser(user);
+      if (user) {
+        if (data.departments.length === 0 && data.teams.length === 0 && data.okrs.length === 0) {
+          await initData();
+        }
+      } else {
+        clearData();
+      }
       setLoading(false);
     });
     return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signUpWithEmailPassword = async (email: string, password:string) => {
@@ -75,7 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     await auth.signOut();
-    // The onAuthStateChanged listener in useOkrStore will handle clearing data
   };
 
   const value = {
@@ -102,3 +110,5 @@ export function useAuth() {
   }
   return context;
 }
+
+    

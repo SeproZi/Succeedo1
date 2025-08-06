@@ -13,7 +13,7 @@ import {
     useSidebar,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { useOkrStore } from '@/hooks/use-okr-store';
+import useOkrStore from '@/hooks/use-okr-store';
 import { Building, Users, ChevronsRight, Plus, MoreHorizontal, LogOut, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter, usePathname } from 'next/navigation';
