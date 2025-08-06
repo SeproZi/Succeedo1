@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,9 @@ import { useState, useEffect } from 'react';
 import { AddDepartmentDialog } from '@/components/app/add-department-dialog';
 
 export default function NewDepartmentPage() {
-  const { addDepartment, data, loading } = useOkrStore();
+  const addDepartment = useOkrStore(state => state.addDepartment);
+  const data = useOkrStore(state => state.data);
+  const loading = useOkrStore(state => state.loading);
   const router = useRouter();
   const [isDialogOpen, setDialogOpen] = useState(false);
 

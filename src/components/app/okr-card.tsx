@@ -33,7 +33,7 @@ import type { OkrItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Slider } from '@/components/ui/slider';
-import { useOkrStore } from '@/hooks/use-okr-store';
+import useOkrStore from '@/hooks/use-okr-store';
 import { AiSuggestionsDialog } from './ai-suggestions-dialog';
 import { suggestKeyResultsAction } from '@/lib/actions';
 

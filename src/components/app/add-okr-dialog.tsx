@@ -34,7 +34,7 @@ import { Sparkles, Loader2, Plus } from 'lucide-react';
 import type { OkrItem, OkrOwner, OkrPillar, OkrPriority, TimelinePeriod } from '@/lib/types';
 import { suggestKeyResultsAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { useOkrStore } from '@/hooks/use-okr-store';
+import useOkrStore from '@/hooks/use-okr-store';
 import { Separator } from '../ui/separator';
 
 const formSchema = z.object({

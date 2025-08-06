@@ -1,6 +1,7 @@
+
 'use client';
 import { OkrDashboard } from '@/components/app/okr-dashboard';
-import { useOkrStore } from '@/hooks/use-okr-store';
+import useOkrStore from '@/hooks/use-okr-store';
 import { useParams } from 'next/navigation';
 
 export default function TeamOkrPage() {

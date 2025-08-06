@@ -1,6 +1,7 @@
+
 'use client';
 import { useMemo, useCallback } from 'react';
-import { useOkrStore } from '@/hooks/use-okr-store';
+import useOkrStore from '@/hooks/use-okr-store';
 import { PillarProgress } from '@/components/app/pillar-progress';
 import type { OkrItem, OkrPillar, TimelinePeriod } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

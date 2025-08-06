@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useCallback, useRef } from 'react';
@@ -6,7 +7,7 @@ import { OkrGrid } from '@/components/app/okr-grid';
 import { OkrCard } from '@/components/app/okr-card';
 import { AddOkrDialog } from '@/components/app/add-okr-dialog';
 import type { OkrItem, OkrPillar, OkrOwner, TimelinePeriod } from '@/lib/types';
-import { useOkrStore } from '@/hooks/use-okr-store';
+import useOkrStore from '@/hooks/use-okr-store';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
