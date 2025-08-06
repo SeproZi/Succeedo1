@@ -15,7 +15,7 @@ import {
     writeBatch,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useEffect } from 'react';
+import { useAuthListener } from './use-auth-listener';
 
 interface OkrState {
   data: AppData;
@@ -59,7 +59,7 @@ const initialState = {
     availableYears: [],
 };
 
-export const useOkrStore = create<OkrState>((set, get) => ({
+const useOkrStoreImpl = create<OkrState>((set, get) => ({
     ...initialState,
     initData: async () => {
         try {
@@ -219,7 +219,7 @@ export const useOkrStore = create<OkrState>((set, get) => ({
     addOkr: async (okr) => {
         try {
             const newOkrData = { ...okr, progress: 0 };
-            if (newOkrData.pillar === undefined) {
+             if (newOkrData.pillar === undefined) {
                 (newOkrData as Partial<OkrItem>).pillar = null;
             }
              if (newOkrData.priority === undefined) {
@@ -291,3 +291,19 @@ export const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
 }));
+
+
+export const useOkrStore = (selector?: (state: OkrState) => any) => {
+    const state = useOkrStoreImpl(selector);
+    const { initData, clearData } = useOkrStoreImpl();
+
+    useAuthListener({
+        onLogin: initData,
+        onLogout: clearData,
+    });
+
+    return state;
+};
+
+// Initial call to setup listener
+useOkrStore.getState = useOkrStoreImpl.getState;

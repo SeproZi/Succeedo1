@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authorizedUser, setAuthorizedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { initData, clearData, data } = useOkrStore();
+  const { clearData } = useOkrStore();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
@@ -31,15 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => unsubscribe();
   }, []);
-
-  useEffect(() => {
-    if (authorizedUser) {
-      if (data.departments.length === 0 && data.teams.length === 0 && data.okrs.length === 0) {
-        initData();
-      }
-    }
-  }, [authorizedUser, initData, data]);
-
 
   const signUpWithEmailPassword = async (email: string, password:string) => {
     setLoading(true);
