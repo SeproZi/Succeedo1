@@ -66,14 +66,9 @@ export function AppSidebar() {
     const handleSaveDepartment = async (title: string) => {
         if (title) {
             const newId = await addDepartment(title);
+            setAddDepartmentOpen(false);
             if (newId) {
-                // The issue is that the router pushes before the store is updated.
-                // A simple timeout can help, but a more robust solution might be needed
-                // if the store update takes longer. This is a pragmatic fix for now.
-                setTimeout(() => {
-                    router.push(`/department/${newId}`);
-                    setAddDepartmentOpen(false);
-                }, 100);
+                router.push(`/department/${newId}`);
             }
         }
     };
@@ -310,5 +305,5 @@ export function AppSidebar() {
                 description={`Are you sure you want to delete the "${itemToDelete?.title}" team? This will also delete all of its OKRs. This action cannot be undone.`}
             />
         </>
-    );
-}
+    
+    
