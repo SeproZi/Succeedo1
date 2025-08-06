@@ -84,7 +84,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     });
 
     return {
-      topLevelOkrs: objectives,
+      topLevelOkrs: okrsWithCalculatedProgress.filter(okr => !okr.parentId),
       overallProgress: overall,
       pillarProgress: pillarProg,
     };
@@ -124,7 +124,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
         <div className="p-4 sm:p-6 lg:p-8 space-y-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Skeleton className="h-9 w-9 md:hidden" />
+                    <SidebarTrigger className="md:hidden"/>
                     <Skeleton className="h-9 w-48" />
                 </div>
                 <div className="flex flex-wrap items-center gap-4">
@@ -193,7 +193,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
 
         <div className="mb-12">
             <OkrGrid 
-                objectives={topLevelOkrs} 
+                objectives={okrsWithCalculatedProgress.filter(okr => okr.type === 'objective')}
                 onGridItemClick={handleGridItemClick}
             />
         </div>
@@ -235,5 +235,3 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     </>
   );
 }
-
-    
