@@ -9,12 +9,12 @@
 import { ai } from '@/ai/genkit';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { CheckUserInputSchema, CheckUserOutputSchema } from '@/lib/types';
+import { CheckUserInputSchema, CheckUserOutputSchema, type CheckUserInput, type CheckUserOutput } from '@/lib/types';
 
 
-export const checkUser = ai.defineFlow(
+const checkUserFlow = ai.defineFlow(
     {
-        name: 'checkUser',
+        name: 'checkUserFlow',
         inputSchema: CheckUserInputSchema,
         outputSchema: CheckUserOutputSchema,
     },
@@ -28,3 +28,7 @@ export const checkUser = ai.defineFlow(
         };
     }
 );
+
+export async function checkUser(input: CheckUserInput): Promise<CheckUserOutput> {
+    return checkUserFlow(input);
+}
