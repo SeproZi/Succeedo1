@@ -28,6 +28,8 @@ import { useAuth } from './auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useState } from 'react';
 import { AddDepartmentDialog } from './add-department-dialog';
+import { AddTeamDialog } from './add-team-dialog';
+import { ConfirmationDialog } from './confirmation-dialog';
 
 const Logo = () => (
     <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -47,6 +49,13 @@ export function AppSidebar() {
     const isCollapsed = state === 'collapsed';
     const { user, signOutUser } = useAuth();
     const [isAddDepartmentOpen, setAddDepartmentOpen] = useState(false);
+    const [isAddTeamOpen, setAddTeamOpen] = useState(false);
+    const [isDeleteDeptOpen, setDeleteDeptOpen] = useState(false);
+    const [isDeleteTeamOpen, setDeleteTeamOpen] = useState(false);
+
+    const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+    const [itemToDelete, setItemToDelete] = useState<{id: string; title: string; type: 'department' | 'team'} | null>(null);
+
 
     const handleSaveDepartment = (title: string) => {
         if (title) {
@@ -57,9 +66,26 @@ export function AppSidebar() {
         }
     };
     
-    const handleAddTeam = (deptId: string) => {
-        const title = prompt('Enter team name:');
-        if (title) addTeam(title, deptId);
+    const handleSaveTeam = (title: string) => {
+        if (title && selectedDepartment) {
+            addTeam(title, selectedDepartment);
+            setAddTeamOpen(false);
+            setSelectedDepartment(null);
+        }
+    };
+
+    const openAddTeamDialog = (deptId: string) => {
+        setSelectedDepartment(deptId);
+        setAddTeamOpen(true);
+    };
+
+    const openDeleteDialog = (id: string, title: string, type: 'department' | 'team') => {
+        setItemToDelete({ id, title, type });
+        if (type === 'department') {
+            setDeleteDeptOpen(true);
+        } else {
+            setDeleteTeamOpen(true);
+        }
     };
     
     const handleEditTeam = (teamId: string, currentTitle: string) => {
@@ -69,31 +95,30 @@ export function AppSidebar() {
         }
     };
 
-    const handleDeleteTeam = (teamId: string, teamTitle: string) => {
-        if (confirm(`Are you sure you want to delete the "${teamTitle}" team? This will also delete all of its OKRs.`)) {
-            deleteTeam(teamId);
-            // If the current page is the team being deleted, redirect
-            if (params.teamId === teamId) {
-                router.push(`/department/${params.id}`);
-            }
-        }
-    };
+    const confirmDelete = () => {
+        if (!itemToDelete) return;
 
-    const handleDeleteDepartment = (departmentId: string, departmentTitle: string) => {
-        if (confirm(`Are you sure you want to delete the "${departmentTitle}" department and all its teams? This is irreversible.`)) {
-            deleteDepartment(departmentId);
-             if (params.id === departmentId) {
-                if (data.departments.length > 1) {
-                    const nextDept = data.departments.find(d => d.id !== departmentId);
-                    if (nextDept) {
-                        router.push(`/department/${nextDept.id}`);
-                    }
+        if (itemToDelete.type === 'department') {
+            deleteDepartment(itemToDelete.id);
+            if (params.id === itemToDelete.id) {
+                const nextDept = data.departments.find(d => d.id !== itemToDelete.id);
+                if (nextDept) {
+                    router.push(`/department/${nextDept.id}`);
                 } else {
                     router.push('/department/new');
                 }
             }
+        } else if (itemToDelete.type === 'team') {
+            deleteTeam(itemToDelete.id);
+            if (params.teamId === itemToDelete.id) {
+                router.push(`/department/${params.id}`);
+            }
         }
-    }
+
+        setDeleteDeptOpen(false);
+        setDeleteTeamOpen(false);
+        setItemToDelete(null);
+    };
 
     return (
         <>
@@ -137,8 +162,8 @@ export function AppSidebar() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent>
-                                                <DropdownMenuItem onClick={() => handleAddTeam(dept.id)}>Add Team</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleDeleteDepartment(dept.id, dept.title)} className="text-destructive">Delete Department</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => openAddTeamDialog(dept.id)}>Add Team</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => openDeleteDialog(dept.id, dept.title, 'department')} className="text-destructive">Delete Department</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
@@ -162,7 +187,7 @@ export function AppSidebar() {
                                                       </DropdownMenuTrigger>
                                                       <DropdownMenuContent>
                                                           <DropdownMenuItem onClick={() => handleEditTeam(team.id, team.title)}>Edit Team</DropdownMenuItem>
-                                                          <DropdownMenuItem onClick={() => handleDeleteTeam(team.id, team.title)} className="text-destructive">Delete Team</DropdownMenuItem>
+                                                          <DropdownMenuItem onClick={() => openDeleteDialog(team.id, team.title, 'team')} className="text-destructive">Delete Team</DropdownMenuItem>
                                                       </DropdownMenuContent>
                                                   </DropdownMenu>
                                                 </div>
@@ -202,12 +227,31 @@ export function AppSidebar() {
                     </div>
                 )}
             </SidebarFooter>
-             <AddDepartmentDialog 
+            <AddDepartmentDialog 
                 isOpen={isAddDepartmentOpen}
                 setOpen={setAddDepartmentOpen}
                 onSave={handleSaveDepartment}
                 title="Create a New Department"
                 description="Give your new department a name. You can add teams to it later."
+            />
+            <AddTeamDialog
+                isOpen={isAddTeamOpen}
+                setOpen={setAddTeamOpen}
+                onSave={handleSaveTeam}
+            />
+            <ConfirmationDialog
+                isOpen={isDeleteDeptOpen}
+                setOpen={setDeleteDeptOpen}
+                onConfirm={confirmDelete}
+                title="Delete Department?"
+                description={`Are you sure you want to delete the "${itemToDelete?.title}" department? This will also delete all its teams and their OKRs. This action cannot be undone.`}
+            />
+             <ConfirmationDialog
+                isOpen={isDeleteTeamOpen}
+                setOpen={setDeleteTeamOpen}
+                onConfirm={confirmDelete}
+                title="Delete Team?"
+                description={`Are you sure you want to delete the "${itemToDelete?.title}" team? This will also delete all of its OKRs. This action cannot be undone.`}
             />
         </>
     );
