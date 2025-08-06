@@ -31,6 +31,7 @@ import { AddDepartmentDialog } from './add-department-dialog';
 import { AddTeamDialog } from './add-team-dialog';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { EditTeamDialog } from './edit-team-dialog';
+import { EditDepartmentDialog } from './edit-department-dialog';
 
 const Logo = () => (
     <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -42,7 +43,7 @@ const Logo = () => (
 );
 
 export function AppSidebar() {
-    const { data, addDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam } = useOkrStore();
+    const { data, addDepartment, updateDepartment, addTeam, deleteDepartment, updateTeam, deleteTeam } = useOkrStore();
     const params = useParams();
     const router = useRouter();
     const { id: departmentId, teamId } = params;
@@ -54,9 +55,10 @@ export function AppSidebar() {
     const [isDeleteDeptOpen, setDeleteDeptOpen] = useState(false);
     const [isDeleteTeamOpen, setDeleteTeamOpen] = useState(false);
     const [isEditTeamOpen, setEditTeamOpen] = useState(false);
+    const [isEditDeptOpen, setEditDeptOpen] = useState(false);
 
     const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
-    const [itemToEdit, setItemToEdit] = useState<{id: string, title: string} | null>(null);
+    const [itemToEdit, setItemToEdit] = useState<{id: string, title: string, type: 'department' | 'team'} | null>(null);
     const [itemToDelete, setItemToDelete] = useState<{id: string; title: string; type: 'department' | 'team'} | null>(null);
 
 
@@ -91,16 +93,25 @@ export function AppSidebar() {
         }
     };
     
-    const openEditTeamDialog = (team: {id: string, title: string}) => {
-        setItemToEdit(team);
-        setEditTeamOpen(true);
+    const openEditDialog = (item: {id: string, title: string}, type: 'department' | 'team') => {
+        setItemToEdit({ ...item, type });
+        if (type === 'department') {
+            setEditDeptOpen(true);
+        } else {
+            setEditTeamOpen(true);
+        }
     };
 
-    const handleSaveTeamEdit = (newTitle: string) => {
-        if (itemToEdit && newTitle) {
+    const handleSaveEdit = (newTitle: string) => {
+        if (!itemToEdit) return;
+
+        if (itemToEdit.type === 'department') {
+            updateDepartment(itemToEdit.id, newTitle);
+        } else {
             updateTeam(itemToEdit.id, newTitle);
         }
         setEditTeamOpen(false);
+        setEditDeptOpen(false);
         setItemToEdit(null);
     };
 
@@ -171,6 +182,7 @@ export function AppSidebar() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent>
+                                                <DropdownMenuItem onClick={() => openEditDialog(dept, 'department')}>Edit Department</DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => openAddTeamDialog(dept.id)}>Add Team</DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => openDeleteDialog(dept.id, dept.title, 'department')} className="text-destructive">Delete Department</DropdownMenuItem>
                                             </DropdownMenuContent>
@@ -195,7 +207,7 @@ export function AppSidebar() {
                                                           </Button>
                                                       </DropdownMenuTrigger>
                                                       <DropdownMenuContent>
-                                                          <DropdownMenuItem onClick={() => openEditTeamDialog(team)}>Edit Team</DropdownMenuItem>
+                                                          <DropdownMenuItem onClick={() => openEditDialog(team, 'team')}>Edit Team</DropdownMenuItem>
                                                           <DropdownMenuItem onClick={() => openDeleteDialog(team.id, team.title, 'team')} className="text-destructive">Delete Team</DropdownMenuItem>
                                                       </DropdownMenuContent>
                                                   </DropdownMenu>
@@ -248,11 +260,19 @@ export function AppSidebar() {
                 setOpen={setAddTeamOpen}
                 onSave={handleSaveTeam}
             />
-            {itemToEdit && (
+            {itemToEdit?.type === 'team' && (
                 <EditTeamDialog
                     isOpen={isEditTeamOpen}
                     setOpen={setEditTeamOpen}
-                    onSave={handleSaveTeamEdit}
+                    onSave={handleSaveEdit}
+                    currentTitle={itemToEdit.title}
+                />
+            )}
+            {itemToEdit?.type === 'department' && (
+                <EditDepartmentDialog
+                    isOpen={isEditDeptOpen}
+                    setOpen={setEditDeptOpen}
+                    onSave={handleSaveEdit}
                     currentTitle={itemToEdit.title}
                 />
             )}
