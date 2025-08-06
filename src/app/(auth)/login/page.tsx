@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 function LoginForm() {
   const { loginWithEmailPassword, sendPasswordReset, loading, error } = useAuth();
@@ -160,7 +161,15 @@ function SignUpForm() {
 
 
 export default function AuthPage() {
-  const { error } = useAuth();
+  const { authorizedUser, loading, error } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && authorizedUser) {
+      router.replace('/company-overview');
+    }
+  }, [authorizedUser, loading, router]);
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
