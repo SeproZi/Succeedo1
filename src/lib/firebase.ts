@@ -10,7 +10,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDNTbT-SuOATom7t5e8cOygZjMSiaf9aGo",
   authDomain: "test-prcas-cm.firebaseapp.com",
   projectId: "test-prcas-cm",
-  storageBucket: "test-prcas-cm.appspot.com",
+  storageBucket: "test-prcas-cm.firebasestorage.app",
   messagingSenderId: "926638638358",
   appId: "1:926638638358:web:b48e457a61780649f7bc37",
   measurementId: "G-LT26RP9GXH"
