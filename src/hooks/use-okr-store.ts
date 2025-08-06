@@ -28,7 +28,7 @@ interface OkrState {
   addYear: (year: number) => void;
   setYear: (year: number) => void;
   setPeriod: (period: TimelinePeriod) => void;
-  addDepartment: (title: string) => Promise<string | undefined>;
+  addDepartment: (title: string, id?: string) => Promise<string | undefined>;
   updateDepartment: (id: string, title: string) => Promise<void>;
   deleteDepartment: (id: string) => Promise<void>;
   addTeam: (title: string, departmentId: string) => Promise<void>;
@@ -90,8 +90,16 @@ export const useOkrStore = create<OkrState>((set, get) => ({
     }),
     setYear: (year) => set({ currentYear: year }),
     setPeriod: (period) => set({ currentPeriod: period }),
-    addDepartment: async (title) => {
+    addDepartment: async (title, id) => {
         try {
+            if (id) {
+                // This is a temporary measure for local state updates
+                const newDepartment = { id, title };
+                 set(state => ({
+                    data: { ...state.data, departments: [...state.data.departments, newDepartment].sort((a,b) => a.title.localeCompare(b.title)) }
+                }));
+                return id;
+            }
             const docRef = await addDoc(collection(db, 'departments'), { title });
             const newDepartment = { id: docRef.id, title };
             set(state => ({
