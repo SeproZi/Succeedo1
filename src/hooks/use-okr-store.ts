@@ -61,26 +61,23 @@ const initialState = {
 const useOkrStore = create<OkrState>((set, get) => ({
     ...initialState,
     initData: async () => {
-        const user = auth.currentUser;
-        if (user) {
-            set({ loading: true });
-            try {
-                const departmentsSnapshot = await getDocs(query(collection(db, "departments")));
-                const departments = departmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department)).sort((a,b) => a.title.localeCompare(b.title));
+        set({ loading: true });
+        try {
+            const departmentsSnapshot = await getDocs(query(collection(db, "departments")));
+            const departments = departmentsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Department)).sort((a,b) => a.title.localeCompare(b.title));
 
-                const teamsSnapshot = await getDocs(query(collection(db, "teams")));
-                const teams = teamsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team)).sort((a,b) => a.title.localeCompare(b.title));
-                
-                const okrsSnapshot = await getDocs(query(collection(db, 'okrs')));
-                const okrs = okrsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OkrItem));
+            const teamsSnapshot = await getDocs(query(collection(db, "teams")));
+            const teams = teamsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Team)).sort((a,b) => a.title.localeCompare(b.title));
+            
+            const okrsSnapshot = await getDocs(query(collection(db, 'okrs')));
+            const okrs = okrsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as OkrItem));
 
-                const newData = { departments, teams, okrs };
-                
-                set({ data: newData, loading: false, availableYears: getInitialYears(newData) });
-            } catch (error) {
-                console.error("Error fetching initial data from Firestore:", error);
-                set({ loading: false });
-            }
+            const newData = { departments, teams, okrs };
+            
+            set({ data: newData, loading: false, availableYears: getInitialYears(newData) });
+        } catch (error) {
+            console.error("Error fetching initial data from Firestore:", error);
+            set({ loading: false });
         }
     },
     clearData: () => set({ ...initialState, loading: false }),
@@ -92,11 +89,8 @@ const useOkrStore = create<OkrState>((set, get) => ({
     setYear: (year) => set({ currentYear: year }),
     setPeriod: (period) => set({ currentPeriod: period }),
     addDepartment: async (title, id) => {
-        const user = auth.currentUser;
-        if (!user) return;
         try {
             if (id) {
-                // This path is for initial department creation on a new account, which doesn't need a DB write yet.
                 const newDepartment: Department = { id, title };
                  set(state => ({
                     data: { ...state.data, departments: [...state.data.departments, newDepartment].sort((a,b) => a.title.localeCompare(b.title)) }
@@ -115,8 +109,6 @@ const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
     updateDepartment: async (id, title) => {
-        const user = auth.currentUser;
-        if (!user) return;
         try {
             const deptRef = doc(db, 'departments', id);
             await updateDoc(deptRef, { title });
@@ -128,8 +120,6 @@ const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
     deleteDepartment: async (id) => {
-        const user = auth.currentUser;
-        if (!user) return;
         try {
             const batch = writeBatch(db);
             const deptRef = doc(db, 'departments', id);
@@ -171,8 +161,6 @@ const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
     addTeam: async (title, departmentId) => {
-        const user = auth.currentUser;
-        if (!user) return;
         try {
             const docRef = await addDoc(collection(db, 'teams'), { title, departmentId });
             const newTeam: Team = { id: docRef.id, title, departmentId };
@@ -184,8 +172,6 @@ const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
     updateTeam: async (id, title) => {
-        const user = auth.currentUser;
-        if (!user) return;
         try {
             const teamRef = doc(db, 'teams', id);
             await updateDoc(teamRef, { title });
@@ -197,8 +183,6 @@ const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
     deleteTeam: async (id) => {
-        const user = auth.currentUser;
-        if (!user) return;
         try {
             const batch = writeBatch(db);
             const teamRef = doc(db, 'teams', id);
@@ -227,26 +211,26 @@ const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
     addOkr: async (okr) => {
-        const user = auth.currentUser;
-        if (!user) return;
         try {
             const newOkrData: Omit<OkrItem, 'id' | 'progress'> & { progress: number } = { ...okr, progress: 0 };
             
+            const dataToSave: { [key: string]: any } = { ...newOkrData };
+            
             // This is the key change: remove any `undefined` fields and the `id` field before saving.
-            Object.keys(newOkrData).forEach(key => {
-                const K = key as keyof typeof newOkrData;
-                if (newOkrData[K] === undefined) {
-                    delete newOkrData[K];
+            Object.keys(dataToSave).forEach(key => {
+                if (dataToSave[key] === undefined) {
+                    delete dataToSave[key];
                 }
             });
-            if ('id' in newOkrData) {
-                delete (newOkrData as any).id;
+            if ('id' in dataToSave) {
+                delete dataToSave.id;
             }
 
+            const docRef = await addDoc(collection(db, 'okrs'), dataToSave);
+            const finalOkr = { ...newOkrData, id: docRef.id } as OkrItem;
 
-            const docRef = await addDoc(collection(db, 'okrs'), newOkrData);
             set(state => ({
-                data: { ...state.data, okrs: [...state.data.okrs, { ...newOkrData, id: docRef.id } as OkrItem] }
+                data: { ...state.data, okrs: [...state.data.okrs, finalOkr] }
             }));
         } catch(error) {
             console.error("Error adding OKR: ", error);
@@ -264,8 +248,6 @@ const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
     deleteOkr: async (id) => {
-        const user = auth.currentUser;
-        if (!user) return;
         try {
             const batch = writeBatch(db);
             const okrRef = doc(db, 'okrs', id);
