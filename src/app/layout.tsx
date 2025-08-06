@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/components/app/auth-provider';
 
 export const metadata: Metadata = {
-  title: 'OKR Vision',
+  title: 'Succeedo',
   description: 'A modern OKR planning and tracking app.',
 };
 

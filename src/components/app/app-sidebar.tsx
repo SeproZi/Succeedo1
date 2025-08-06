@@ -92,7 +92,7 @@ export function AppSidebar() {
                        {!isCollapsed && (
                          <div>
                             <h1 className="text-2xl font-bold font-headline text-sidebar-primary-foreground">
-                               OKR Vision
+                               Succeedo
                             </h1>
                         </div>
                        )}

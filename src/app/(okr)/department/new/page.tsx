@@ -27,7 +27,7 @@ export default function NewDepartmentPage() {
   return (
     <div className="flex flex-col items-center justify-center h-full min-h-[calc(100vh-10rem)] bg-background p-8 text-center">
       <h1 className="text-4xl font-bold font-headline text-primary mb-4">
-        Welcome to OKR Vision
+        Welcome to Succeedo
       </h1>
       <p className="text-lg text-muted-foreground mb-8 max-w-2xl">
         It looks like you're new here. Let's get started by creating your first department. 
