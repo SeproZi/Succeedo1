@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
             setLoading(true);
             try {
-                const result = await firebaseSignInWithEmailLink(auth, email, window.location.href);
+                await firebaseSignInWithEmailLink(auth, email, window.location.href);
                 // onAuthStateChanged will handle the rest
                 window.localStorage.removeItem('emailForSignIn');
 
@@ -64,17 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       setSuccessMessage(null);
       if (user) {
-        const authorized = await isUserAuthorized(user.email);
-        if (authorized) {
-            setUser(user);
-            await initData();
-        } else {
-            setUser(null);
-            clearData();
-            setError("Your email is not authorized to access this application.");
-            await signOut(auth); // Sign out unauthorized user
-            router.replace('/login');
-        }
+        setUser(user);
+        await initData();
       } else {
         setUser(null);
         clearData();
@@ -106,6 +97,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     setSuccessMessage(null);
     setLoading(true);
+
+    const authorized = await isUserAuthorized(email);
+    if (!authorized) {
+        setError("Your email is not authorized to access this application.");
+        setLoading(false);
+        return;
+    }
     
     try {
         const actionCodeSettings = {
