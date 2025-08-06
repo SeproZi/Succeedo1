@@ -68,7 +68,7 @@ export default function CompanyOverviewPage() {
 
     const departmentProgress = useMemo(() => {
         return departments.map(dept => {
-            const departmentTeamIds = okrsWithCalculatedProgress
+            const departmentTeamIds = okrs
                 .filter(okr => okr.owner.type === 'team' && okr.owner.departmentId === dept.id)
                 .map(okr => okr.owner.id);
 
@@ -97,7 +97,7 @@ export default function CompanyOverviewPage() {
                 pillarProgress: pillarProg,
             };
         });
-    }, [departments, okrsWithCalculatedProgress, pillars]);
+    }, [departments, okrsWithCalculatedProgress, pillars, okrs]);
 
   const handleAddYear = () => {
     const newYearString = prompt('Enter the year to add:');
