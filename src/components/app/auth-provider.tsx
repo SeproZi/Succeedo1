@@ -2,21 +2,19 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useOkrStore } from '@/hooks/use-okr-store';
-import { Auth, User, getAuth, isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from 'firebase/auth';
-import { auth, actionCodeSettings } from '@/lib/firebase';
-import { checkUser } from '@/ai/flows/check-user';
+import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 interface AuthContextType {
   authorizedUser: User | null; 
   loading: boolean;
   error: string | null;
-  loginWithEmail: (email: string) => Promise<void>;
+  signUpWithEmailPassword: (email: string, password: string) => Promise<void>;
+  loginWithEmailPassword: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const USER_EMAIL_KEY = 'emailForSignIn';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [authorizedUser, setAuthorizedUser] = useState<User | null>(null);
@@ -25,34 +23,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { initData, clearData, data } = useOkrStore();
 
   useEffect(() => {
-    const handleSignIn = async () => {
-        if (isSignInWithEmailLink(auth, window.location.href)) {
-            let email = window.localStorage.getItem(USER_EMAIL_KEY);
-            if (!email) {
-                email = window.prompt('Please provide your email for confirmation');
-            }
-            if(email) {
-                setLoading(true);
-                try {
-                    const { user } = await signInWithEmailLink(auth, email, window.location.href);
-                    setAuthorizedUser(user);
-                    window.localStorage.removeItem(USER_EMAIL_KEY);
-                } catch(err: any) {
-                    console.error(err);
-                    setError("Failed to sign in with email link. " + err.message);
-                } finally {
-                    setLoading(false);
-                }
-            }
-        } else {
-             const unsubscribe = auth.onAuthStateChanged(user => {
-                setAuthorizedUser(user);
-                setLoading(false);
-            });
-            return () => unsubscribe();
-        }
-    };
-    handleSignIn();
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      setAuthorizedUser(user);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -62,26 +37,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [authorizedUser, initData, data.departments.length]);
 
 
-  const loginWithEmail = async (email: string) => {
+  const signUpWithEmailPassword = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
-
     try {
-        const response = await checkUser({ email: email.toLowerCase() });
-
-        if (!response.isAuthorized) {
-            setError("Your email is not authorized for this application.");
-            setLoading(false);
-            return;
-        }
-        await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-        window.localStorage.setItem(USER_EMAIL_KEY, email);
-        setError(null);
+      const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      setAuthorizedUser(user);
     } catch (err: any) {
-        console.error(err);
-        setError("An error occurred during login: " + err.message);
+      console.error(err);
+      setError(err.message);
     } finally {
-        setLoading(false);
+      setLoading(false);
+    }
+  };
+
+  const loginWithEmailPassword = async (email: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      setAuthorizedUser(user);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,7 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authorizedUser,
     loading,
     error,
-    loginWithEmail,
+    signUpWithEmailPassword,
+    loginWithEmailPassword,
     logout,
   };
 

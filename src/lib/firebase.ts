@@ -1,7 +1,6 @@
-
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApp, getApps } from "firebase/app";
-import { getAuth, ActionCodeSettings } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration from your project settings
@@ -15,15 +14,9 @@ const firebaseConfig = {
   measurementId: "G-LT26RP9GXH"
 };
 
-const actionCodeSettings: ActionCodeSettings = {
-    url: typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login',
-    handleCodeInApp: true,
-};
-
-
 // Initialize Firebase
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { app, auth, db, actionCodeSettings };
+export { app, auth, db };

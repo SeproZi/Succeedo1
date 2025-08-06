@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Checks if a user is authorized.

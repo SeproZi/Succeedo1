@@ -2,25 +2,9 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // The users collection is world-readable because the checkUser flow
-    // needs to check if a user is authorized before they are logged in.
-    // The app's security model relies on this check to prevent unauthorized
-    // users from accessing the app.
-    match /users/{userId} {
-      allow read: if true;
-      allow write: if false; // Only trusted server processes should write to users
-    }
-
-    // All other collections should only be accessible by authenticated users.
-    // This is secure because only authorized users can receive a sign-in link.
-    match /departments/{docId} {
-      allow read, write: if request.auth != null;
-    }
-    match /teams/{docId} {
-      allow read, write: if request.auth != null;
-    }
-    match /okrs/{docId} {
-      allow read, write: if request.auth != null;
+    // Allow read/write access to app data only if the user is authenticated
+    match /{path=**}/documents {
+       allow read, write: if request.auth != null;
     }
   }
 }
