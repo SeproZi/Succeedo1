@@ -230,7 +230,7 @@ const useOkrStore = create<OkrState>((set, get) => ({
         const user = auth.currentUser;
         if (!user) return;
         try {
-            const newOkrData: Omit<OkrItem, 'id'> = { ...okr, progress: 0 };
+            const newOkrData: Omit<Omit<OkrItem, 'id'>, 'progress'> & { progress: number } = { ...okr, progress: 0 };
             
             Object.keys(newOkrData).forEach(key => {
                 if (newOkrData[key as keyof typeof newOkrData] === undefined) {
