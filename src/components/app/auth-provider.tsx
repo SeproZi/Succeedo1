@@ -1,8 +1,9 @@
+
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink as firebaseSignInWithEmailLink, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useOkrStore } from '@/hooks/use-okr-store';
 import { isUserAuthorized } from '@/lib/user-service';
@@ -11,7 +12,8 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  signInWithGoogle: () => Promise<void>;
+  successMessage: string | null;
+  signInWithEmailLink: (email: string) => Promise<void>;
   signOutUser: () => Promise<void>;
 }
 
@@ -21,29 +23,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const { data, initData, loading: storeLoading, clearData } = useOkrStore();
 
   useEffect(() => {
+    // 2. Handle the sign-in link when the user clicks it
+    const handleEmailLinkSignIn = async () => {
+        if (isSignInWithEmailLink(auth, window.location.href)) {
+            let email = window.localStorage.getItem('emailForSignIn');
+            if (!email) {
+                // User opened the link on a different device. To prevent session fixation
+                // attacks, ask the user to provide the email again.
+                // For simplicity, we'll show an error. A real app would have a form.
+                setError("Sign-in link used on a different device or browser. Please try signing in again.");
+                setLoading(false);
+                router.replace('/login');
+                return;
+            }
+            setLoading(true);
+            try {
+                const result = await firebaseSignInWithEmailLink(auth, email, window.location.href);
+                window.localStorage.removeItem('emailForSignIn');
+                // The onAuthStateChanged observer will handle the user state update
+            } catch (err) {
+                console.error(err);
+                setError("Failed to sign in. The link may be invalid or expired.");
+                setLoading(false);
+                router.replace('/login');
+            }
+        }
+    };
+    handleEmailLinkSignIn();
+
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
+      setError(null);
+      setSuccessMessage(null);
       if (user) {
-        // User is signed in, now check if they are authorized.
-        const authorized = await isUserAuthorized(user.email);
-        if (authorized) {
-          setUser(user);
-          await initData();
-        } else {
-          // Not authorized, sign them out.
-          await signOut(auth);
-          setUser(null);
-          setError("You are not authorized to access this application.");
-          router.replace('/login');
-        }
+        setUser(user);
+        await initData();
+        
       } else {
-        // User is signed out.
         setUser(null);
+        clearData();
         if (pathname !== '/login') {
             router.replace('/login');
         }
@@ -52,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [pathname, router, initData]);
+  }, []);
 
 
   useEffect(() => {
@@ -68,21 +93,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [loading, storeLoading, user, data.departments, pathname, router]);
 
-  const signInWithGoogle = async () => {
+  const signInWithEmailLink = async (email: string) => {
     setError(null);
+    setSuccessMessage(null);
     setLoading(true);
+    
+    // 1. Check if the user is in the database
+    const authorized = await isUserAuthorized(email);
+    if (!authorized) {
+        setError("Your email is not authorized to access this application.");
+        setLoading(false);
+        return;
+    }
+
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      // onAuthStateChanged will handle the rest: authorization check and redirection.
-    } catch (err: any) {
-      if (err.code === 'auth/popup-closed-by-user') {
-        setError('Sign-in cancelled. Please try again.');
-      } else {
-        setError("An error occurred during sign-in. Please try again.");
-      }
+      const actionCodeSettings = {
+        url: window.location.origin, // URL to redirect back to
+        handleCodeInApp: true,
+      };
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      window.localStorage.setItem('emailForSignIn', email); // Store email
+      setSuccessMessage(`A sign-in link has been sent to ${email}. Please check your inbox.`);
+    } catch (err) {
       console.error(err);
-      setLoading(false);
+      setError("An error occurred. Could not send sign-in link.");
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -91,7 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // onAuthStateChanged will handle redirection to /login
   };
   
-  if (loading) {
+  // This handles the initial page load and sign-in link processing
+  if (loading || (isSignInWithEmailLink(auth, window.location.href) && !user)) {
     return (
         <div className="flex h-screen items-center justify-center bg-background">
             <p className="text-muted-foreground">Loading...</p>
@@ -99,8 +136,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   }
 
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, signInWithGoogle, signOutUser }}>
+    <AuthContext.Provider value={{ user, loading, error, successMessage, signInWithEmailLink, signOutUser }}>
       {children}
     </AuthContext.Provider>
   );
