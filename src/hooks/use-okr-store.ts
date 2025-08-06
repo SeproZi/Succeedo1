@@ -14,8 +14,8 @@ import {
     where,
     writeBatch,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuthListener } from './use-auth-listener';
+import { auth, db } from '@/lib/firebase';
+import { useEffect } from 'react';
 
 interface OkrState {
   data: AppData;
@@ -63,6 +63,9 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
     ...initialState,
     initData: async () => {
         try {
+            // Avoid re-fetching if data is already present for the current user
+            if (!get().loading && get().data.departments.length > 0) return;
+
             set({ loading: true });
             const departmentsSnapshot = await getDocs(collection(db, "departments"));
             const departments = departmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department)).sort((a,b) => a.title.localeCompare(b.title));
@@ -81,7 +84,7 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
             set({ loading: false });
         }
     },
-    clearData: () => set({...initialState, loading: false }),
+    clearData: () => set({ ...initialState, loading: false }),
     addYear: (year) => set(state => {
         if (state.availableYears.includes(year)) return state;
         const newYears = [...state.availableYears, year].sort((a,b) => a-b);
@@ -92,7 +95,6 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
     addDepartment: async (title, id) => {
         try {
             if (id) {
-                // This is a temporary measure for local state updates
                 const newDepartment = { id, title };
                  set(state => ({
                     data: { ...state.data, departments: [...state.data.departments, newDepartment].sort((a,b) => a.title.localeCompare(b.title)) }
@@ -127,18 +129,15 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
             const deptRef = doc(db, 'departments', id);
             batch.delete(deptRef);
 
-            // Delete teams in the department
             const teamsQuery = query(collection(db, 'teams'), where('departmentId', '==', id));
             const teamsSnapshot = await getDocs(teamsQuery);
             const teamIds = teamsSnapshot.docs.map(d => d.id);
             teamsSnapshot.forEach(doc => batch.delete(doc.ref));
 
-            // Delete OKRs owned by the department
             const deptOkrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'department'), where('owner.id', '==', id));
             const deptOkrsSnapshot = await getDocs(deptOkrsQuery);
             deptOkrsSnapshot.forEach(doc => batch.delete(doc.ref));
 
-            // Delete OKRs owned by teams in the department
             if (teamIds.length > 0) {
                 const teamOkrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'team'), where('owner.id', 'in', teamIds));
                 const teamOkrsSnapshot = await getDocs(teamOkrsQuery);
@@ -193,7 +192,6 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
             const teamRef = doc(db, 'teams', id);
             batch.delete(teamRef);
             
-            // Delete OKRs for this team
             const okrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'team'), where('owner.id', '==', id));
             const okrsSnapshot = await getDocs(okrsQuery);
             okrsSnapshot.forEach(doc => batch.delete(doc.ref));
@@ -225,6 +223,9 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
              if (newOkrData.priority === undefined) {
                 (newOkrData as Partial<OkrItem>).priority = null as any;
             }
+             if (newOkrData.notes === undefined) {
+                (newOkrData as Partial<OkrItem>).notes = '';
+            }
 
             const docRef = await addDoc(collection(db, 'okrs'), newOkrData);
             set(state => ({
@@ -251,7 +252,6 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
             const okrRef = doc(db, 'okrs', id);
             batch.delete(okrRef);
 
-            // Also delete children KRs
             const childrenQuery = query(collection(db, 'okrs'), where('parentId', '==', id));
             const childrenSnapshot = await getDocs(childrenQuery);
             childrenSnapshot.forEach(doc => batch.delete(doc.ref));
@@ -295,15 +295,20 @@ const useOkrStoreImpl = create<OkrState>((set, get) => ({
 
 export const useOkrStore = (selector?: (state: OkrState) => any) => {
     const state = useOkrStoreImpl(selector);
-    const { initData, clearData } = useOkrStoreImpl();
+    const { initData, clearData, loading } = useOkrStoreImpl();
 
-    useAuthListener({
-        onLogin: initData,
-        onLogout: clearData,
-    });
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+            if (user) {
+                initData();
+            } else {
+                clearData();
+            }
+        });
+        return () => unsubscribe();
+    }, [initData, clearData]);
 
     return state;
 };
 
-// Initial call to setup listener
 useOkrStore.getState = useOkrStoreImpl.getState;
