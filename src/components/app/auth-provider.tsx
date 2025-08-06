@@ -50,7 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
             setAuthorizedEmail(email);
             localStorage.setItem(AUTHORIZED_EMAIL_KEY, email);
-            // initData will be called by the useEffect above
         }
     } catch (err: any) {
         console.error(err);

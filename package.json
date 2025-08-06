@@ -1,10 +1,11 @@
+
 {
   "name": "nextn",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
+    "genkit:dev": "genkit start",
     "genkit:watch": "next dev",
     "build": "next build",
     "start": "next start",
