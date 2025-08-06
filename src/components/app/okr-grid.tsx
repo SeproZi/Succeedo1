@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,7 +26,7 @@ export function OkrGrid({ objectives, onGridItemClick }: OkrGridProps) {
               </h3>
           </div>
           {objectives
-            .filter(obj => obj.pillar === pillar)
+            .filter(obj => obj && obj.id && obj.pillar === pillar)
             .map(obj => (
               <div key={obj.id}>
                 <GridItem item={obj} onClick={onGridItemClick} />
