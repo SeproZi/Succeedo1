@@ -8,12 +8,12 @@ import { getFirestore } from "firebase/firestore";
 // Your web app's Firebase configuration
 // IMPORTANT: Replace this with your actual Firebase project configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCV_MptESLcyN51o0Pj6PCgXzVqGqOykXg",
+  apiKey: "AlzaSyDNTbT-SuOATom7t5e8c0ygZjMSiaf9aGo",
   authDomain: "test-prcas-cm.firebaseapp.com",
   projectId: "test-prcas-cm",
   storageBucket: "test-prcas-cm.appspot.com",
-  messagingSenderId: "931253569530",
-  appId: "1:931253569530:web:9c7553f473c0993952f1e6"
+  messagingSenderId: "926638638358",
+  appId: "1:926638638358:web:9c7553f473c0993952f1e6"
 };
 
 // Initialize Firebase
