@@ -285,7 +285,7 @@ export function AddOkrDialog({
                         <FormMessage />
                       </FormItem>
                     )}
-                  </Button>
+                  />
                 </>
             )}
             
