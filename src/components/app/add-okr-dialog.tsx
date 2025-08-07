@@ -35,6 +35,7 @@ import { suggestKeyResultsAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import useOkrStore from '@/hooks/use-okr-store';
 import { Separator } from '../ui/separator';
+import { OkrItem, OkrOwner, OkrPillar, OkrPriority } from '@/lib/types';
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -227,10 +228,11 @@ export function AddOkrDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <Select onValueChange={(value) => {
-                      field.onChange(value);
-                      if (value === 'objective') form.setValue('parentId', null);
-                  }} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    disabled={true}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select item type" />
