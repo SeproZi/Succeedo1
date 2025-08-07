@@ -36,7 +36,8 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
   const okrs = useMemo(() => 
     allOkrs.filter(okr => 
         okr.year === currentYear &&
-        okr.period === currentPeriod
+        okr.period === currentPeriod &&
+        JSON.stringify(okr.owner) === JSON.stringify(owner) // Filter by owner
     ), 
     [allOkrs, owner, currentYear, currentPeriod]
   );
