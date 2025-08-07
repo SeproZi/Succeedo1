@@ -6,7 +6,6 @@
 - Key Result Progress Updates: Update the progress of Key Results with real-time tracking and visual indicators.
 - Objective Progress Dashboard: View overall objective progress through an interactive dashboard, with charts.
 - Automatic goal progress visualization: Visualize goal progress by automatically updating and displaying the completion percentage of a group of objectives based on underlying key results.
-- AI-Powered Key Result Suggestions: Suggest appropriate Key Results based on the entered Objective, using a generative AI tool to guide and refine goals.
 
 ## Style Guidelines:
 

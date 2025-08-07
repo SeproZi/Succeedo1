@@ -31,7 +31,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Sparkles, Loader2, Plus } from 'lucide-react';
-import type { OkrItem, OkrOwner, OkrPillar, OkrPriority, TimelinePeriod } from '@/lib/types';
 import { suggestKeyResultsAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import useOkrStore from '@/hooks/use-okr-store';
@@ -82,7 +81,6 @@ export function AddOkrDialog({
 }: AddOkrDialogProps) {
   const isEditing = okrData && 'id' in okrData;
   const { toast } = useToast();
-  const [isSuggesting, setIsSuggesting] = useState(false);
   const { addOkr, updateOkr, currentYear, currentPeriod, availableYears, addYear } = useOkrStore();
 
   const objectives = useOkrStore(state => 
@@ -141,35 +139,6 @@ export function AddOkrDialog({
   
   const type = form.watch('type');
   const parentId = form.watch('parentId');
-
-  const handleSuggestKRs = async () => {
-    const objectiveId = parentId;
-    if (!objectiveId) {
-        toast({ title: "Error", description: "Please select a parent objective first.", variant: "destructive" });
-        return;
-    }
-    const objective = objectives.find(o => o.id === objectiveId);
-    if (!objective) {
-        toast({ title: "Error", description: "Parent objective not found.", variant: "destructive" });
-        return;
-    }
-    setIsSuggesting(true);
-    try {
-        const result = await suggestKeyResultsAction(objective.title);
-        const suggestions = result.keyResults;
-        if (suggestions.length > 0) {
-            form.setValue('title', suggestions[0]);
-            toast({ title: "Suggestion applied!", description: "The first AI suggestion has been applied to the title." });
-        } else {
-            toast({ title: "No suggestions", description: "The AI couldn't find any suggestions." });
-        }
-    } catch (error) {
-        console.error(error);
-        toast({ title: "Error", description: "Failed to get AI suggestions.", variant: "destructive" });
-    } finally {
-        setIsSuggesting(false);
-    }
-  };
 
   const handleAddYear = () => {
     const newYearString = prompt('Enter the year to add:');
@@ -316,14 +285,6 @@ export function AddOkrDialog({
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
-                  <Button type="button" variant="outline" size="sm" onClick={handleSuggestKRs} disabled={isSuggesting || !parentId}>
-                    {isSuggesting ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <Sparkles className="mr-2 h-4 w-4" />
-                    )}
-                    Suggest with AI
                   </Button>
                 </>
             )}
