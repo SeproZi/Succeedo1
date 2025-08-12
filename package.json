@@ -6,6 +6,7 @@
     "dev": "next dev",
     "genkit:dev": "genkit start",
     "genkit:watch": "next dev",
+    "prebuild": "node scripts/validate-env.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

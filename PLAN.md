@@ -38,4 +38,11 @@ To prevent uncontrolled changes, any significant refactoring or feature implemen
 -   **Database**: Firestore
 -   **Deployment**: Firebase App Hosting
 
+## 5. Next Steps (Local Machine)
+
+1.  **Fetch Changes**: Pull the latest changes from the Git repository to your local machine.
+2.  **Install Dependencies**: Run `npm install` to ensure all dependencies are up to date.
+3.  **Build Application**: Run `npm run build` to build the application. The build should now succeed with the recent fixes.
+4.  **Deploy**: Deploy the application to Firebase using `firebase deploy`.
+
 <!-- Force rebuild commit -->
