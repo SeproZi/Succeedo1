@@ -1,20 +1,12 @@
+
 'use client';
-import { OkrDashboard } from '@/components/app/okr-dashboard';
-import useOkrStore from '@/hooks/use-okr-store';
-import { useParams } from 'next/navigation';
+import dynamic from 'next/dynamic'
 
-export default function DepartmentOkrPage() {
-    const params = useParams();
-    const id = params.id as string;
-    const { data: { departments }, loading } = useOkrStore();
-    const department = departments.find(d => d.id === id);
+const DepartmentOkrClientPage = dynamic(
+  () => import('@/components/app/department-okr-client-page'),
+  { ssr: false }
+)
 
-    const title = loading ? "Loading..." : department ? `${department.title} Department` : "Department";
-
-    return (
-        <OkrDashboard
-            owner={{ type: 'department', id: id }}
-            title={title}
-        />
-    );
+export default function Page() {
+  return <DepartmentOkrClientPage />
 }
