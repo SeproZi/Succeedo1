@@ -27,13 +27,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true); // Always set loading to true when auth state changes
       setAuthorizedUser(user);
       if (user) {
         await initData();
       } else {
         clearData();
       }
-      setLoading(false);
+      setLoading(false); // Set loading to false only after data is settled
     });
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError(err.message);
       }
     } finally {
-      setLoading(false);
+      // setLoading will be handled by onAuthStateChanged
     }
   };
 
@@ -75,8 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setError('An unexpected error occurred. Please try again later.');
       }
-    } finally {
-      setLoading(false);
+      setLoading(false); // Only set loading false on error here
     }
   };
 
@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     await auth.signOut();
-    // The onAuthStateChanged listener will handle clearing data.
+    // The onAuthStateChanged listener will handle clearing data and setting loading state.
   };
 
   const value = {

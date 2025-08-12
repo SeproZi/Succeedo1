@@ -42,27 +42,18 @@ const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters long.'),
   type: z.enum(['objective', 'keyResult']),
   parentId: z.string().nullable(),
-  pillar: z.enum(['People', 'Product', 'Tech'], { required_error: 'A pillar is required for an objective.' }).optional(),
-  priority: z.enum(['P1', 'P2', 'P3'], { required_error: 'A priority is required.' }).optional(),
+  pillar: z.enum(['People', 'Product', 'Tech']).optional(),
+  priority: z.enum(['P1', 'P2', 'P3'], { required_error: 'A priority is required.' }),
   notes: z.string().optional(),
   year: z.number(),
   period: z.enum(['P1', 'P2', 'P3']),
 }).superRefine((data, ctx) => {
-    if (data.type === 'objective') {
-        if (!data.pillar) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ['pillar'],
-                message: 'A pillar is required for an objective.',
-            });
-        }
-        if (!data.priority) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ['priority'],
-                message: 'A priority is required for an objective.',
-            });
-        }
+    if (data.type === 'objective' && !data.pillar) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['pillar'],
+            message: 'A pillar is required for an objective.',
+        });
     }
 });
 
@@ -125,14 +116,20 @@ export function AddOkrDialog({
   }, [okrData, form, currentYear, currentPeriod]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (values.type === 'objective') {
-      values.parentId = null;
+    const dataToSend = { ...values };
+    
+    if (dataToSend.type === 'objective') {
+      dataToSend.parentId = null;
+    } else {
+      delete dataToSend.pillar; // Remove pillar for key results
     }
     
-    if (isEditing && values.id) {
-        await updateOkr(values.id, { ...values, owner, pillar: values.pillar as OkrPillar, priority: values.priority as OkrPriority });
+    const { id, ...okrData } = dataToSend;
+
+    if (isEditing && id) {
+        await updateOkr(id, { ...okrData, owner });
     } else {
-        await addOkr({ ...values, owner, pillar: values.pillar as OkrPillar, priority: values.priority as OkrPriority });
+        await addOkr({ ...okrData, owner });
     }
     
     setOpen(false);

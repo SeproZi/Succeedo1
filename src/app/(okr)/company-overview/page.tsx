@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CompanyOverviewPage() {
     const { 
-        data: { okrs, departments },
+        data: { okrs, departments, teams },
         loading,
         currentYear,
         currentPeriod,
@@ -70,9 +70,9 @@ export default function CompanyOverviewPage() {
 
     const departmentProgress = useMemo(() => {
         return departments.map(dept => {
-            const departmentTeamIds = okrs
-                .filter(okr => okr.owner.type === 'team' && okr.owner.departmentId === dept.id)
-                .map(okr => okr.owner.id);
+            const departmentTeamIds = teams
+                .filter(team => team.departmentId === dept.id)
+                .map(team => team.id);
 
             const departmentOkrs = okrsWithCalculatedProgress.filter(okr =>
                 (okr.owner.type === 'department' && okr.owner.id === dept.id) ||
@@ -80,26 +80,19 @@ export default function CompanyOverviewPage() {
             );
 
             const objectives = departmentOkrs.filter(okr => okr.type === 'objective');
+            if (objectives.length === 0) {
+                return { ...dept, progress: 0 };
+            }
             
-            const pillarProg: Record<OkrPillar, number> = { People: 0, Product: 0, Tech: 0 };
-             pillars.forEach(pillar => {
-                const pillarObjectives = objectives.filter(o => o.pillar === pillar);
-                if (pillarObjectives.length > 0) {
-                    pillarProg[pillar] = Math.round(pillarObjectives.reduce((sum, okr) => sum + okr.progress, 0) / pillarObjectives.length);
-                }
-            });
-
-            const progressValues = Object.values(pillarProg);
-            const validPillars = progressValues.filter(p => p > 0).length;
-            const overallProgress = validPillars > 0 ? Math.round(progressValues.reduce((sum, p) => sum + p, 0) / validPillars) : 0;
+            const totalProgress = objectives.reduce((sum, okr) => sum + okr.progress, 0);
+            const overallProgress = Math.round(totalProgress / objectives.length);
             
             return {
                 ...dept,
                 progress: overallProgress,
-                pillarProgress: pillarProg,
             };
         });
-    }, [departments, okrsWithCalculatedProgress, pillars, okrs]);
+    }, [departments, teams, okrsWithCalculatedProgress]);
 
   const handleAddYear = () => {
     const newYearString = prompt('Enter the year to add:');
@@ -195,7 +188,7 @@ export default function CompanyOverviewPage() {
                                     <div className="flex items-center gap-4">
                                         <p className="text-sm font-medium text-muted-foreground whitespace-nowrap">Overall Progress</p>
                                         <Progress value={dept.progress} className="h-2.5" />
-                                        <p className="text-lg font-bold text-primary">{dept.progress}%</p>
+                                        <p className="text-lg font-bold text-primary">{Math.round(dept.progress)}%</p>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -212,5 +205,3 @@ export default function CompanyOverviewPage() {
     </div>
   );
 }
-
-    

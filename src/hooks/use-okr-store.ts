@@ -2,11 +2,10 @@
 'use client';
 
 import { create } from 'zustand';
-import type { AppData, Department, OkrItem, Team, TimelinePeriod } from '@/lib/types';
+import type { AppData, Department, OkrItem, OkrOwner, OkrPillar, Team, TimelinePeriod } from '@/lib/types';
 import {
     addDoc,
     collection,
-    deleteDoc,
     doc,
     getDocs,
     query,
@@ -14,7 +13,42 @@ import {
     where,
     writeBatch,
 } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
+import { getCurrentPeriod, getOwnerKey } from '@/lib/utils';
+
+// Exported for testability
+export const getTimelineDefaults = (data: AppData) => {
+    const years = new Set<number>();
+    data.okrs.forEach(okr => years.add(okr.year));
+    const availableYears = Array.from(years).sort((a,b) => b-a); // Sort descending to get latest
+
+    if (availableYears.length > 0) {
+        const latestYear = availableYears[0];
+        const periodsForYear = data.okrs
+            .filter(okr => okr.year === latestYear)
+            .map(okr => okr.period)
+            .sort((a, b) => b.localeCompare(a)); // P3, P2, P1
+        
+        const latestPeriod = periodsForYear.length > 0 ? periodsForYear[0] : getCurrentPeriod();
+        return { availableYears: availableYears.sort((a,b) => a-b), latestYear, latestPeriod };
+    }
+    
+    // Fallback if no data exists
+    const systemYear = new Date().getFullYear();
+    return { 
+        availableYears: [systemYear], 
+        latestYear: systemYear, 
+        latestPeriod: getCurrentPeriod() 
+    };
+}
+
+// Exported for testability
+export const calculateProgress = (okrId: string, allItems: OkrItem[]): number => {
+    const children = allItems.filter(okr => okr.parentId === okrId);
+    if (children.length === 0) return 0;
+    const totalProgress = children.reduce((sum, child) => sum + child.progress, 0);
+    return Math.round(totalProgress / children.length);
+};
 
 interface OkrState {
   data: AppData;
@@ -27,7 +61,7 @@ interface OkrState {
   addYear: (year: number) => void;
   setYear: (year: number) => void;
   setPeriod: (period: TimelinePeriod) => void;
-  addDepartment: (title: string, id?: string) => Promise<string | undefined>;
+  addDepartment: (title: string) => Promise<string | undefined>;
   updateDepartment: (id: string, title: string) => Promise<void>;
   deleteDepartment: (id: string) => Promise<void>;
   addTeam: (title: string, departmentId: string) => Promise<void>;
@@ -38,23 +72,17 @@ interface OkrState {
   deleteOkr: (id: string) => Promise<void>;
   updateOkrProgress: (id: string, progress: number) => Promise<void>;
   updateOkrNotes: (id: string, notes: string) => Promise<void>;
-}
-
-const getInitialYears = (data: AppData) => {
-    const year = new Date().getFullYear();
-    const years = new Set<number>();
-    years.add(year - 1);
-    years.add(year);
-    years.add(year + 1);
-    data.okrs.forEach(okr => years.add(okr.year));
-    return Array.from(years).sort((a,b) => a-b);
+  // Selectors
+  selectFilteredOkrs: () => OkrItem[];
+  selectCompanyOverview: () => { overallProgress: number, departmentProgress: Array<Department & { progress: number }> };
+  selectDashboardData: (owner: OkrOwner) => { topLevelOkrs: OkrItem[], overallProgress: number, pillarProgress: Record<OkrPillar, number> };
 }
 
 const initialState = {
     data: { departments: [], teams: [], okrs: [] },
     loading: true,
     currentYear: new Date().getFullYear(),
-    currentPeriod: 'P1' as TimelinePeriod,
+    currentPeriod: getCurrentPeriod(),
     availableYears: [],
 };
 
@@ -64,29 +92,26 @@ const useOkrStore = create<OkrState>((set, get) => ({
         set({ loading: true });
         try {
             const departmentsSnapshot = await getDocs(query(collection(db, "departments")));
-            const departments = departmentsSnapshot.docs.map(doc => {
-                const data = doc.data();
-                delete (data as any).id;
-                return { ...data, id: doc.id } as Department;
-            }).sort((a,b) => a.title.localeCompare(b.title));
+            const departments = departmentsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Department))
+                .sort((a,b) => a.title.localeCompare(b.title));
 
             const teamsSnapshot = await getDocs(query(collection(db, "teams")));
-            const teams = teamsSnapshot.docs.map(doc => {
-                const data = doc.data();
-                delete (data as any).id;
-                return { ...data, id: doc.id } as Team;
-            }).sort((a,b) => a.title.localeCompare(b.title));
+            const teams = teamsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Team))
+                .sort((a,b) => a.title.localeCompare(b.title));
             
             const okrsSnapshot = await getDocs(query(collection(db, 'okrs')));
-            const okrs = okrsSnapshot.docs.map(doc => {
-                const data = doc.data();
-                delete (data as any).id;
-                return { ...data, id: doc.id } as OkrItem;
-            });
+            const okrs = okrsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as OkrItem));
 
             const newData = { departments, teams, okrs };
+            const { availableYears, latestYear, latestPeriod } = getTimelineDefaults(newData);
             
-            set({ data: newData, loading: false, availableYears: getInitialYears(newData) });
+            set({ 
+                data: newData, 
+                loading: false, 
+                availableYears,
+                currentYear: latestYear,
+                currentPeriod: latestPeriod,
+            });
         } catch (error) {
             console.error("Error fetching initial data from Firestore:", error);
             set({ loading: false });
@@ -100,15 +125,8 @@ const useOkrStore = create<OkrState>((set, get) => ({
     }),
     setYear: (year) => set({ currentYear: year }),
     setPeriod: (period) => set({ currentPeriod: period }),
-    addDepartment: async (title, id) => {
+    addDepartment: async (title) => {
         try {
-            if (id) {
-                const newDepartment: Department = { id, title };
-                 set(state => ({
-                    data: { ...state.data, departments: [...state.data.departments, newDepartment].sort((a,b) => a.title.localeCompare(b.title)) }
-                }));
-                return id;
-            }
             const docRef = await addDoc(collection(db, 'departments'), { title });
             const newDepartment: Department = { id: docRef.id, title };
             set(state => ({
@@ -139,35 +157,21 @@ const useOkrStore = create<OkrState>((set, get) => ({
 
             const teamsQuery = query(collection(db, 'teams'), where('departmentId', '==', id));
             const teamsSnapshot = await getDocs(teamsQuery);
-            const teamIds = teamsSnapshot.docs.map(d => d.id);
             teamsSnapshot.forEach(doc => batch.delete(doc.ref));
 
-            const deptOkrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'department'), where('owner.id', '==', id));
-            const deptOkrsSnapshot = await getDocs(deptOkrsQuery);
-            deptOkrsSnapshot.forEach(doc => batch.delete(doc.ref));
-
-            if (teamIds.length > 0) {
-                const teamOkrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'team'), where('owner.id', 'in', teamIds));
-                const teamOkrsSnapshot = await getDocs(teamOkrsQuery);
-                teamOkrsSnapshot.forEach(doc => batch.delete(doc.ref));
-            }
+            const okrsQuery = query(collection(db, 'okrs'), where('owner.departmentId', '==', id));
+            const okrsSnapshot = await getDocs(okrsQuery);
+            okrsSnapshot.forEach(doc => batch.delete(doc.ref));
 
             await batch.commit();
 
-            set(state => {
-                const teamsToDelete = state.data.teams.filter(t => t.departmentId === id).map(t => t.id);
-                const okrIdsToDelete = state.data.okrs
-                    .filter(okr => (okr.owner.type === 'department' && okr.owner.id === id) || (okr.owner.type === 'team' && teamsToDelete.includes(okr.owner.id)))
-                    .map(okr => okr.id);
-
-                return {
-                    data: {
-                        departments: state.data.departments.filter(d => d.id !== id),
-                        teams: state.data.teams.filter(t => t.departmentId !== id),
-                        okrs: state.data.okrs.filter(o => !okrIdsToDelete.includes(o.id) && o.parentId && !okrIdsToDelete.includes(o.parentId)),
-                    }
-                };
-            });
+            set(state => ({
+                data: {
+                    departments: state.data.departments.filter(d => d.id !== id),
+                    teams: state.data.teams.filter(t => t.departmentId !== id),
+                    okrs: state.data.okrs.filter(o => o.owner.departmentId !== id),
+                }
+            }));
         } catch (error) {
             console.error("Error deleting department:", error);
         }
@@ -200,45 +204,27 @@ const useOkrStore = create<OkrState>((set, get) => ({
             const teamRef = doc(db, 'teams', id);
             batch.delete(teamRef);
             
-            const okrsQuery = query(collection(db, 'okrs'), where('owner.type', '==', 'team'), where('owner.id', '==', id));
+            const okrsQuery = query(collection(db, 'okrs'), where('owner.id', '==', id));
             const okrsSnapshot = await getDocs(okrsQuery);
             okrsSnapshot.forEach(doc => batch.delete(doc.ref));
 
             await batch.commit();
 
-            set(state => {
-                 const okrIdsToDelete = state.data.okrs
-                    .filter(okr => okr.owner.type === 'team' && okr.owner.id === id)
-                    .map(okr => okr.id);
-                return {
-                    data: {
-                        ...state.data,
-                        teams: state.data.teams.filter(t => t.id !== id),
-                        okrs: state.data.okrs.filter(o => !okrIdsToDelete.includes(o.id) && o.parentId && !okrIdsToDelete.includes(o.parentId)),
-                    }
+            set(state => ({
+                data: {
+                    ...state.data,
+                    teams: state.data.teams.filter(t => t.id !== id),
+                    okrs: state.data.okrs.filter(o => o.owner.id !== id),
                 }
-            });
+            }));
         } catch (error) {
             console.error("Error deleting team:", error);
         }
     },
     addOkr: async (okr) => {
         try {
-            const newOkrData: Omit<OkrItem, 'id' | 'progress'> & { progress: number } = { ...okr, progress: 0 };
-            
-            const dataToSave: { [key: string]: any } = { ...newOkrData };
-            
-            Object.keys(dataToSave).forEach(key => {
-                if (dataToSave[key] === undefined) {
-                    delete dataToSave[key];
-                }
-            });
-            
-            if ('id' in dataToSave) {
-                delete (dataToSave as any).id;
-            }
-
-            const docRef = await addDoc(collection(db, 'okrs'), dataToSave);
+            const newOkrData = { ...okr, progress: 0 };
+            const docRef = await addDoc(collection(db, 'okrs'), newOkrData);
             const finalOkr = { ...newOkrData, id: docRef.id } as OkrItem;
 
             set(state => ({
@@ -303,8 +289,67 @@ const useOkrStore = create<OkrState>((set, get) => ({
             console.error("Error updating OKR notes: ", error);
         }
     },
+    // Selectors
+    selectFilteredOkrs: () => {
+        const { data, currentYear, currentPeriod } = get();
+        return data.okrs.filter(okr => okr.year === currentYear && okr.period === currentPeriod);
+    },
+    selectCompanyOverview: () => {
+        const { data, selectFilteredOkrs } = get();
+        const { departments, teams } = data;
+        const filteredOkrs = selectFilteredOkrs();
+
+        const okrsWithProgress = filteredOkrs.map(okr => 
+            okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, filteredOkrs) } : okr
+        );
+
+        const departmentProgress = departments.map(dept => {
+            const departmentTeamIds = teams.filter(t => t.departmentId === dept.id).map(t => t.id);
+            const departmentObjectives = okrsWithProgress.filter(okr => 
+                okr.type === 'objective' &&
+                ((okr.owner.type === 'department' && okr.owner.id === dept.id) ||
+                (okr.owner.type === 'team' && departmentTeamIds.includes(okr.owner.id)))
+            );
+            if (departmentObjectives.length === 0) return { ...dept, progress: 0 };
+            const totalProgress = departmentObjectives.reduce((sum, okr) => sum + okr.progress, 0);
+            return { ...dept, progress: Math.round(totalProgress / departmentObjectives.length) };
+        });
+
+        const overallProgress = departmentProgress.length > 0
+            ? Math.round(departmentProgress.reduce((sum, dept) => sum + dept.progress, 0) / departmentProgress.length)
+            : 0;
+            
+        return { overallProgress, departmentProgress };
+    },
+    selectDashboardData: (owner: OkrOwner) => {
+        const { selectFilteredOkrs } = get();
+        const okrs = selectFilteredOkrs().filter(okr => getOwnerKey(okr.owner) === getOwnerKey(owner));
+        
+        const okrsWithCalculatedProgress = okrs.map(okr => 
+            okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, okrs) } : okr
+        );
+
+        const objectives = okrsWithCalculatedProgress.filter(okr => okr.type === 'objective');
+        const overallProgress = objectives.length > 0
+          ? Math.round(objectives.reduce((sum, okr) => sum + okr.progress, 0) / objectives.length)
+          : 0;
+        
+        const pillars: OkrPillar[] = ['People', 'Product', 'Tech'];
+        const pillarProgress: Record<OkrPillar, number> = { People: 0, Product: 0, Tech: 0 };
+
+        pillars.forEach(pillar => {
+          const pillarObjectives = objectives.filter(o => o.pillar === pillar);
+          if (pillarObjectives.length > 0) {
+            pillarProgress[pillar] = Math.round(pillarObjectives.reduce((sum, okr) => sum + okr.progress, 0) / pillarObjectives.length);
+          }
+        });
+
+        return {
+          topLevelOkrs: okrsWithCalculatedProgress.filter(okr => !okr.parentId),
+          overallProgress,
+          pillarProgress,
+        };
+    }
 }));
 
 export default useOkrStore;
-
-    
