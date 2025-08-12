@@ -7,9 +7,8 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { AddDepartmentDialog } from '@/components/app/add-department-dialog';
 
-export const dynamic = 'force-dynamic';
-
 export default function NewDepartmentPage() {
+  const [isClient, setIsClient] = useState(false);
   const addDepartment = useOkrStore(state => state.addDepartment);
   const data = useOkrStore(state => state.data);
   const loading = useOkrStore(state => state.loading);
@@ -17,13 +16,14 @@ export default function NewDepartmentPage() {
   const [isDialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    // If data is loaded and departments exist, redirect to the first one.
-    // This prevents staying on the 'new' page if departments are created elsewhere.
-    if (!loading && data.departments.length > 0) {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (isClient && !loading && data.departments.length > 0) {
       router.replace(`/department/${data.departments[0].id}`);
     }
-  }, [data.departments, loading, router]);
-
+  }, [isClient, data.departments, loading, router]);
 
   const handleSaveDepartment = (title: string) => {
     if (title) {
@@ -33,19 +33,14 @@ export default function NewDepartmentPage() {
       router.push(`/department/${newId}`);
     }
   };
-  
-  // While loading, we can show a placeholder or nothing
-  if (loading) {
-      return <div className="flex h-screen items-center justify-center">
-                <p>Loading...</p>
-            </div>;
+
+  if (!isClient || loading) {
+    return <div className="flex h-screen items-center justify-center"><p>Loading...</p></div>;
   }
-  
-  // If not loading and there are departments, the useEffect will handle redirection.
-  // If not loading and NO departments, show the creation UI.
-  if (!loading && data.departments.length === 0) {
-      return (
-        <>
+
+  if (data.departments.length === 0) {
+    return (
+      <>
         <div className="flex flex-col items-center justify-center h-full min-h-[calc(100vh-10rem)] bg-background p-8 text-center">
           <h1 className="text-4xl font-bold font-headline text-primary mb-4">
             Welcome to Succeedo
@@ -65,12 +60,9 @@ export default function NewDepartmentPage() {
             title="Create Your First Department"
             description="Enter the name for the main team or area in your organization."
         />
-        </>
-      );
+      </>
+    );
   }
 
-  // Fallback for any other state, though should mostly be handled above.
-  return <div className="flex h-screen items-center justify-center">
-            <p>Loading...</p>
-        </div>;
+  return <div className="flex h-screen items-center justify-center"><p>Loading...</p></div>;
 }
