@@ -1,7 +1,7 @@
 
-import { initializeApp, getApp, getApps, FirebaseApp } from "firebase/app";
-import { getAuth, Auth } from "firebase/auth";
-import { getFirestore, Firestore } from "firebase/firestore";
+import { initializeApp, getApp, getApps } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -14,22 +14,14 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-let app: FirebaseApp | null = null;
-let auth: Auth | null = null;
-let db: Firestore | null = null;
+// Initialize Firebase
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// Check if we have the API key, which is the bare minimum for initialization.
-// This check prevents the app from crashing during the build process on the server
-// where environment variables are not available.
-if (firebaseConfig.apiKey) {
-  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-
-  // Initialize analytics only on the client-side.
-  if (typeof window !== 'undefined') {
-    getAnalytics(app);
-  }
+// It's good practice to initialize analytics only on the client-side.
+if (typeof window !== 'undefined') {
+  getAnalytics(app);
 }
 
 export { app, auth, db };
