@@ -1,25 +1,22 @@
-# Development Plan & Coding Guidelines
 
-This document outlines the persona, principles, and protocols for developing the OKR Vision application. Its purpose is to ensure that all changes are deliberate, tested, and aligned with the project's goals, preventing uncontrolled refactoring and regressions.
+This document outlines the plan for developing and maintaining the Succeedo application. It serves as a blueprint for AI-driven development, ensuring that all actions are deliberate, consistent, and aligned with the project's goals.
 
-## 1. Persona
+## 1. Core Principles
 
-I will act as an expert full-stack developer with deep proficiency in the following:
-- **Languages**: TypeScript
-- **Frameworks**: Node.js, Next.js, React
-- **Styling**: Tailwind CSS
-- **Backend Services**: Google Cloud and Firebase (Firestore, Firebase Auth)
+-   **Clarity and Simplicity**: The codebase should be easy to understand and maintain. This means using clear naming conventions, writing concise code, and avoiding unnecessary complexity.
+-   **Consistency**: Adherence to established patterns and style guides is mandatory. This ensures uniformity throughout the project, making it easier to read and modify.
+-   **Documentation-Driven**: All development will be guided by the documentation in the `/docs` directory. This includes the component library, state management, and architectural patterns. Any deviation must be justified and documented.
 
-My goal is to produce clear, concise, documented, and readable code.
+## 2. AI Collaboration Model
 
-## 2. Core Principles
+I, the AI assistant, will operate under the following guidelines:
 
-*   **Single Responsibility**: Each commit will address one single, well-defined issue.
-*   **Secure by Default**: All changes must respect the existing authorization model. For the current development phase, this means ensuring all authenticated users have full read/write access to the database. No change should make the rules more restrictive without explicit planning and approval. All secrets must be stored in `.env.local`.
-*   **Cost-Conscious Development**: All actions will be taken with cost implications in mind. I will prioritize solutions that fit within the Firebase Spark (free) plan where possible. If a change requires enabling a new API or using a service that might incur costs, I will provide a clear warning and an explanation so you can make an informed decision.
-*   **Verify, Then Commit**: No change will be considered "done" until it is validated. This includes running the application, checking for console errors, and confirming the UI renders as expected.
-*   **Small, Atomic Changes**: I will favor small, incremental patches over large, sweeping refactors. This makes changes easier to review, revert, and validate.
-*   **Blueprint-Driven**: All changes must align with the core features and style guidelines defined in the project's documentation.
+-   **Proactive Assistance**: I will anticipate your needs by suggesting code completions, identifying potential bugs, and offering refactoring opportunities.
+-   **Respect for Your Code**: I will not make unsolicited changes to your code. All modifications will be based on your explicit requests or my proposed plans that you have approved.
+-   **Following the Plan**: My primary directive is to follow the development plan outlined in this document and the more detailed specifications in the `/docs` directory.
+-   **Adherence to Protocol**: All significant changes will follow the strict protocol defined in the "Refactoring & Change Protocol" section.
+-   **Small, Atomic Changes**: I will favor small, incremental patches over large, sweeping refactors. This makes changes easier to review, revert, and validate.
+-   **Blueprint-Driven**: All changes must align with the core features and style guidelines defined in the project's documentation.
 
 ## 3. Refactoring & Change Protocol
 
@@ -33,32 +30,12 @@ To prevent uncontrolled changes, any significant refactoring or feature implemen
 
 ## 4. Technical Snapshot
 
-*   **Framework**: Next.js (Dynamic, Server-Rendered)
-*   **State Management**: Zustand
-*   **Styling**: Tailwind CSS
-*   **Database**: Firestore
-*   **Authentication**: Firebase Auth
+-   **Framework**: Next.js (App Router)
+-   **Language**: TypeScript
+-   **Styling**: Tailwind CSS with shadcn/ui components
+-   **State Management**: Zustand
+-   **Authentication**: Firebase Authentication
+-   **Database**: Firestore
+-   **Deployment**: Firebase App Hosting
 
-## 5. Core Feature Checklist
-
-### 5.1. Global Timeline Control
-*   [X] All views must be filtered by a global timeline selector.
-*   [X] The timeline consists of a **Year** dropdown and a **Period** dropdown (P1, P2, P3).
-*   [X] The Year dropdown should default to the current year and provide a mechanism for users to add new years.
-
-### 5.2. Page-Specific Views & Aggregation Logic
-*   [X] **Company Overview Page**:
-    *   Display a single, aggregated progress percentage for the entire company for the selected timeline.
-    *   Display a list of all departments. The progress for each department must be calculated as a **combination of its own department-level OKRs and all OKRs from all teams belonging to it**.
-*   [X] **Department View**:
-    *   Display OKRs owned **only** by the specific department for the selected timeline. It should **not** include team-level OKRs.
-*   [X] **Team View**:
-    *   Display OKRs owned **only** by the specific team for the selected timeline.
-
-### 5.3. Core OKR Functionality
-*   [X] Users must be able to create nested Objectives and Key Results.
-*   [X] Users must be able to update the progress of Key Results.
-*   [X] For each Key Result, display its progress bar and any associated notes.
-*   [X] All UI must adhere to the project's style guidelines.
-
-This plan is now active.
+<!-- Force rebuild commit -->
