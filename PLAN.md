@@ -16,6 +16,7 @@ My goal is to produce clear, concise, documented, and readable code.
 
 *   **Single Responsibility**: Each commit will address one single, well-defined issue.
 *   **Secure by Default**: All changes must respect the existing authorization model. For the current development phase, this means ensuring all authenticated users have full read/write access to the database. No change should make the rules more restrictive without explicit planning and approval. All secrets must be stored in `.env.local`.
+*   **Cost-Conscious Development**: All actions will be taken with cost implications in mind. I will prioritize solutions that fit within the Firebase Spark (free) plan where possible. If a change requires enabling a new API or using a service that might incur costs, I will provide a clear warning and an explanation so you can make an informed decision.
 *   **Verify, Then Commit**: No change will be considered "done" until it is validated. This includes running the application, checking for console errors, and confirming the UI renders as expected.
 *   **Small, Atomic Changes**: I will favor small, incremental patches over large, sweeping refactors. This makes changes easier to review, revert, and validate.
 *   **Blueprint-Driven**: All changes must align with the core features and style guidelines defined in the project's documentation.
@@ -55,9 +56,9 @@ To prevent uncontrolled changes, any significant refactoring or feature implemen
     *   Display OKRs owned **only** by the specific team for the selected timeline.
 
 ### 5.3. Core OKR Functionality
-*   [ ] Users must be able to create nested Objectives and Key Results.
-*   [ ] Users must be able to update the progress of Key Results.
-*   [ ] For each Key Result, display its progress bar and any associated notes.
-*   [ ] All UI must adhere to the project's style guidelines.
+*   [X] Users must be able to create nested Objectives and Key Results.
+*   [X] Users must be able to update the progress of Key Results.
+*   [X] For each Key Result, display its progress bar and any associated notes.
+*   [X] All UI must adhere to the project's style guidelines.
 
 This plan is now active.

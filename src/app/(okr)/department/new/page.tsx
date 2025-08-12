@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { AddDepartmentDialog } from '@/components/app/add-department-dialog';
 
+export const dynamic = 'force-dynamic';
+
 export default function NewDepartmentPage() {
   const addDepartment = useOkrStore(state => state.addDepartment);
   const data = useOkrStore(state => state.data);
