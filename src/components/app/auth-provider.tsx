@@ -26,21 +26,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { initData, clearData } = useOkrStore();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setLoading(true); // Always set loading to true when auth state changes
-      setAuthorizedUser(user);
-      if (user) {
-        await initData();
-      } else {
-        clearData();
-      }
-      setLoading(false); // Set loading to false only after data is settled
-    });
-    return () => unsubscribe();
+    // Only subscribe to auth changes if Firebase was initialized
+    if (auth) {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            setLoading(true);
+            setAuthorizedUser(user);
+            if (user) {
+                await initData();
+            } else {
+                clearData();
+            }
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    } else {
+        // If Firebase is not initialized (e.g., on the build server),
+        // we are not in a logged-in state.
+        setLoading(false);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signUpWithEmailPassword = async (email: string, password:string) => {
+    if (!auth) {
+        setError("Firebase is not configured. Please contact support.");
+        return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -50,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      // The onAuthStateChanged listener will handle setting the user and initializing data.
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/email-already-in-use') {
@@ -58,17 +68,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setError(err.message);
       }
-    } finally {
-      // setLoading will be handled by onAuthStateChanged
     }
   };
 
   const loginWithEmailPassword = async (email: string, password: string) => {
+    if (!auth) {
+        setError("Firebase is not configured. Please contact support.");
+        setLoading(false);
+        return;
+    }
     setLoading(true);
     setError(null);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // The onAuthStateChanged listener will handle setting the user and initializing data.
     } catch (err: any)      {
       console.error(err);
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
@@ -76,17 +88,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setError('An unexpected error occurred. Please try again later.');
       }
-      setLoading(false); // Only set loading false on error here
+      setLoading(false);
     }
   };
 
   const sendPasswordReset = async (email: string) => {
-      return sendPasswordResetEmail(auth, email);
+    if (!auth) {
+        throw new Error("Firebase is not configured. Please contact support.");
+    }
+    return sendPasswordResetEmail(auth, email);
   }
 
   const logout = async () => {
-    await auth.signOut();
-    // The onAuthStateChanged listener will handle clearing data and setting loading state.
+    if (auth) {
+        await auth.signOut();
+    }
   };
 
   const value = {
