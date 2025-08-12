@@ -5,31 +5,9 @@ backend: okr-vision
 # This is relative to the apphosting.yaml file.
 source: .
 # The command to build the Next.js app.
-buildCommand:
-  # The command to run to build the app.
-  command: npm run build
-  # The secrets to make available as environment variables to the build command.
-  secrets:
-    - secret: NEXT_PUBLIC_FIREBASE_API_KEY
-    - secret: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    - secret: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    - secret: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    - secret: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    - secret: NEXT_PUBLIC_FIREBASE_APP_ID
-    - secret: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+buildCommand: npm run build
 # The command to start the Next.js app.
-startCommand:
-  # The command to run to start the app.
-  command: npm run start
-  # The secrets to make available as environment variables to the start command.
-  secrets:
-    - secret: NEXT_PUBLIC_FIREBASE_API_KEY
-    - secret: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    - secret: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    - secret: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    - secret: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    - secret: NEXT_PUBLIC_FIREBASE_APP_ID
-    - secret: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+startCommand: npm run start
 # The node version to use for the build and start commands.
 # This should match the version you are using locally.
 nodeVersion: 20
