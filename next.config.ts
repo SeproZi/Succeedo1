@@ -2,6 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Ensuring the output mode is NOT set to 'export' for dynamic rendering.
   typescript: {
     ignoreBuildErrors: true,
   },
