@@ -25,6 +25,9 @@ export default function RootLayout({
         <AuthProvider>
             {children}
             <Toaster />
+            <div className="fixed bottom-2 right-2 text-xs text-gray-500 pointer-events-none" style={{ textTransform: 'none' }}>
+              For support or suggestions, contact Atilla Seprodi
+            </div>
         </AuthProvider>
       </body>
     </html>
