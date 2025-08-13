@@ -10,23 +10,19 @@ runConfig:
 # Public, build-time config for the client bundle
 env:
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: "AIza...yourWebKey..."
-    availability: [BUILD]
+    secret: NEXT_PUBLIC_FIREBASE_API_KEY
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    value: "test-prcas-cm.firebaseapp.com"
-    availability: [BUILD]
+    secret: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    value: "test-prcas-cm"
-    availability: [BUILD]
+    secret: NEXT_PUBLIC_FIREBASE_PROJECT_ID
   - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    value: "test-prcas-cm.firebasestorage.app"
-    availability: [BUILD]
+    secret: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
   - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    value: "926638638358"
-    availability: [BUILD]
+    secret: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    value: "1:926638638358:web:b48e457a61780649f7bc37"
-    availability: [BUILD]
+    secret: NEXT_PUBLIC_FIREBASE_APP_ID
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    secret: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 routingRules:
   - path: /*
     target: okr-vision
