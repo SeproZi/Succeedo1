@@ -1,5 +1,5 @@
 'use client';
-
+import { useEffect } from 'react';
 import { useState, useRef } from 'react';
 import { PillarProgress } from '@/components/app/pillar-progress';
 import { OkrGrid } from '@/components/app/okr-grid';
@@ -38,6 +38,13 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
 
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [editingOkr, setEditingOkr] = useState<Partial<OkrItem> | { parentId: string | null } | null>(null);
+
+  // Open the dialog when editingOkr is set
+  useEffect(() => {
+    if (editingOkr !== null) {
+      setAddDialogOpen(true);
+    }
+  }, [editingOkr]);
 
   const okrCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
@@ -171,7 +178,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
       </div>
       <AddOkrDialog
         isOpen={isAddDialogOpen}
-        setOpen={setAddDialogOpen}
+        setOpen={(open) => { setAddDialogOpen(open); if (!open) setEditingOkr(null); }}
         okrData={{ ...editingOkr, owner }}
         owner={owner}
       />
