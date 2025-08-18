@@ -6,7 +6,6 @@
  * - CheckUserInputSchema - The input type for the checkUser function.
  * - CheckUserOutputSchema - The return type for the checkUser function.
  */
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -27,17 +26,6 @@ async function performCheck(email: string): Promise<{ authorized: boolean }> {
   }
 }
 
-const checkUserFlow = ai.defineFlow(
-  {
-    name: 'checkUserFlow',
-    inputSchema: CheckUserInputSchema,
-    outputSchema: CheckUserOutputSchema,
-  },
-  async ({ email }) => {
-    return await performCheck(email);
-  }
-);
-
 export async function checkUser(email: string): Promise<{ authorized: boolean }> {
-    return await checkUserFlow({ email });
+    return await performCheck(email);
 }
