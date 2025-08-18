@@ -95,17 +95,17 @@ export function OkrCard({
   };
 
   const icon = isObjective ? (
-    <Target className="h-5 w-5 text-primary" />
+    <Target className="h-4 w-4 text-primary" />
   ) : (
-    <CheckCircle2 className="h-5 w-5 text-green-500" />
+    <CheckCircle2 className="h-4 w-4 text-green-500" />
   );
   
   return (
     <>
-    <div style={{ marginLeft: level > 0 ? `${level * 1.25}rem` : '0' }}>
+    <div style={{ marginLeft: level > 0 ? `${level * 1}rem` : '0' }}>
       <Card className="overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-        <CardHeader className="flex flex-row items-center justify-between p-3 bg-transparent">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <CardHeader className="flex flex-row items-center justify-between p-2 bg-transparent">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             {icon}
             <span className="font-headline font-semibold text-base truncate text-card-foreground">
               {okr.title}
@@ -113,9 +113,9 @@ export function OkrCard({
           </div>
           <div className="flex items-center gap-2 ml-2">
              {okr.type === 'keyResult' && (
-                <div className="w-28 hidden sm:flex items-center gap-2">
+                <div className="w-24 hidden sm:flex items-center gap-2">
                     <Progress value={okr.progress} className="h-1.5 flex-1" />
-                    <span className="font-semibold text-primary w-10 text-right text-sm">
+                    <span className="font-semibold text-primary w-9 text-right text-xs">
                         {okr.progress}%
                     </span>
                 </div>
@@ -127,7 +127,7 @@ export function OkrCard({
              )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
+                <Button variant="ghost" size="icon" className="h-6 w-6">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -155,7 +155,7 @@ export function OkrCard({
         </CardHeader>
 
         {!isObjective && (
-          <CardContent className="p-3 pt-0 space-y-2">
+          <CardContent className="p-2 pt-0 space-y-2">
              <div className="flex items-center gap-2">
                 <Slider
                     value={[okr.progress]}
@@ -176,22 +176,22 @@ export function OkrCard({
              </div>
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1" className="border-b-0">
-                <AccordionTrigger className="py-0 hover:no-underline text-xs">
-                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <AccordionTrigger className="py-0 hover:no-underline text-xs h-5">
+                    <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
                         <Notebook className="h-3 w-3" />
                         Notes
                     </div>
                 </AccordionTrigger>
-                <AccordionContent>
+                <AccordionContent className="pt-2">
                     <div className="space-y-2">
                         <Textarea
                             placeholder="Add your notes here..."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            className="min-h-[60px] bg-background text-sm"
+                            className="min-h-[50px] bg-background text-sm"
                         />
                         <div className="flex justify-end">
-                            <Button size="sm" onClick={handleSaveNotes} className="bg-accent hover:bg-accent/90 text-accent-foreground h-7">Save Notes</Button>
+                            <Button size="sm" onClick={handleSaveNotes} className="bg-accent hover:bg-accent/90 text-accent-foreground h-6 text-xs">Save Notes</Button>
                         </div>
                     </div>
                 </AccordionContent>
@@ -203,7 +203,7 @@ export function OkrCard({
       {displayedChildren.length > 0 && (
         <div
           className={cn(
-            "mt-2 space-y-2 relative before:absolute before:left-3 before:top-0 before:h-full before:w-px before:bg-border",
+            "mt-1 space-y-1 relative before:absolute before:left-2.5 before:top-0 before:h-full before:w-px before:bg-border",
             level > 0 && "pl-0"
           )}
         >
@@ -220,27 +220,27 @@ export function OkrCard({
       )}
       
       {canCollapse && (
-          <div className="p-3 pt-1">
+          <div className="p-2 pt-1">
               <Button 
                 variant="ghost" 
-                className="w-full text-xs h-7"
+                className="w-full text-xs h-6"
                 onClick={() => setExpanded(!isExpanded)}
               >
-                <ChevronDown className={cn("mr-2 h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
+                <ChevronDown className={cn("mr-2 h-3 w-3 transition-transform", isExpanded && "rotate-180")} />
                 {isExpanded ? 'Show fewer' : `Show ${children.length - KEY_RESULT_DISPLAY_LIMIT} more key results`}
               </Button>
           </div>
       )}
 
       {isObjective && (
-        <div className="p-3 pt-2">
+        <div className="p-2 pt-1">
           <Button 
               variant="outline" 
-              className="w-full border-dashed h-8"
+              className="w-full border-dashed h-7"
               onClick={() => onAddOrUpdate({ parentId: okr.id })}
           >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Key Result
+              <Plus className="mr-2 h-3 w-3" />
+              <span className="text-xs">Add Key Result</span>
           </Button>
         </div>
       )}
