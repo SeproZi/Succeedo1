@@ -32,6 +32,6 @@ export async function GET(request: Request) {
     if (error instanceof Error) {
       errorMessage = `Error exporting data: ${error.message}`;
     }
-    return new NextResponse(errorMessage, { status: 500 });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

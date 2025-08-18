@@ -92,7 +92,7 @@ export function AddOkrDialog({
       type: (isEditing && okrData.type) || (okrData?.parentId ? 'keyResult' : 'objective'),
       parentId: okrData?.parentId || null,
       pillar: (isEditing && okrData.pillar) || undefined,
-      priority: (isEditing && okrData.priority) || undefined,
+      priority: (isEditing && okrData.priority) || 'P3', // Default to P3 Normal
       notes: (isEditing && okrData.notes) || '',
       year: (isEditing && okrData.year) || currentYear,
       period: (isEditing && okrData.period) || currentPeriod,
@@ -107,7 +107,7 @@ export function AddOkrDialog({
         type: (okrData && 'type' in okrData && okrData.type) || (okrData?.parentId ? 'keyResult' : 'objective'),
         parentId: okrData?.parentId || null,
         pillar: (okrData && 'pillar' in okrData && okrData.pillar) || undefined,
-        priority: (okrData && 'priority' in okrData && okrData.priority) || undefined,
+        priority: (okrData && 'priority' in okrData && okrData.priority) || 'P3', // Default to P3 Normal
         notes: (okrData && 'notes' in okrData && okrData.notes) || '',
         year: (okrData && 'year' in okrData && okrData.year) || currentYear,
         period: (okrData && 'period' in okrData && okrData.period) || currentPeriod,
