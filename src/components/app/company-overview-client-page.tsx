@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
+import { useAuth } from '@/components/app/auth-provider';
 export default function CompanyOverviewClientPage() {
     const { 
         data: { okrs, departments, teams },
@@ -25,6 +26,7 @@ export default function CompanyOverviewClientPage() {
         availableYears,
         addYear
     } = useOkrStore();
+    const { authorizedUser } = useAuth();
     const { toast } = useToast();
     const pillars: OkrPillar[] = ['People', 'Product', 'Tech'];
 
@@ -108,6 +110,31 @@ export default function CompanyOverviewClientPage() {
     }
   };
 
+  const handleExportData = async () => {
+      try {
+          if (!authorizedUser) {
+              toast({ title: "Export Failed", description: "You must be logged in to export data.", variant: "destructive"});
+              return;
+          }
+          const idToken = await authorizedUser.getIdToken();
+          const response = await fetch('/api/export-okrs', { headers: { Authorization: `Bearer ${idToken}` } });
+          if (!response.ok) {
+              throw new Error('Export failed');
+          }
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'okrs.csv';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+      } catch (error) {
+          toast({ title: "Export Failed", description: "Could not export data.", variant: "destructive"});
+      }
+  };
+
   if (loading) {
     return (
         <div className="p-4 sm:p-6 lg:p-8 space-y-8">
@@ -135,6 +162,7 @@ export default function CompanyOverviewClientPage() {
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
             <h1 className="text-3xl font-bold font-headline text-primary">Company Overview</h1>
+            <Button onClick={handleExportData}>Export Data</Button>
             <div className="flex flex-wrap items-center gap-4">
                 <Select value={String(currentYear)} onValueChange={(val) => setYear(Number(val))}>
                     <SelectTrigger className="w-[120px]">
