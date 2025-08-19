@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -116,7 +117,12 @@ function GridItem({
       {linkedChildren.length > 0 && (
         <div className="px-4 pb-2">
             <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-auto p-1 text-xs text-muted-foreground hover:text-foreground w-full justify-start -ml-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-auto p-1 text-xs text-muted-foreground hover:text-foreground w-full justify-start -ml-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
                     <Link2 className="mr-1 h-3 w-3"/>
                     {linkedChildren.length} Linked Team OKR{linkedChildren.length > 1 ? 's' : ''}
                     <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]:rotate-90"/>
