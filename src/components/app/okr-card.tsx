@@ -258,7 +258,7 @@ export function OkrCard({
                         </div>
                     </AccordionTrigger>
                     <AccordionContent className="pt-1 pb-1 space-y-1">
-                       {displayedLinkedChildren.map(child => {
+                       {(isLinkedExpanded ? linkedChildren : displayedLinkedChildren).map(child => {
                          if (child.owner.type !== 'team') return null;
                          const teamName = getTeamName(child.owner.id);
                          const progress = calculateProgress(child.id, allStoreOkrs);
@@ -333,4 +333,3 @@ export function OkrCard({
     </>
   );
 }
-
