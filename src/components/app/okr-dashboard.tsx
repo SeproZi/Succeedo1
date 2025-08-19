@@ -16,8 +16,6 @@ import { SidebarTrigger } from '../ui/sidebar';
 import { Skeleton } from '../ui/skeleton';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { AiSuggestionsDialog } from './ai-suggestions-dialog';
-import { suggestKeyResultsAction } from '@/lib/actions';
-
 type OkrDashboardProps = {
     owner: OkrOwner;
     title: string;
@@ -46,16 +44,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
   const [editingOkr, setEditingOkr] = useState<Partial<OkrItem> | { parentId: string | null } | null>(null);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [okrToDelete, setOkrToDelete] = useState<OkrItem | null>(null);
-  const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
-  const [suggestionTarget, setSuggestionTarget] = useState<OkrItem | null>(null);
 
-
-  // Open the dialog when editingOkr is set
-  useEffect(() => {
-    if (editingOkr !== null) {
-      setAddDialogOpen(true);
-    }
-  }, [editingOkr]);
 
   const okrCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
@@ -100,28 +89,13 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     setDeleteDialogOpen(false);
   };
 
-  const handleSuggestClick = (okr: OkrItem) => {
-    setSuggestionTarget(okr);
-    setSuggestionsOpen(true);
-  };
+  // Open the dialog when editingOkr is set
+  useEffect(() => {
+    if (editingOkr !== null) {
+      setAddDialogOpen(true);
+    }
+  }, [editingOkr]);
 
-  const handleAddKRFromSuggestion = (krTitle: string) => {
-    if (!suggestionTarget) return;
-    addOkr({
-      title: krTitle,
-      type: 'keyResult',
-      parentId: suggestionTarget.id,
-      owner: suggestionTarget.owner,
-      year: suggestionTarget.year,
-      period: suggestionTarget.period,
-      priority: 'P3'
-    });
-    setSuggestionsOpen(false);
-    toast({
-        title: "Key Result Added",
-        description: `Added "${krTitle}" to your objective.`,
-    })
-  };
 
 
   if (loading) {
@@ -203,7 +177,6 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
                 onGridItemClick={handleGridItemClick}
                 onEdit={(okr) => setEditingOkr({ ...okr, owner })}
                 onDelete={(id) => handleDeleteClick(topLevelOkrs.find(o => o.id === id)!)}
-                onSuggest={handleSuggestClick}
             />
         </div>
 
@@ -244,20 +217,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
         setOpen={setDeleteDialogOpen}
         onConfirm={confirmDelete}
         title="Delete OKR?"
-        description={`Are you sure you want to delete "${okrToDelete?.title}"? This action cannot be undone.`}
-      />
-       {suggestionTarget && (
-        <AiSuggestionsDialog
-            isOpen={isSuggestionsOpen}
-            setOpen={setSuggestionsOpen}
-            objective={suggestionTarget}
-            onAddKR={handleAddKRFromSuggestion}
-            suggestAction={async (objective: OkrItem) => {
-                const result = await suggestKeyResultsAction(objective.title);
-                return result.keyResults;
-            }}
-        />
-       )}
+    description={`Are you sure you want to delete "${okrToDelete?.title}"? This action cannot be undone.`}/>
     </>
   );
 }

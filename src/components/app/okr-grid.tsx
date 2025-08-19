@@ -144,11 +144,6 @@ function GridItem({
             </DropdownMenuTrigger>
             <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
                 <DropdownMenuItem onClick={() => onEdit(item)}>Edit</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSuggest(item)}>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Suggest KRs
-                </DropdownMenuItem>
-                
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onDelete(item.id)} className="text-destructive">
                     <Trash2 className="mr-2 h-4 w-4" />

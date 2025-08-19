@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Link2,
   Users,
+  Building,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -37,7 +38,6 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Slider } from '@/components/ui/slider';
 import useOkrStore, { calculateProgress } from '@/hooks/use-okr-store';
-import { AiSuggestionsDialog } from './ai-suggestions-dialog';
 import { suggestKeyResultsAction } from '@/lib/actions';
 import Link from 'next/link';
 
@@ -63,7 +63,6 @@ export function OkrCard({
   const children = allOkrs.filter(item => item.parentId === okr.id);
   const linkedChildren = allStoreOkrs.filter(item => item.linkedDepartmentOkrId === okr.id);
   const [notes, setNotes] = useState(okr.notes ?? '');
-  const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
   const [isKrExpanded, setKrExpanded] = useState(false);
   const [isLinkedExpanded, setLinkedExpanded] = useState(false);
   const { toast } = useToast();
@@ -73,6 +72,11 @@ export function OkrCard({
   
   const canCollapseLinked = isObjective && linkedChildren.length > 0;
   const displayedLinkedChildren = canCollapseLinked && !isLinkedExpanded ? linkedChildren.slice(0, KEY_RESULT_DISPLAY_LIMIT) : linkedChildren;
+
+  const parentDepartmentOkr = allStoreOkrs.find(o => o.id === okr.linkedDepartmentOkrId);
+  const parentDepartment = parentDepartmentOkr?.owner.type === 'department' 
+    ? data.departments.find(d => d.id === (parentDepartmentOkr.owner as any).id)
+    : null;
 
   const handleSaveNotes = () => {
     updateOkrNotes(okr.id, notes);
@@ -101,7 +105,6 @@ export function OkrCard({
       period: okr.period,
       priority: 'P3'
     });
-    setSuggestionsOpen(false);
   };
   
   const getTeamName = (teamId: string) => {
@@ -149,12 +152,6 @@ export function OkrCard({
                 <DropdownMenuItem onClick={() => onAddOrUpdate(okr)}>
                   Edit
                 </DropdownMenuItem>
-                {isObjective && (
-                    <DropdownMenuItem onClick={() => setSuggestionsOpen(true)}>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Suggest KRs with AI
-                    </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => deleteOkr(okr.id)}
@@ -167,6 +164,22 @@ export function OkrCard({
             </DropdownMenu>
           </div>
         </CardHeader>
+
+        {parentDepartmentOkr && parentDepartment && (
+          <div className="px-2 pb-2">
+            <Link href={`/department/${parentDepartment.id}`} className="block">
+              <Card className="p-2 hover:bg-secondary transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Building className='h-3 w-3 text-muted-foreground' />
+                    <span className='text-xs font-semibold'>{parentDepartment.title}: </span>
+                    <span className='text-xs text-muted-foreground truncate' title={parentDepartmentOkr.title}>
+                      {parentDepartmentOkr.title}
+                    </span>
+                  </div>
+              </Card>
+            </Link>
+          </div>
+        )}
 
         {!isObjective && (
           <CardContent className="p-2 pt-0 space-y-2">
@@ -318,18 +331,8 @@ export function OkrCard({
       )}
       </Card>
     </div>
-    {isObjective && isSuggestionsOpen && (
-        <AiSuggestionsDialog
-            isOpen={isSuggestionsOpen}
-            setOpen={setSuggestionsOpen}
-            objective={okr}
-            onAddKR={handleAddKRFromSuggestion}
-            suggestAction={async (objective: OkrItem) => {
-                const result = await suggestKeyResultsAction(objective.title);
-                return result.keyResults;
-            }}
-        />
-    )}
     </>
   );
 }
+
+    
