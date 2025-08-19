@@ -4,7 +4,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { OkrItem, OkrPillar, OkrPriority } from '@/lib/types';
-import { Target, MoreVertical, Sparkles, Trash2, Link2, Users, ChevronRight } from 'lucide-react';
+import { Target, MoreVertical, Sparkles, Trash2, Link2, Users, ChevronRight, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -90,8 +90,14 @@ function GridItem({
   onSuggest: (okr: OkrItem) => void;
 }) {
   const Icon = Target;
+  const { data } = useOkrStore();
   
   const linkedChildren = allOkrs.filter(okr => okr.linkedDepartmentOkrId === item.id);
+  const parentDepartmentOkr = allOkrs.find(o => o.id === item.linkedDepartmentOkrId);
+  const parentDepartment = parentDepartmentOkr?.owner.type === 'department' 
+    ? data.departments.find(d => d.id === (parentDepartmentOkr.owner as any).id)
+    : null;
+
 
   return (
     <>
@@ -114,6 +120,20 @@ function GridItem({
           </div>
         </div>
       </CardContent>
+      {parentDepartmentOkr && parentDepartment && (
+        <div className="px-4 pb-2 -mt-1">
+          <Link href={`/department/${parentDepartment.id}`} onClick={(e) => e.stopPropagation()}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-auto p-1 text-xs text-muted-foreground hover:text-foreground w-full justify-start -ml-1"
+            >
+                <Building className="mr-1 h-3 w-3"/>
+                 <span className="truncate">{parentDepartment.title}: {parentDepartmentOkr.title}</span>
+            </Button>
+          </Link>
+        </div>
+      )}
       {linkedChildren.length > 0 && (
         <div className="px-4 pb-2">
             <CollapsibleTrigger asChild>

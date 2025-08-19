@@ -170,10 +170,10 @@ export function OkrCard({
             <Link href={`/department/${parentDepartment.id}`} className="block">
               <Card className="p-2 hover:bg-secondary transition-colors">
                   <div className="flex items-center gap-2">
-                    <Building className='h-3 w-3 text-muted-foreground' />
-                    <span className='text-xs font-semibold'>{parentDepartment.title}: </span>
+                    <Link2 className='h-3 w-3 text-muted-foreground' />
+                    <span className='text-xs font-semibold'>Department OKR link:</span>
                     <span className='text-xs text-muted-foreground truncate' title={parentDepartmentOkr.title}>
-                      {parentDepartmentOkr.title}
+                      {parentDepartment.title}: {parentDepartmentOkr.title}
                     </span>
                   </div>
               </Card>
@@ -334,5 +334,3 @@ export function OkrCard({
     </>
   );
 }
-
-    
