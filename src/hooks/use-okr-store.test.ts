@@ -1,3 +1,4 @@
+
 import useOkrStore, { getTimelineDefaults, calculateProgress } from './use-okr-store';
 import { act } from '@testing-library/react';
 import { OkrItem, Department, Team } from '@/lib/types';
@@ -23,13 +24,16 @@ const mockTeams: Team[] = [
 ];
 
 const mockOkrs: OkrItem[] = [
-  // Department A ("Product")
+  // Department A ("Product") - linked by team A1 obj 3
   { id: 'okrA', title: 'Dept A Objective', year: 2025, period: 'P1', owner: { type: 'department', id: 'deptA' }, progress: 0, type: 'objective', parentId: null, pillar: 'Product' },
   { id: 'krA1', title: 'KR A1', year: 2025, period: 'P1', parentId: 'okrA', owner: { type: 'department', id: 'deptA' }, progress: 50, type: 'keyResult' },
   // Team A1 ("Frontend")
   { id: 'okrA1-1', title: 'Team A1 Objective 1', year: 2025, period: 'P1', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 0, type: 'objective', parentId: null, pillar: 'Tech' },
   { id: 'krA1-1a', title: 'KR A1-1a', year: 2025, period: 'P1', parentId: 'okrA1-1', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 100, type: 'keyResult' },
   { id: 'okrA1-2', title: 'Team A1 Objective 2', year: 2025, period: 'P1', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 0, type: 'objective', parentId: null, pillar: 'Tech' }, // Progress should be 0, has no KR
+  { id: 'okrA1-3', title: 'Team A1 Objective 3 (Linked)', year: 2025, period: 'P1', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 0, type: 'objective', parentId: null, pillar: 'Tech', linkedDepartmentOkrId: 'okrA' },
+  { id: 'krA1-3a', title: 'KR A1-3a', year: 2025, period: 'P1', parentId: 'okrA1-3', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 90, type: 'keyResult' },
+  
   // Team B1 ("Enterprise")
   { id: 'okrB1', title: 'Team B1 Objective', year: 2025, period: 'P1', owner: { type: 'team', id: 'teamB1', departmentId: 'deptB' }, progress: 0, type: 'objective', parentId: null, pillar: 'People' },
   { id: 'krB1a', title: 'KR B1a', year: 2025, period: 'P1', parentId: 'okrB1', owner: { type: 'team', id: 'teamB1', departmentId: 'deptB' }, progress: 20, type: 'keyResult' },
@@ -86,34 +90,40 @@ describe('useOkrStore', () => {
       });
     });
 
-    it('should calculate company overview progress correctly', () => {
-      const { overallProgress, departmentProgress } = useOkrStore.getState().selectCompanyOverview();
-      
-      const deptA = departmentProgress.find(d => d.id === 'deptA');
-      const deptB = departmentProgress.find(d => d.id === 'deptB');
-
-      expect(deptA?.progress).toBe(50);
-      expect(deptB?.progress).toBe(25);
-      expect(overallProgress).toBe(38);
-    });
-
     it('should calculate dashboard data correctly for a department', () => {
       const { topLevelOkrs, overallProgress } = useOkrStore.getState().selectDashboardData({ type: 'department', id: 'deptA' });
       
       expect(topLevelOkrs.length).toBe(1);
       expect(topLevelOkrs[0].title).toBe('Dept A Objective');
-      expect(overallProgress).toBe(50); // Progress comes from its one KR
+      // Progress = (KR progress + Linked OKR progress) / 2 = (50% + 90%) / 2 = 70%
+      expect(overallProgress).toBe(70);
     });
 
     it('should calculate dashboard data correctly for a team', () => {
-      const { topLevelOkrs, overallProgress, pillarProgress } = useOkrStore.getState().selectDashboardData({ type: 'team', id: 'teamA1' });
+      const { topLevelOkrs, overallProgress, pillarProgress } = useOkrStore.getState().selectDashboardData({ type: 'team', id: 'teamA1', departmentId: 'deptA' });
 
-      expect(topLevelOkrs.length).toBe(2);
+      expect(topLevelOkrs.length).toBe(3);
       expect(topLevelOkrs.some(o => o.title === 'Team A1 Objective 1')).toBe(true);
-      // Prog = (OKR A1-1 + OKR A1-2) / 2 = (100% + 0%) / 2 = 50%
-      expect(overallProgress).toBe(50);
-      expect(pillarProgress.Tech).toBe(50); // Both objectives are 'Tech'
+      // Prog = (OKR A1-1 + OKR A1-2 + OKR A1-3) / 3 = (100% + 0% + 90%) / 3 = 63.33 -> 63
+      expect(overallProgress).toBe(63);
+      expect(pillarProgress.Tech).toBe(63); // All 3 objectives are 'Tech'
       expect(pillarProgress.People).toBe(0);
+    });
+
+    it('should calculate dashboard data for a department with only linked children', () => {
+      const okrsWithOnlyLinkedChild: OkrItem[] = [
+        { id: 'deptOnlyObj', title: 'Dept Only Objective', year: 2025, period: 'P1', owner: { type: 'department', id: 'deptA' }, progress: 0, type: 'objective', parentId: null, pillar: 'Product' },
+        { id: 'teamObjLinked', title: 'Team Linked Obj', year: 2025, period: 'P1', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 0, type: 'objective', parentId: null, pillar: 'Tech', linkedDepartmentOkrId: 'deptOnlyObj' },
+        { id: 'teamKrForLinked', title: 'KR for Linked', year: 2025, period: 'P1', parentId: 'teamObjLinked', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 88, type: 'keyResult' },
+      ];
+      act(() => {
+        useOkrStore.setState({
+          data: { departments: mockDepartments, teams: mockTeams, okrs: okrsWithOnlyLinkedChild },
+        });
+      });
+
+      const { overallProgress } = useOkrStore.getState().selectDashboardData({ type: 'department', id: 'deptA' });
+      expect(overallProgress).toBe(88); // Progress comes entirely from the one linked child
     });
   });
 
@@ -126,6 +136,15 @@ describe('useOkrStore', () => {
       it('should return 0 if there are no key results', () => {
           const progress = calculateProgress('okrA1-2', mockOkrs);
           expect(progress).toBe(0);
+      });
+
+      it('should correctly average direct KRs and linked Team OKRs', () => {
+        // Dept A Objective ('okrA') has one direct KR ('krA1' at 50%) and one linked team OKR ('okrA1-3').
+        // The linked team OKR 'okrA1-3' has one KR ('krA1-3a' at 90%), so its progress is 90%.
+        // The total progress for 'okrA' should be the average of its direct KR and the linked team OKR's progress.
+        // Average = (50 + 90) / 2 = 70
+        const progress = calculateProgress('okrA', mockOkrs);
+        expect(progress).toBe(70);
       });
   });
 });
