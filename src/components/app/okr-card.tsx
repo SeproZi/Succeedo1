@@ -249,9 +249,9 @@ export function OkrCard({
       
        {canCollapseLinked && (
         <div className='border-t mt-1'>
-            <Accordion type="single" collapsible defaultValue='item-1' className="w-full">
+            <Accordion type="single" collapsible className="w-full">
                  <AccordionItem value="item-1" className="border-b-0">
-                    <AccordionTrigger className="py-1 px-2 hover:no-underline text-xs" onClick={() => setLinkedExpanded(!isLinkedExpanded)}>
+                    <AccordionTrigger className="py-1 px-2 hover:no-underline text-xs">
                         <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
                             <Link2 className="h-3 w-3" />
                              Linked Team OKRs ({linkedChildren.length})
@@ -333,3 +333,4 @@ export function OkrCard({
     </>
   );
 }
+
