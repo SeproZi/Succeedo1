@@ -212,7 +212,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
                     if (pillarOkrs.length === 0) return null;
                     
                     return (
-                        <Collapsible key={pillar} defaultOpen={true} className="space-y-4">
+                        <Collapsible key={pillar} defaultOpen={false} className="space-y-4">
                             <div className="border-b-2 border-primary/10 pb-2">
                                 <CollapsibleTrigger className="flex w-full items-center justify-between group">
                                     <h3 className="text-lg font-semibold font-headline text-primary/80">{pillar}</h3>
