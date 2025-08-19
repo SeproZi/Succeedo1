@@ -19,7 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import useOkrStore, { calculateProgress } from '@/hooks/use-okr-store';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 
 type OkrGridProps = {
@@ -30,37 +30,77 @@ type OkrGridProps = {
   onDelete: (id: string) => void;
 };
 
-const pillars: OkrPillar[] = ['People', 'Product', 'Tech'];
+const MAX_ITEMS_PER_COLUMN = 5;
 
 export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete }: OkrGridProps) {
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
+  const gridColumns = useMemo(() => {
+    const objectivesByPillar: Record<OkrPillar, OkrItem[]> = {
+      People: [],
+      Product: [],
+      Tech: [],
+    };
+
+    objectives.forEach(obj => {
+      if (obj.pillar) {
+        objectivesByPillar[obj.pillar].push(obj);
+      }
+    });
+
+    const columns: { pillar: OkrPillar; objectives: OkrItem[] }[] = [];
+
+    // Ensure we process in the desired order
+    const pillarOrder: OkrPillar[] = ['People', 'Product', 'Tech'];
+
+    pillarOrder.forEach(pillar => {
+      const pillarObjectives = objectivesByPillar[pillar];
+      if (pillarObjectives.length > 0) {
+        for (let i = 0; i < pillarObjectives.length; i += MAX_ITEMS_PER_COLUMN) {
+          columns.push({
+            pillar: pillar,
+            objectives: pillarObjectives.slice(i, i + MAX_ITEMS_PER_COLUMN),
+          });
+        }
+      }
+    });
+
+    return columns;
+  }, [objectives]);
+  
+  const totalColumns = gridColumns.length > 3 ? gridColumns.length : 3;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-      {pillars.map(pillar => (
-        <div key={pillar} className="space-y-4">
+    <div 
+      className="grid gap-6 items-start"
+      style={{ gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))` }}
+    >
+      {gridColumns.map((col, index) => (
+        <div key={`${col.pillar}-${index}`} className="space-y-4">
           <div className="bg-card/50 border border-border rounded-lg shadow-sm p-2">
             <h3 className="text-center text-sm font-bold tracking-wider uppercase text-primary/80">
-              {pillar}
+              {col.pillar}
             </h3>
           </div>
-          {objectives
-            .filter(obj => obj && obj.id && obj.pillar === pillar)
-            .map(obj => (
-              <Collapsible key={obj.id} open={expandedItemId === obj.id} onOpenChange={(isOpen) => setExpandedItemId(isOpen ? obj.id : null)}>
-                <GridItem 
-                  item={obj} 
-                  allOkrs={allOkrs}
-                  onClick={onGridItemClick} 
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                />
-                <CollapsibleContent>
-                  <LinkedOkrList objectiveId={obj.id} allOkrs={allOkrs} />
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
+          {col.objectives.map(obj => (
+            <Collapsible key={obj.id} open={expandedItemId === obj.id} onOpenChange={(isOpen) => setExpandedItemId(isOpen ? obj.id : null)}>
+              <GridItem 
+                item={obj} 
+                allOkrs={allOkrs}
+                onClick={onGridItemClick} 
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+              <CollapsibleContent>
+                <LinkedOkrList objectiveId={obj.id} allOkrs={allOkrs} />
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
         </div>
+      ))}
+       {/* Render empty placeholder columns if there are fewer than 3 */}
+      {Array.from({ length: Math.max(0, 3 - gridColumns.length) }).map((_, index) => (
+        <div key={`placeholder-${index}`} />
       ))}
     </div>
   );
@@ -209,3 +249,5 @@ function LinkedOkrList({ objectiveId, allOkrs }: { objectiveId: string, allOkrs:
         </div>
     );
 }
+
+    
