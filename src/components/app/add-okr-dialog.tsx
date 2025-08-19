@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,12 +29,14 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import useOkrStore from '@/hooks/use-okr-store';
 import { Separator } from '../ui/separator';
-import { OkrItem, OkrOwner } from '@/lib/types';
+import { OkrItem, OkrOwner, OkrPillar } from '@/lib/types';
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -85,16 +87,27 @@ export function AddOkrDialog({
     )
   );
 
-  const departmentObjectives = useOkrStore(state => {
-    if (owner.type !== 'team') return [];
+  const departmentObjectivesByPillar = useMemo(() => {
+    if (owner.type !== 'team') return {};
     const departmentOwner: OkrOwner = { type: 'department', id: owner.departmentId };
-    return state.data.okrs.filter(okr =>
-      okr.type === 'objective' &&
-      JSON.stringify(okr.owner) === JSON.stringify(departmentOwner) &&
-      okr.year === currentYear &&
-      okr.period === currentPeriod
+    
+    const objectives = data.okrs.filter(okr =>
+        okr.type === 'objective' &&
+        JSON.stringify(okr.owner) === JSON.stringify(departmentOwner) &&
+        okr.year === currentYear &&
+        okr.period === currentPeriod
     );
-  });
+
+    return objectives.reduce((acc, okr) => {
+        const pillar = okr.pillar || 'Other';
+        if (!acc[pillar]) {
+            acc[pillar] = [];
+        }
+        acc[pillar].push(okr);
+        return acc;
+    }, {} as Record<OkrPillar | 'Other', OkrItem[]>);
+  }, [data.okrs, owner, currentYear, currentPeriod]);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -288,10 +301,15 @@ export function AddOkrDialog({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="null">None</SelectItem>
-                        {departmentObjectives.map(obj => (
-                          <SelectItem key={obj.id} value={obj.id}>
-                            {obj.title}
-                          </SelectItem>
+                        {Object.entries(departmentObjectivesByPillar).map(([pillar, objectives]) => (
+                            <SelectGroup key={pillar}>
+                                <SelectLabel>{pillar}</SelectLabel>
+                                {objectives.map(obj => (
+                                    <SelectItem key={obj.id} value={obj.id}>
+                                        {obj.title}
+                                    </SelectItem>
+                                ))}
+                            </SelectGroup>
                         ))}
                       </SelectContent>
                     </Select>
