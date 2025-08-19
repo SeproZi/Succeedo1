@@ -96,7 +96,7 @@ export function AddOkrDialog({
         JSON.stringify(okr.owner) === JSON.stringify(departmentOwner) &&
         okr.year === currentYear &&
         okr.period === currentPeriod
-    );
+    ).sort((a, b) => a.title.localeCompare(b.title)); // Sort objectives alphabetically
 
     return objectives.reduce((acc, okr) => {
         const pillar = okr.pillar || 'Other';
