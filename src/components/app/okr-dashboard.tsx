@@ -1,6 +1,7 @@
 
 'use client';
 import { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { PillarProgress } from '@/components/app/pillar-progress';
 import { OkrGrid } from '@/components/app/okr-grid';
 import { OkrCard } from '@/components/app/okr-card';
@@ -16,6 +17,7 @@ import { SidebarTrigger } from '../ui/sidebar';
 import { Skeleton } from '../ui/skeleton';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { AiSuggestionsDialog } from './ai-suggestions-dialog';
+
 type OkrDashboardProps = {
     owner: OkrOwner;
     title: string;
@@ -36,6 +38,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
   } = useOkrStore();
   
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const { topLevelOkrs, overallProgress, pillarProgress } = selectDashboardData(owner);
   const okrsForOwner = useOkrStore(state => state.selectFilteredOkrs().filter(okr => okr.owner.id === owner.id));
   const allStoreOkrs = useOkrStore(state => state.selectFilteredOkrs());
@@ -44,6 +47,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
   const [editingOkr, setEditingOkr] = useState<Partial<OkrItem> | { parentId: string | null } | null>(null);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [okrToDelete, setOkrToDelete] = useState<OkrItem | null>(null);
+  const [highlightedOkrId, setHighlightedOkrId] = useState<string | null>(null);
 
 
   const okrCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -61,6 +65,23 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
         }, 1000);
     }
   };
+
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    setHighlightedOkrId(highlightId);
+    if (highlightId) {
+        const timer = setTimeout(() => {
+            const targetElement = okrCardRefs.current[highlightId];
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                });
+            }
+        }, 100); // Small delay to allow refs to be set
+        return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   const handleAddYear = () => {
     const newYearString = prompt('Enter the year to add:');
@@ -187,7 +208,14 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
             {topLevelOkrs.length > 0 ? (
               topLevelOkrs
                 .map(okr => (
-                 <div key={okr.id} ref={el => okrCardRefs.current[okr.id] = el} className="scroll-mt-24">
+                 <div 
+                    key={okr.id} 
+                    ref={el => okrCardRefs.current[okr.id] = el} 
+                    className={cn(
+                        "scroll-mt-24",
+                         highlightedOkrId === okr.id && 'animate-pulse-once'
+                    )}
+                 >
                     <OkrCard
                       okr={okr}
                       allOkrs={okrsForOwner}

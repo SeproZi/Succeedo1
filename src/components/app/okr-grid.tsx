@@ -28,12 +28,11 @@ type OkrGridProps = {
   onGridItemClick: (id: string) => void;
   onEdit: (okr: OkrItem) => void;
   onDelete: (id: string) => void;
-  onSuggest: (okr: OkrItem) => void;
 };
 
 const pillars: OkrPillar[] = ['People', 'Product', 'Tech'];
 
-export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete, onSuggest }: OkrGridProps) {
+export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete }: OkrGridProps) {
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   return (
@@ -55,7 +54,6 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
                   onClick={onGridItemClick} 
                   onEdit={onEdit}
                   onDelete={onDelete}
-                  onSuggest={onSuggest}
                 />
                 <CollapsibleContent>
                   <LinkedOkrList objectiveId={obj.id} allOkrs={allOkrs} />
@@ -80,14 +78,12 @@ function GridItem({
   onClick,
   onEdit,
   onDelete,
-  onSuggest,
 }: { 
   item: OkrItem; 
   allOkrs: OkrItem[];
   onClick: (id: string) => void;
   onEdit: (okr: OkrItem) => void;
   onDelete: (id: string) => void;
-  onSuggest: (okr: OkrItem) => void;
 }) {
   const Icon = Target;
   const { data } = useOkrStore();
@@ -122,7 +118,7 @@ function GridItem({
       </CardContent>
       {parentDepartmentOkr && parentDepartment && (
         <div className="px-4 pb-2 -mt-1">
-          <Link href={`/department/${parentDepartment.id}`} onClick={(e) => e.stopPropagation()}>
+          <Link href={`/department/${parentDepartment.id}?highlight=${parentDepartmentOkr.id}`} onClick={(e) => e.stopPropagation()}>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -191,7 +187,7 @@ function LinkedOkrList({ objectiveId, allOkrs }: { objectiveId: string, allOkrs:
                 const teamName = getTeamName(child.owner.id);
                 const progress = calculateProgress(child.id, allOkrs);
                 return (
-                    <Link key={child.id} href={`/department/${child.owner.departmentId}/team/${child.owner.id}`} className="block">
+                    <Link key={child.id} href={`/department/${child.owner.departmentId}/team/${child.owner.id}?highlight=${child.id}`} className="block">
                         <Card className='p-2 hover:bg-secondary transition-colors'>
                             <div className="flex items-center justify-between">
                                 <div className='flex items-center gap-2'>

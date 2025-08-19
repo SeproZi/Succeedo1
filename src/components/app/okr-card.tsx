@@ -167,7 +167,7 @@ export function OkrCard({
 
         {parentDepartmentOkr && parentDepartment && (
           <div className="px-2 pb-2">
-            <Link href={`/department/${parentDepartment.id}`} className="block">
+            <Link href={`/department/${parentDepartment.id}?highlight=${parentDepartmentOkr.id}`} className="block">
               <Card className="p-2 hover:bg-secondary transition-colors">
                   <div className="flex items-center gap-2">
                     <Link2 className='h-3 w-3 text-muted-foreground' />
@@ -276,7 +276,7 @@ export function OkrCard({
                          const teamName = getTeamName(child.owner.id);
                          const progress = calculateProgress(child.id, allStoreOkrs);
                          return (
-                            <Link key={child.id} href={`/department/${child.owner.departmentId}/team/${child.owner.id}`} className="block px-2">
+                            <Link key={child.id} href={`/department/${child.owner.departmentId}/team/${child.owner.id}?highlight=${child.id}`} className="block px-2">
                                 <Card className='p-2 hover:bg-secondary'>
                                     <div className="flex items-center justify-between">
                                         <div className='flex items-center gap-2'>
