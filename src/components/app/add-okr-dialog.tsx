@@ -96,7 +96,7 @@ export function AddOkrDialog({
         JSON.stringify(okr.owner) === JSON.stringify(departmentOwner) &&
         okr.year === currentYear &&
         okr.period === currentPeriod
-    ).sort((a, b) => a.title.localeCompare(b.title)); // Sort objectives alphabetically
+    ).sort((a, b) => a.title.localeCompare(b.title));
 
     return objectives.reduce((acc, okr) => {
         const pillar = okr.pillar || 'Other';
@@ -107,6 +107,13 @@ export function AddOkrDialog({
         return acc;
     }, {} as Record<OkrPillar | 'Other', OkrItem[]>);
   }, [data.okrs, owner, currentYear, currentPeriod]);
+  
+  const sortedPillars: OkrPillar[] = useMemo(() => {
+    const desiredOrder: OkrPillar[] = ['People', 'Product', 'Tech'];
+    return Object.keys(departmentObjectivesByPillar)
+        .filter(pillar => desiredOrder.includes(pillar as OkrPillar))
+        .sort((a, b) => desiredOrder.indexOf(a as OkrPillar) - desiredOrder.indexOf(b as OkrPillar)) as OkrPillar[];
+  }, [departmentObjectivesByPillar]);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -301,10 +308,10 @@ export function AddOkrDialog({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="null">None</SelectItem>
-                        {Object.entries(departmentObjectivesByPillar).map(([pillar, objectives]) => (
+                        {sortedPillars.map(pillar => (
                             <SelectGroup key={pillar}>
                                 <SelectLabel>{pillar}</SelectLabel>
-                                {objectives.map(obj => (
+                                {departmentObjectivesByPillar[pillar]?.map(obj => (
                                     <SelectItem key={obj.id} value={obj.id}>
                                         {obj.title}
                                     </SelectItem>
