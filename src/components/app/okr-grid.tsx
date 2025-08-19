@@ -104,20 +104,20 @@ function GridItem({
       )}
       onClick={() => onClick(item.id)}
     >
-      <CardContent className="p-4 pb-2">
-        <div className="flex items-start gap-3">
-          <Icon className="h-5 w-5 mt-0.5 text-primary" />
+      <CardContent className="p-3 pb-2 space-y-2">
+        <div className="flex items-start gap-2.5">
+          <Icon className="h-4 w-4 mt-0.5 text-primary" />
           <div className="flex-1">
-            <p className="font-semibold text-card-foreground leading-tight pr-6">{item.title}</p>
-            <div className="flex items-center gap-2 mt-2">
-              <Progress value={item.progress} className="h-1.5" />
-              <span className="text-xs font-mono text-muted-foreground">{item.progress}%</span>
-            </div>
+            <p className="font-semibold text-card-foreground leading-tight pr-6 text-sm">{item.title}</p>
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Progress value={item.progress} className="h-1.5" />
+          <span className="text-xs font-mono text-muted-foreground">{item.progress}%</span>
         </div>
       </CardContent>
       {parentDepartmentOkr && parentDepartment && (
-        <div className="px-4 pb-2 -mt-1">
+        <div className="px-3 pb-2">
           <Link href={`/department/${parentDepartment.id}?highlight=${parentDepartmentOkr.id}`} onClick={(e) => e.stopPropagation()}>
             <Button 
               variant="ghost" 
@@ -125,13 +125,13 @@ function GridItem({
               className="h-auto p-1 text-xs text-muted-foreground hover:text-foreground w-full justify-start -ml-1"
             >
                 <Building className="mr-1 h-3 w-3"/>
-                 <span className="truncate">{parentDepartment.title}: {parentDepartmentOkr.title}</span>
+                 <span className="truncate">Parent: {parentDepartment.title}</span>
             </Button>
           </Link>
         </div>
       )}
       {linkedChildren.length > 0 && (
-        <div className="px-4 pb-2">
+        <div className="px-3 pb-2">
             <CollapsibleTrigger asChild>
                 <Button 
                   variant="ghost" 
