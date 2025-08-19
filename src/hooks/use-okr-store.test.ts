@@ -20,13 +20,22 @@ const mockDepartments: Department[] = [
 
 const mockTeams: Team[] = [
   { id: 'teamA1', title: 'Frontend', departmentId: 'deptA' },
+  { id: 'teamA2', title: 'Backend', departmentId: 'deptA' },
   { id: 'teamB1', title: 'Enterprise', departmentId: 'deptB' },
 ];
 
 const mockOkrs: OkrItem[] = [
-  // Department A ("Product") - linked by team A1 obj 3
+  // Department A ("Product") - linked by team A1 obj 3 & team A2 obj 1
   { id: 'okrA', title: 'Dept A Objective', year: 2025, period: 'P1', owner: { type: 'department', id: 'deptA' }, progress: 0, type: 'objective', parentId: null, pillar: 'Product' },
   { id: 'krA1', title: 'KR A1', year: 2025, period: 'P1', parentId: 'okrA', owner: { type: 'department', id: 'deptA' }, progress: 50, type: 'keyResult' },
+  
+  // Department B ("Sales") - For other test cases
+  { id: 'okrB', title: 'Dept B Objective (Direct KRs only)', year: 2025, period: 'P1', owner: { type: 'department', id: 'deptB' }, progress: 0, type: 'objective', parentId: null, pillar: 'People' },
+  { id: 'krB1', title: 'KR B1', year: 2025, period: 'P1', parentId: 'okrB', owner: { type: 'department', id: 'deptB' }, progress: 80, type: 'keyResult' },
+  { id: 'krB2', title: 'KR B2', year: 2025, period: 'P1', parentId: 'okrB', owner: { type: 'department', id: 'deptB' }, progress: 40, type: 'keyResult' },
+  { id: 'okrC', title: 'Dept B Empty Objective', year: 2025, period: 'P1', owner: { type: 'department', id: 'deptB' }, progress: 0, type: 'objective', parentId: null, pillar: 'People' },
+
+
   // Team A1 ("Frontend")
   { id: 'okrA1-1', title: 'Team A1 Objective 1', year: 2025, period: 'P1', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 0, type: 'objective', parentId: null, pillar: 'Tech' },
   { id: 'krA1-1a', title: 'KR A1-1a', year: 2025, period: 'P1', parentId: 'okrA1-1', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 100, type: 'keyResult' },
@@ -34,10 +43,15 @@ const mockOkrs: OkrItem[] = [
   { id: 'okrA1-3', title: 'Team A1 Objective 3 (Linked)', year: 2025, period: 'P1', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 0, type: 'objective', parentId: null, pillar: 'Tech', linkedDepartmentOkrId: 'okrA' },
   { id: 'krA1-3a', title: 'KR A1-3a', year: 2025, period: 'P1', parentId: 'okrA1-3', owner: { type: 'team', id: 'teamA1', departmentId: 'deptA' }, progress: 90, type: 'keyResult' },
   
+  // Team A2 ("Backend")
+  { id: 'okrA2-1', title: 'Team A2 Objective 1 (Linked)', year: 2025, period: 'P1', owner: { type: 'team', id: 'teamA2', departmentId: 'deptA' }, progress: 0, type: 'objective', parentId: null, pillar: 'Tech', linkedDepartmentOkrId: 'okrA' },
+  { id: 'krA2-1a', title: 'KR A2-1a', year: 2025, period: 'P1', parentId: 'okrA2-1', owner: { type: 'team', id: 'teamA2', departmentId: 'deptA' }, progress: 70, type: 'keyResult' },
+  
   // Team B1 ("Enterprise")
-  { id: 'okrB1', title: 'Team B1 Objective', year: 2025, period: 'P1', owner: { type: 'team', id: 'teamB1', departmentId: 'deptB' }, progress: 0, type: 'objective', parentId: null, pillar: 'People' },
-  { id: 'krB1a', title: 'KR B1a', year: 2025, period: 'P1', parentId: 'okrB1', owner: { type: 'team', id: 'teamB1', departmentId: 'deptB' }, progress: 20, type: 'keyResult' },
-  { id: 'krB1b', title: 'KR B1b', year: 2025, period: 'P1', parentId: 'okrB1', owner: { type: 'team', id: 'teamB1', departmentId: 'deptB' }, progress: 30, type: 'keyResult' },
+  { id: 'okrB1-team', title: 'Team B1 Objective', year: 2025, period: 'P1', owner: { type: 'team', id: 'teamB1', departmentId: 'deptB' }, progress: 0, type: 'objective', parentId: null, pillar: 'People' },
+  { id: 'krB1a-team', title: 'KR B1a', year: 2025, period: 'P1', parentId: 'okrB1-team', owner: { type: 'team', id: 'teamB1', departmentId: 'deptB' }, progress: 20, type: 'keyResult' },
+  { id: 'krB1b-team', title: 'KR B1b', year: 2025, period: 'P1', parentId: 'okrB1-team', owner: { type: 'team', id: 'teamB1', departmentId: 'deptB' }, progress: 30, type: 'keyResult' },
+  
   // Data for another timeline to test filtering
   { id: 'okrOld', title: 'Old OKR', year: 2024, period: 'P3', owner: { type: 'department', id: 'deptA' }, progress: 100, type: 'objective', parentId: null, pillar: 'Product' },
 ];
@@ -90,12 +104,13 @@ describe('useOkrStore', () => {
       });
     });
 
-    it('should calculate dashboard data correctly for a department', () => {
+    it('should calculate dashboard data correctly for a department with mixed children', () => {
       const { topLevelOkrs, overallProgress } = useOkrStore.getState().selectDashboardData({ type: 'department', id: 'deptA' });
       
       expect(topLevelOkrs.length).toBe(1);
       expect(topLevelOkrs[0].title).toBe('Dept A Objective');
-      // Progress = (KR progress + Linked OKR progress) / 2 = (50% + 90%) / 2 = 70%
+      // Prog = (KR A1 progress + Linked OKR A1-3 prog + Linked OKR A2-1 prog) / 3 
+      //      = (50% + 90% + 70%) / 3 = 210 / 3 = 70%
       expect(overallProgress).toBe(70);
     });
 
@@ -129,7 +144,7 @@ describe('useOkrStore', () => {
 
   describe('calculateProgress utility', () => {
       it('should calculate the average progress of key results', () => {
-          const progress = calculateProgress('okrB1', mockOkrs);
+          const progress = calculateProgress('okrB1-team', mockOkrs);
           expect(progress).toBe(25); // (20 + 30) / 2
       });
 
@@ -138,13 +153,31 @@ describe('useOkrStore', () => {
           expect(progress).toBe(0);
       });
 
-      it('should correctly average direct KRs and linked Team OKRs', () => {
-        // Dept A Objective ('okrA') has one direct KR ('krA1' at 50%) and one linked team OKR ('okrA1-3').
-        // The linked team OKR 'okrA1-3' has one KR ('krA1-3a' at 90%), so its progress is 90%.
-        // The total progress for 'okrA' should be the average of its direct KR and the linked team OKR's progress.
-        // Average = (50 + 90) / 2 = 70
-        const progress = calculateProgress('okrA', mockOkrs);
+      it('should correctly average direct KRs and a single linked Team OKR', () => {
+        const singleLinkedOkrList = mockOkrs.filter(o => o.id !== 'okrA2-1' && o.id !== 'krA2-1a');
+        const progress = calculateProgress('okrA', singleLinkedOkrList);
+        // Average = (direct KR 'krA1' 50% + linked OKR 'okrA1-3' 90%) / 2 = 70
         expect(progress).toBe(70);
+      });
+      
+      it('should return 0 for an objective with no direct KRs or linked OKRs', () => {
+          const progress = calculateProgress('okrC', mockOkrs);
+          expect(progress).toBe(0);
+      });
+
+      it('should calculate progress for an objective with only direct KRs', () => {
+          const progress = calculateProgress('okrB', mockOkrs);
+          // Average of krB1 (80%) and krB2 (40%) = 60
+          expect(progress).toBe(60);
+      });
+
+      it('should correctly average direct KRs and multiple linked Team OKRs', () => {
+          const progress = calculateProgress('okrA', mockOkrs);
+          // Direct KR 'krA1': 50%
+          // Linked OKR 'okrA1-3' has KR 'krA1-3a': 90%
+          // Linked OKR 'okrA2-1' has KR 'krA2-1a': 70%
+          // Average = (50 + 90 + 70) / 3 = 210 / 3 = 70
+          expect(progress).toBe(70);
       });
   });
 });
