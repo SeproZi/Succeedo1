@@ -6,7 +6,7 @@ import { PillarProgress } from '@/components/app/pillar-progress';
 import { OkrGrid } from '@/components/app/okr-grid';
 import { OkrCard } from '@/components/app/okr-card';
 import { AddOkrDialog } from '@/components/app/add-okr-dialog';
-import type { OkrItem, OkrOwner, TimelinePeriod } from '@/lib/types';
+import type { OkrItem, OkrOwner, TimelinePeriod, OkrPillar } from '@/lib/types';
 import useOkrStore from '@/hooks/use-okr-store';
 import { Button } from '@/components/ui/button';
 import { Plus, Sparkles } from 'lucide-react';
@@ -118,7 +118,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     }
   }, [editingOkr]);
 
-
+  const pillars: OkrPillar[] = ['People', 'Product', 'Tech'];
 
   if (loading) {
     return (
@@ -207,25 +207,36 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
                 Objectives Details
             </h2>
             {topLevelOkrs.length > 0 ? (
-              topLevelOkrs
-                .map(okr => (
-                 <div 
-                    key={okr.id} 
-                    ref={el => okrCardRefs.current[okr.id] = el} 
-                    className={cn(
-                        "scroll-mt-24",
-                         highlightedOkrId === okr.id && 'animate-pulse-once'
-                    )}
-                 >
-                    <OkrCard
-                      okr={okr}
-                      allOkrs={okrsForOwner}
-                      allStoreOkrs={allStoreOkrs}
-                      level={0}
-                      onAddOrUpdate={(data) => setEditingOkr({ ...data, owner })}
-                    />
-                 </div>
-              ))
+                pillars.map(pillar => {
+                    const pillarOkrs = topLevelOkrs.filter(okr => okr.pillar === pillar);
+                    if (pillarOkrs.length === 0) return null;
+                    
+                    return (
+                        <div key={pillar} className="space-y-4">
+                            <div className="border-b-2 border-primary/10 pb-2">
+                                <h3 className="text-lg font-semibold font-headline text-primary/80">{pillar}</h3>
+                            </div>
+                            {pillarOkrs.map(okr => (
+                                <div 
+                                    key={okr.id} 
+                                    ref={el => okrCardRefs.current[okr.id] = el} 
+                                    className={cn(
+                                        "scroll-mt-24",
+                                        highlightedOkrId === okr.id && 'animate-pulse-once'
+                                    )}
+                                >
+                                    <OkrCard
+                                        okr={okr}
+                                        allOkrs={okrsForOwner}
+                                        allStoreOkrs={allStoreOkrs}
+                                        level={0}
+                                        onAddOrUpdate={(data) => setEditingOkr({ ...data, owner })}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    );
+                })
             ) : (
               <div className="text-center py-12 px-6 bg-card rounded-xl">
                   <h3 className="text-xl font-medium text-card-foreground">No Objectives Yet</h3>
