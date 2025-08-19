@@ -17,6 +17,7 @@ import { SidebarTrigger } from '../ui/sidebar';
 import { Skeleton } from '../ui/skeleton';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { AiSuggestionsDialog } from './ai-suggestions-dialog';
+import { cn } from '@/lib/utils';
 
 type OkrDashboardProps = {
     owner: OkrOwner;
