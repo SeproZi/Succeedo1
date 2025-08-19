@@ -42,16 +42,30 @@ export const getTimelineDefaults = (data: AppData) => {
     };
 }
 
+// Helper function for recursive progress calculation of team objectives
+const calculateTeamObjectiveProgress = (objectiveId: string, allOkrs: OkrItem[]): number => {
+    const keyResults = allOkrs.filter(kr => kr.parentId === objectiveId);
+    if (keyResults.length === 0) return 0;
+    const totalProgress = keyResults.reduce((sum, kr) => sum + kr.progress, 0);
+    return Math.round(totalProgress / keyResults.length);
+};
+
+
 // Exported for testability
 export const calculateProgress = (
     objectiveId: string, 
-    allItems: OkrItem[], 
-    allStoreOkrs: OkrItem[]
+    allItems: OkrItem[], // OKRs for the current view (e.g., a specific department)
+    allStoreOkrs: OkrItem[] // All OKRs from the store
 ): number => {
+    // 1. Find direct key results for the objective
     const directKeyResults = allItems.filter(okr => okr.parentId === objectiveId);
     
-    const linkedTeamObjectives = allStoreOkrs.filter(okr => okr.type === 'objective' && okr.linkedDepartmentOkrId === objectiveId);
-    
+    // 2. Find team objectives linked to this department objective
+    const linkedTeamObjectives = allStoreOkrs.filter(okr => 
+        okr.type === 'objective' && okr.linkedDepartmentOkrId === objectiveId
+    );
+
+    // 3. Create a unified list of all progress sources
     const allProgressSources = [
         ...directKeyResults,
         ...linkedTeamObjectives
@@ -59,18 +73,18 @@ export const calculateProgress = (
 
     if (allProgressSources.length === 0) return 0;
     
+    // 4. Calculate the total progress from all sources
     const totalProgress = allProgressSources.reduce((sum, item) => {
         // If it's a linked team objective, we need its calculated progress
         if (item.type === 'objective') {
-            const teamKRs = allStoreOkrs.filter(kr => kr.parentId === item.id);
-            if (teamKRs.length === 0) return sum;
-            const progress = (teamKRs.reduce((s, kr) => s + kr.progress, 0) / teamKRs.length);
-            return sum + progress;
+             // We need to calculate the progress of this team objective based on its own KRs
+            return sum + calculateTeamObjectiveProgress(item.id, allStoreOkrs);
         }
-        // Otherwise, it's a direct key result
+        // Otherwise, it's a direct key result, so we use its progress directly
         return sum + item.progress;
     }, 0);
 
+    // 5. Return the average progress
     return Math.round(totalProgress / allProgressSources.length);
 };
 
@@ -372,13 +386,8 @@ const useOkrStore = create<OkrState>((set, get) => ({
 
         const topLevelOkrs = okrsWithCalculatedProgress.filter(okr => !okr.parentId);
         
-        // This is the fix: We need to make sure the progress on the topLevelOkrs
-        // is also calculated correctly for the Grid view.
         const topLevelOkrsWithCorrectProgress = topLevelOkrs.map(okr => {
-            if (okr.owner.type === 'department') {
-                return { ...okr, progress: calculateProgress(okr.id, allFilteredOkrs, data.okrs) };
-            }
-            return okr;
+            return { ...okr, progress: calculateProgress(okr.id, okrsForOwner, data.okrs) };
         });
 
         return {
@@ -390,3 +399,5 @@ const useOkrStore = create<OkrState>((set, get) => ({
 }));
 
 export default useOkrStore;
+
+    
