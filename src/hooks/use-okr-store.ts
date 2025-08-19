@@ -42,23 +42,16 @@ export const getTimelineDefaults = (data: AppData) => {
     };
 }
 
-// Helper function for recursive progress calculation of team objectives
-const calculateTeamObjectiveProgress = (objectiveId: string, allOkrs: OkrItem[]): number => {
-    const keyResults = allOkrs.filter(kr => kr.parentId === objectiveId);
-    if (keyResults.length === 0) return 0;
-    const totalProgress = keyResults.reduce((sum, kr) => sum + kr.progress, 0);
-    return Math.round(totalProgress / keyResults.length);
-};
-
-
 // Exported for testability
 export const calculateProgress = (
     objectiveId: string, 
-    allItems: OkrItem[], // OKRs for the current view (e.g., a specific department)
     allStoreOkrs: OkrItem[] // All OKRs from the store
 ): number => {
+    const objective = allStoreOkrs.find(o => o.id === objectiveId);
+    if (!objective || objective.type !== 'objective') return 0;
+
     // 1. Find direct key results for the objective
-    const directKeyResults = allItems.filter(okr => okr.parentId === objectiveId);
+    const directKeyResults = allStoreOkrs.filter(okr => okr.parentId === objectiveId);
     
     // 2. Find team objectives linked to this department objective
     const linkedTeamObjectives = allStoreOkrs.filter(okr => 
@@ -75,10 +68,9 @@ export const calculateProgress = (
     
     // 4. Calculate the total progress from all sources
     const totalProgress = allProgressSources.reduce((sum, item) => {
-        // If it's a linked team objective, we need its calculated progress
+        // If it's a linked team objective, we need its calculated progress (recursive call)
         if (item.type === 'objective') {
-             // We need to calculate the progress of this team objective based on its own KRs
-            return sum + calculateTeamObjectiveProgress(item.id, allStoreOkrs);
+            return sum + calculateProgress(item.id, allStoreOkrs);
         }
         // Otherwise, it's a direct key result, so we use its progress directly
         return sum + item.progress;
@@ -338,7 +330,7 @@ const useOkrStore = create<OkrState>((set, get) => ({
         const filteredOkrs = selectFilteredOkrs();
 
         const okrsWithProgress = filteredOkrs.map(okr => 
-            okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, filteredOkrs, get().data.okrs) } : okr
+            okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, get().data.okrs) } : okr
         );
 
         const departmentProgress = departments.map(dept => {
@@ -365,7 +357,7 @@ const useOkrStore = create<OkrState>((set, get) => ({
         const okrsForOwner = allFilteredOkrs.filter(okr => getOwnerKey(okr.owner) === getOwnerKey(owner));
         
         const okrsWithCalculatedProgress = okrsForOwner.map(okr => 
-            okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, okrsForOwner, data.okrs) } : okr
+            okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, data.okrs) } : okr
         );
         
         const objectives = okrsWithCalculatedProgress.filter(okr => okr.type === 'objective');
@@ -384,10 +376,13 @@ const useOkrStore = create<OkrState>((set, get) => ({
           }
         });
 
-        const topLevelOkrs = okrsWithCalculatedProgress.filter(okr => !okr.parentId);
+        const topLevelOkrs = okrsForOwner.filter(okr => !okr.parentId);
         
         const topLevelOkrsWithCorrectProgress = topLevelOkrs.map(okr => {
-            return { ...okr, progress: calculateProgress(okr.id, okrsForOwner, data.okrs) };
+            if (okr.type === 'objective') {
+                return { ...okr, progress: calculateProgress(okr.id, data.okrs) };
+            }
+            return okr;
         });
 
         return {
