@@ -50,7 +50,7 @@ export const calculateProgress = (
 ): number => {
     const directKeyResults = allItems.filter(okr => okr.parentId === objectiveId);
     
-    const linkedTeamObjectives = allStoreOkrs.filter(okr => okr.linkedDepartmentOkrId === objectiveId);
+    const linkedTeamObjectives = allStoreOkrs.filter(okr => okr.type === 'objective' && okr.linkedDepartmentOkrId === objectiveId);
     
     const allProgressSources = [
         ...directKeyResults,
@@ -64,7 +64,8 @@ export const calculateProgress = (
         if (item.type === 'objective') {
             const teamKRs = allStoreOkrs.filter(kr => kr.parentId === item.id);
             if (teamKRs.length === 0) return sum;
-            return sum + (teamKRs.reduce((s, kr) => s + kr.progress, 0) / teamKRs.length);
+            const progress = (teamKRs.reduce((s, kr) => s + kr.progress, 0) / teamKRs.length);
+            return sum + progress;
         }
         // Otherwise, it's a direct key result
         return sum + item.progress;
@@ -346,13 +347,15 @@ const useOkrStore = create<OkrState>((set, get) => ({
     },
     selectDashboardData: (owner: OkrOwner) => {
         const { selectFilteredOkrs, data } = get();
-        const okrsForOwner = selectFilteredOkrs().filter(okr => getOwnerKey(okr.owner) === getOwnerKey(owner));
+        const allFilteredOkrs = selectFilteredOkrs();
+        const okrsForOwner = allFilteredOkrs.filter(okr => getOwnerKey(okr.owner) === getOwnerKey(owner));
         
         const okrsWithCalculatedProgress = okrsForOwner.map(okr => 
             okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, okrsForOwner, data.okrs) } : okr
         );
-
+        
         const objectives = okrsWithCalculatedProgress.filter(okr => okr.type === 'objective');
+        
         const overallProgress = objectives.length > 0
           ? Math.round(objectives.reduce((sum, okr) => sum + okr.progress, 0) / objectives.length)
           : 0;
@@ -367,8 +370,19 @@ const useOkrStore = create<OkrState>((set, get) => ({
           }
         });
 
+        const topLevelOkrs = okrsWithCalculatedProgress.filter(okr => !okr.parentId);
+        
+        // This is the fix: We need to make sure the progress on the topLevelOkrs
+        // is also calculated correctly for the Grid view.
+        const topLevelOkrsWithCorrectProgress = topLevelOkrs.map(okr => {
+            if (okr.owner.type === 'department') {
+                return { ...okr, progress: calculateProgress(okr.id, allFilteredOkrs, data.okrs) };
+            }
+            return okr;
+        });
+
         return {
-          topLevelOkrs: okrsWithCalculatedProgress.filter(okr => !okr.parentId),
+          topLevelOkrs: topLevelOkrsWithCorrectProgress,
           overallProgress,
           pillarProgress,
         };
