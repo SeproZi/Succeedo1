@@ -89,16 +89,17 @@ export function AddOkrDialog({
 
   const departmentObjectivesByPillar = useMemo(() => {
     if (owner.type !== 'team') return {};
-    const departmentOwner: OkrOwner = { type: 'department', id: owner.departmentId };
     
-    const objectives = data.okrs.filter(okr =>
+    // Fetch all department-level objectives for the current timeline.
+    const departmentObjectives = data.okrs.filter(okr =>
         okr.type === 'objective' &&
-        JSON.stringify(okr.owner) === JSON.stringify(departmentOwner) &&
+        okr.owner.type === 'department' &&
         okr.year === currentYear &&
         okr.period === currentPeriod
     ).sort((a, b) => a.title.localeCompare(b.title));
 
-    return objectives.reduce((acc, okr) => {
+    // Group them by pillar.
+    return departmentObjectives.reduce((acc, okr) => {
         const pillar = okr.pillar || 'Other';
         if (!acc[pillar]) {
             acc[pillar] = [];
@@ -106,8 +107,8 @@ export function AddOkrDialog({
         acc[pillar].push(okr);
         return acc;
     }, {} as Record<OkrPillar | 'Other', OkrItem[]>);
-  }, [data.okrs, owner, currentYear, currentPeriod]);
-  
+  }, [data.okrs, owner.type, currentYear, currentPeriod]);
+
   const sortedPillars: OkrPillar[] = useMemo(() => {
     const desiredOrder: OkrPillar[] = ['People', 'Product', 'Tech'];
     return Object.keys(departmentObjectivesByPillar)
