@@ -31,6 +31,7 @@ export type OkrItem = BaseItem & {
   priority?: OkrPriority;
   year: number;
   period: TimelinePeriod;
+  linkedDepartmentOkrId?: string | null;
 };
 
 export type AppData = {

@@ -12,6 +12,8 @@ import {
   Check,
   Sparkles,
   ChevronDown,
+  Link2,
+  Users,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -37,10 +39,12 @@ import { Slider } from '@/components/ui/slider';
 import useOkrStore from '@/hooks/use-okr-store';
 import { AiSuggestionsDialog } from './ai-suggestions-dialog';
 import { suggestKeyResultsAction } from '@/lib/actions';
+import Link from 'next/link';
 
 type OkrCardProps = {
   okr: OkrItem;
   allOkrs: OkrItem[];
+  allStoreOkrs: OkrItem[];
   level: number;
   onAddOrUpdate: (data: Partial<OkrItem> | { parentId: string | null }) => void;
 };
@@ -50,19 +54,25 @@ const KEY_RESULT_DISPLAY_LIMIT = 2;
 export function OkrCard({
   okr,
   allOkrs,
+  allStoreOkrs,
   level,
   onAddOrUpdate,
 }: OkrCardProps) {
-  const { deleteOkr, updateOkrNotes, updateOkrProgress, addOkr } = useOkrStore();
+  const { deleteOkr, updateOkrNotes, updateOkrProgress, addOkr, data } = useOkrStore();
   const isObjective = okr.type === 'objective';
   const children = allOkrs.filter(item => item.parentId === okr.id);
+  const linkedChildren = allStoreOkrs.filter(item => item.linkedDepartmentOkrId === okr.id);
   const [notes, setNotes] = useState(okr.notes ?? '');
   const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
-  const [isExpanded, setExpanded] = useState(false);
+  const [isKrExpanded, setKrExpanded] = useState(false);
+  const [isLinkedExpanded, setLinkedExpanded] = useState(false);
   const { toast } = useToast();
   
-  const canCollapse = isObjective && children.length > KEY_RESULT_DISPLAY_LIMIT;
-  const displayedChildren = canCollapse && !isExpanded ? children.slice(0, KEY_RESULT_DISPLAY_LIMIT) : children;
+  const canCollapseKr = isObjective && children.length > KEY_RESULT_DISPLAY_LIMIT;
+  const displayedKrChildren = canCollapseKr && !isKrExpanded ? children.slice(0, KEY_RESULT_DISPLAY_LIMIT) : children;
+  
+  const canCollapseLinked = isObjective && linkedChildren.length > 0;
+  const displayedLinkedChildren = canCollapseLinked && !isLinkedExpanded ? linkedChildren.slice(0, KEY_RESULT_DISPLAY_LIMIT) : linkedChildren;
 
   const handleSaveNotes = () => {
     updateOkrNotes(okr.id, notes);
@@ -93,6 +103,10 @@ export function OkrCard({
     });
     setSuggestionsOpen(false);
   };
+  
+  const getTeamName = (teamId: string) => {
+    return data.teams.find(t => t.id === teamId)?.title || 'Team';
+  }
 
   const icon = isObjective ? (
     <Target className="h-4 w-4 text-primary" />
@@ -102,12 +116,12 @@ export function OkrCard({
   
   return (
     <>
-    <div style={{ marginLeft: level > 0 ? `${level * 1}rem` : '0' }}>
+    <div style={{ marginLeft: level > 0 ? `${level * 0.5}rem` : '0' }}>
       <Card className="overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
         <CardHeader className="flex flex-row items-center justify-between p-2 bg-transparent">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
             {icon}
-            <span className="font-headline font-semibold text-base truncate text-card-foreground">
+            <span className="font-semibold text-sm truncate text-card-foreground">
               {okr.title}
             </span>
           </div>
@@ -177,7 +191,7 @@ export function OkrCard({
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1" className="border-b-0">
                 <AccordionTrigger className="py-0 hover:no-underline text-xs h-5">
-                    <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+                    <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
                         <Notebook className="h-3 w-3" />
                         Notes
                     </div>
@@ -200,18 +214,19 @@ export function OkrCard({
           </CardContent>
         )}
       
-      {displayedChildren.length > 0 && (
+      {displayedKrChildren.length > 0 && (
         <div
           className={cn(
             "mt-1 space-y-1 relative before:absolute before:left-2.5 before:top-0 before:h-full before:w-px before:bg-border",
             level > 0 && "pl-0"
           )}
         >
-          {displayedChildren.map(child => (
+          {displayedKrChildren.map(child => (
             <OkrCard
               key={child.id}
               okr={child}
               allOkrs={allOkrs}
+              allStoreOkrs={allStoreOkrs}
               level={level + 1}
               onAddOrUpdate={onAddOrUpdate}
             />
@@ -219,18 +234,74 @@ export function OkrCard({
         </div>
       )}
       
-      {canCollapse && (
-          <div className="p-2 pt-1">
+      {canCollapseKr && (
+          <div className="px-2 py-1">
               <Button 
                 variant="ghost" 
                 className="w-full text-xs h-6"
-                onClick={() => setExpanded(!isExpanded)}
+                onClick={() => setKrExpanded(!isKrExpanded)}
               >
-                <ChevronDown className={cn("mr-2 h-3 w-3 transition-transform", isExpanded && "rotate-180")} />
-                {isExpanded ? 'Show fewer' : `Show ${children.length - KEY_RESULT_DISPLAY_LIMIT} more key results`}
+                <ChevronDown className={cn("mr-2 h-3 w-3 transition-transform", isKrExpanded && "rotate-180")} />
+                {isKrExpanded ? 'Show fewer' : `Show ${children.length - KEY_RESULT_DISPLAY_LIMIT} more key results`}
               </Button>
           </div>
       )}
+      
+       {canCollapseLinked && (
+        <div className='border-t mt-1'>
+            <Accordion type="single" collapsible defaultValue='item-1' className="w-full">
+                 <AccordionItem value="item-1" className="border-b-0">
+                    <AccordionTrigger className="py-1 px-2 hover:no-underline text-xs" onClick={() => setLinkedExpanded(!isLinkedExpanded)}>
+                        <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                            <Link2 className="h-3 w-3" />
+                             Linked Team OKRs ({linkedChildren.length})
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-1 pb-1 space-y-1">
+                       {displayedLinkedChildren.map(child => {
+                         if (child.owner.type !== 'team') return null;
+                         const teamName = getTeamName(child.owner.id);
+                         return (
+                            <Link key={child.id} href={`/department/${child.owner.departmentId}/team/${child.owner.id}`} className="block px-2">
+                                <Card className='p-2 hover:bg-secondary'>
+                                    <div className="flex items-center justify-between">
+                                        <div className='flex items-center gap-2'>
+                                            <Users className='h-3 w-3 text-muted-foreground' />
+                                            <span className='text-xs font-semibold'>{teamName}: </span>
+                                            <span className='text-xs text-muted-foreground'>{child.title}</span>
+                                        </div>
+                                        <div className="w-20 flex items-center gap-2">
+                                            <Progress value={child.progress} className="h-1.5 flex-1" />
+                                            <span className="font-semibold text-primary w-8 text-right text-xs">
+                                                {child.progress}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </Link>
+                        )
+                       })}
+                        {linkedChildren.length > KEY_RESULT_DISPLAY_LIMIT && (
+                            <div className="px-2 pt-1">
+                                <Button 
+                                    variant="ghost" 
+                                    className="w-full text-xs h-6"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setLinkedExpanded(!isLinkedExpanded);
+                                    }}
+                                >
+                                    <ChevronDown className={cn("mr-2 h-3 w-3 transition-transform", isLinkedExpanded && "rotate-180")} />
+                                    {isLinkedExpanded ? 'Show fewer' : `Show ${linkedChildren.length - KEY_RESULT_DISPLAY_LIMIT} more linked OKRs`}
+                                </Button>
+                            </div>
+                        )}
+                    </AccordionContent>
+                 </AccordionItem>
+            </Accordion>
+        </div>
+      )}
+
 
       {isObjective && (
         <div className="p-2 pt-1">

@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect } from 'react';
 import { useState, useRef } from 'react';
@@ -30,11 +31,13 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     availableYears, 
     addYear,
     selectDashboardData,
+    data,
   } = useOkrStore();
   
   const { toast } = useToast();
   const { topLevelOkrs, overallProgress, pillarProgress } = selectDashboardData(owner);
-  const okrs = useOkrStore(state => state.selectFilteredOkrs().filter(okr => okr.owner.id === owner.id));
+  const okrsForOwner = useOkrStore(state => state.selectFilteredOkrs().filter(okr => okr.owner.id === owner.id));
+  const allStoreOkrs = useOkrStore(state => state.selectFilteredOkrs());
 
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [editingOkr, setEditingOkr] = useState<Partial<OkrItem> | { parentId: string | null } | null>(null);
@@ -133,7 +136,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
                         <SelectItem value="P3">Period 3</SelectItem>
                     </SelectContent>
                 </Select>
-                <Button onClick={() => setAddDialogOpen(true)}>
+                <Button onClick={() => setEditingOkr({ parentId: null, type: 'objective'})}>
                     <Plus className="mr-2 h-4 w-4" />
                     Add Objective
                 </Button>
@@ -161,7 +164,8 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
                  <div key={okr.id} ref={el => okrCardRefs.current[okr.id] = el} className="scroll-mt-24">
                     <OkrCard
                       okr={okr}
-                      allOkrs={okrs}
+                      allOkrs={okrsForOwner}
+                      allStoreOkrs={allStoreOkrs}
                       level={0}
                       onAddOrUpdate={(data) => setEditingOkr({ ...data, owner })}
                     />
@@ -171,7 +175,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
               <div className="text-center py-12 px-6 bg-card rounded-xl">
                   <h3 className="text-xl font-medium text-card-foreground">No Objectives Yet</h3>
                   <p className="text-muted-foreground mt-2 mb-4">Get started by adding your first objective for {currentYear} - {currentPeriod}.</p>
-                  <Button onClick={() => setAddDialogOpen(true)}>Add Objective</Button>
+                   <Button onClick={() => setEditingOkr({ parentId: null, type: 'objective' })}>Add Objective</Button>
               </div>
             )}
           </div>

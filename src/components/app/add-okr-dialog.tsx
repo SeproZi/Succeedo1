@@ -30,12 +30,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Sparkles, Loader2, Plus } from 'lucide-react';
-import { suggestKeyResultsAction } from '@/lib/actions';
+import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import useOkrStore from '@/hooks/use-okr-store';
 import { Separator } from '../ui/separator';
-import { OkrItem, OkrOwner, OkrPillar, OkrPriority } from '@/lib/types';
+import { OkrItem, OkrOwner } from '@/lib/types';
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -47,6 +46,7 @@ const formSchema = z.object({
   notes: z.string().optional(),
   year: z.number(),
   period: z.enum(['P1', 'P2', 'P3']),
+  linkedDepartmentOkrId: z.string().nullable().optional(),
 }).superRefine((data, ctx) => {
     if (data.type === 'objective' && !data.pillar) {
         ctx.addIssue({
@@ -73,7 +73,8 @@ export function AddOkrDialog({
 }: AddOkrDialogProps) {
   const isEditing = okrData && 'id' in okrData;
   const { toast } = useToast();
-  const { addOkr, updateOkr, currentYear, currentPeriod, availableYears, addYear } = useOkrStore();
+  const { addOkr, updateOkr, currentYear, currentPeriod, availableYears, addYear, data } = useOkrStore();
+  const isTeamObjective = owner.type === 'team' && (!('type' in okrData) || okrData.type === 'objective');
 
   const objectives = useOkrStore(state => 
     state.data.okrs.filter(okr => 
@@ -83,6 +84,17 @@ export function AddOkrDialog({
         okr.period === currentPeriod
     )
   );
+
+  const departmentObjectives = useOkrStore(state => {
+    if (owner.type !== 'team') return [];
+    const departmentOwner: OkrOwner = { type: 'department', id: owner.departmentId };
+    return state.data.okrs.filter(okr =>
+      okr.type === 'objective' &&
+      JSON.stringify(okr.owner) === JSON.stringify(departmentOwner) &&
+      okr.year === currentYear &&
+      okr.period === currentPeriod
+    );
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -96,6 +108,7 @@ export function AddOkrDialog({
       notes: (isEditing && okrData.notes) || '',
       year: (isEditing && okrData.year) || currentYear,
       period: (isEditing && okrData.period) || currentPeriod,
+      linkedDepartmentOkrId: (isEditing && okrData.linkedDepartmentOkrId) || null,
     },
   });
 
@@ -107,10 +120,11 @@ export function AddOkrDialog({
         type: (okrData && 'type' in okrData && okrData.type) || (okrData?.parentId ? 'keyResult' : 'objective'),
         parentId: okrData?.parentId || null,
         pillar: (okrData && 'pillar' in okrData && okrData.pillar) || undefined,
-        priority: (okrData && 'priority' in okrData && okrData.priority) || 'P3', // Default to P3 Normal
+        priority: (okrData && 'priority' in okrData && okrData.priority) || 'P3',
         notes: (okrData && 'notes' in okrData && okrData.notes) || '',
         year: (okrData && 'year' in okrData && okrData.year) || currentYear,
         period: (okrData && 'period' in okrData && okrData.period) || currentPeriod,
+        linkedDepartmentOkrId: (okrData && 'linkedDepartmentOkrId' in okrData && okrData.linkedDepartmentOkrId) || null,
       });
     }
   }, [okrData, form, currentYear, currentPeriod]);
@@ -121,7 +135,8 @@ export function AddOkrDialog({
     if (dataToSend.type === 'objective') {
       dataToSend.parentId = null;
     } else {
-      delete dataToSend.pillar; // Remove pillar for key results
+      delete dataToSend.pillar;
+      delete dataToSend.linkedDepartmentOkrId;
     }
     
     const { id, ...okrData } = dataToSend;
@@ -136,7 +151,6 @@ export function AddOkrDialog({
   };
   
   const type = form.watch('type');
-  const parentId = form.watch('parentId');
 
   const handleAddYear = () => {
     const newYearString = prompt('Enter the year to add:');
@@ -258,6 +272,35 @@ export function AddOkrDialog({
                 </FormItem>
               )}
             />
+            
+            {isTeamObjective && type === 'objective' && (
+              <FormField
+                control={form.control}
+                name="linkedDepartmentOkrId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department OKR Link (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value ?? ''}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Link to a department objective" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="null">None</SelectItem>
+                        {departmentObjectives.map(obj => (
+                          <SelectItem key={obj.id} value={obj.id}>
+                            {obj.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
 
             {type === 'keyResult' && (
                 <>

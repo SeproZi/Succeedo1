@@ -43,11 +43,34 @@ export const getTimelineDefaults = (data: AppData) => {
 }
 
 // Exported for testability
-export const calculateProgress = (okrId: string, allItems: OkrItem[]): number => {
-    const children = allItems.filter(okr => okr.parentId === okrId);
-    if (children.length === 0) return 0;
-    const totalProgress = children.reduce((sum, child) => sum + child.progress, 0);
-    return Math.round(totalProgress / children.length);
+export const calculateProgress = (
+    objectiveId: string, 
+    allItems: OkrItem[], 
+    allStoreOkrs: OkrItem[]
+): number => {
+    const directKeyResults = allItems.filter(okr => okr.parentId === objectiveId);
+    
+    const linkedTeamObjectives = allStoreOkrs.filter(okr => okr.linkedDepartmentOkrId === objectiveId);
+    
+    const allProgressSources = [
+        ...directKeyResults,
+        ...linkedTeamObjectives
+    ];
+
+    if (allProgressSources.length === 0) return 0;
+    
+    const totalProgress = allProgressSources.reduce((sum, item) => {
+        // If it's a linked team objective, we need its calculated progress
+        if (item.type === 'objective') {
+            const teamKRs = allStoreOkrs.filter(kr => kr.parentId === item.id);
+            if (teamKRs.length === 0) return sum;
+            return sum + (teamKRs.reduce((s, kr) => s + kr.progress, 0) / teamKRs.length);
+        }
+        // Otherwise, it's a direct key result
+        return sum + item.progress;
+    }, 0);
+
+    return Math.round(totalProgress / allProgressSources.length);
 };
 
 interface OkrState {
@@ -300,7 +323,7 @@ const useOkrStore = create<OkrState>((set, get) => ({
         const filteredOkrs = selectFilteredOkrs();
 
         const okrsWithProgress = filteredOkrs.map(okr => 
-            okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, filteredOkrs) } : okr
+            okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, filteredOkrs, get().data.okrs) } : okr
         );
 
         const departmentProgress = departments.map(dept => {
@@ -322,11 +345,11 @@ const useOkrStore = create<OkrState>((set, get) => ({
         return { overallProgress, departmentProgress };
     },
     selectDashboardData: (owner: OkrOwner) => {
-        const { selectFilteredOkrs } = get();
-        const okrs = selectFilteredOkrs().filter(okr => getOwnerKey(okr.owner) === getOwnerKey(owner));
+        const { selectFilteredOkrs, data } = get();
+        const okrsForOwner = selectFilteredOkrs().filter(okr => getOwnerKey(okr.owner) === getOwnerKey(owner));
         
-        const okrsWithCalculatedProgress = okrs.map(okr => 
-            okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, okrs) } : okr
+        const okrsWithCalculatedProgress = okrsForOwner.map(okr => 
+            okr.type === 'objective' ? { ...okr, progress: calculateProgress(okr.id, okrsForOwner, data.okrs) } : okr
         );
 
         const objectives = okrsWithCalculatedProgress.filter(okr => okr.type === 'objective');
