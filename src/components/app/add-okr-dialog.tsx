@@ -87,37 +87,7 @@ export function AddOkrDialog({
     )
   );
 
-  const departmentObjectivesByPillar = useMemo(() => {
-    if (owner.type !== 'team') return {};
-    
-    // Fetch all department-level objectives for the current timeline.
-    const departmentObjectives = data.okrs.filter(okr =>
-        okr.type === 'objective' &&
-        okr.owner.type === 'department' &&
-        okr.year === currentYear &&
-        okr.period === currentPeriod
-    ).sort((a, b) => a.title.localeCompare(b.title));
-
-    // Group them by pillar.
-    return departmentObjectives.reduce((acc, okr) => {
-        const pillar = okr.pillar || 'Other';
-        if (!acc[pillar]) {
-            acc[pillar] = [];
-        }
-        acc[pillar].push(okr);
-        return acc;
-    }, {} as Record<OkrPillar | 'Other', OkrItem[]>);
-  }, [data.okrs, owner.type, currentYear, currentPeriod]);
-
-  const sortedPillars: OkrPillar[] = useMemo(() => {
-    const desiredOrder: OkrPillar[] = ['People', 'Product', 'Tech'];
-    return Object.keys(departmentObjectivesByPillar)
-        .filter(pillar => desiredOrder.includes(pillar as OkrPillar))
-        .sort((a, b) => desiredOrder.indexOf(a as OkrPillar) - desiredOrder.indexOf(b as OkrPillar)) as OkrPillar[];
-  }, [departmentObjectivesByPillar]);
-
-
-  const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       id: (isEditing && okrData.id) || '',
@@ -132,6 +102,40 @@ export function AddOkrDialog({
       linkedDepartmentOkrId: (isEditing && okrData.linkedDepartmentOkrId) || null,
     },
   });
+
+  const formYear = form.watch('year');
+  const formPeriod = form.watch('period');
+
+  const departmentObjectivesByPillar = useMemo(() => {
+    if (owner.type !== 'team') return {};
+    
+    // Fetch all department-level objectives for the selected timeline in the form.
+    const departmentObjectives = data.okrs.filter(okr =>
+        okr.type === 'objective' &&
+        okr.owner.type === 'department' &&
+        okr.year === formYear &&
+        okr.period === formPeriod
+    ).sort((a, b) => a.title.localeCompare(b.title));
+
+    // Group them by pillar.
+    return departmentObjectives.reduce((acc, okr) => {
+        const pillar = okr.pillar || 'Other';
+        if (!acc[pillar]) {
+            acc[pillar] = [];
+        }
+        acc[pillar].push(okr);
+        return acc;
+    }, {} as Record<OkrPillar | 'Other', OkrItem[]>);
+  }, [data.okrs, owner.type, formYear, formPeriod]);
+
+  const sortedPillars: OkrPillar[] = useMemo(() => {
+    const desiredOrder: OkrPillar[] = ['People', 'Product', 'Tech'];
+    const availablePillars = Object.keys(departmentObjectivesByPillar) as OkrPillar[];
+    return desiredOrder.filter(p => availablePillars.includes(p));
+  }, [departmentObjectivesByPillar]);
+
+
+
 
   useEffect(() => {
     if (okrData) {
@@ -312,7 +316,7 @@ export function AddOkrDialog({
                         {sortedPillars.map(pillar => (
                             <SelectGroup key={pillar}>
                                 <SelectLabel>{pillar}</SelectLabel>
-                                {departmentObjectivesByPillar[pillar]?.map(obj => (
+                                {departmentObjectivesByPillar[pillar as keyof typeof departmentObjectivesByPillar]?.map(obj => (
                                     <SelectItem key={obj.id} value={obj.id}>
                                         {obj.title}
                                     </SelectItem>
