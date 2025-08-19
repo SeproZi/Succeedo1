@@ -192,7 +192,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
             <PillarProgress overall={overallProgress} pillarProgress={pillarProgress} />
         </div>
 
-        <div className="mb-12">
+        <div className="mb-8">
             <OkrGrid 
                 objectives={topLevelOkrs.filter(okr => okr.type === 'objective')}
                 allOkrs={allStoreOkrs}

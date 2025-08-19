@@ -39,8 +39,8 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
       {pillars.map(pillar => (
         <div key={pillar} className="space-y-4">
-          <div className="bg-card/50 border border-border rounded-lg shadow-sm p-3">
-            <h3 className="text-center text-base font-bold tracking-wider uppercase text-primary/80">
+          <div className="bg-card/50 border border-border rounded-lg shadow-sm p-2">
+            <h3 className="text-center text-sm font-bold tracking-wider uppercase text-primary/80">
               {pillar}
             </h3>
           </div>
