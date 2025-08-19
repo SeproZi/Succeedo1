@@ -9,14 +9,14 @@ import { AddOkrDialog } from '@/components/app/add-okr-dialog';
 import type { OkrItem, OkrOwner, TimelinePeriod, OkrPillar } from '@/lib/types';
 import useOkrStore from '@/hooks/use-okr-store';
 import { Button } from '@/components/ui/button';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus, Sparkles, ChevronDown } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Separator } from '../ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { SidebarTrigger } from '../ui/sidebar';
 import { Skeleton } from '../ui/skeleton';
 import { ConfirmationDialog } from './confirmation-dialog';
-import { AiSuggestionsDialog } from './ai-suggestions-dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 
 type OkrDashboardProps = {
@@ -188,11 +188,11 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
             </div>
         </div>
 
-        <div className="mb-8">
+        <div className="mb-4">
             <PillarProgress overall={overallProgress} pillarProgress={pillarProgress} />
         </div>
 
-        <div className="mb-8">
+        <div className="mb-4">
             <OkrGrid 
                 objectives={topLevelOkrs.filter(okr => okr.type === 'objective')}
                 allOkrs={allStoreOkrs}
@@ -202,8 +202,8 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
             />
         </div>
 
-        <div className="space-y-6">
-            <h2 className="text-3xl font-bold font-headline text-primary mb-6">
+        <div className="space-y-4">
+            <h2 className="text-3xl font-bold font-headline text-primary mb-4">
                 Objectives Details
             </h2>
             {topLevelOkrs.length > 0 ? (
@@ -212,29 +212,34 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
                     if (pillarOkrs.length === 0) return null;
                     
                     return (
-                        <div key={pillar} className="space-y-4">
+                        <Collapsible key={pillar} defaultOpen={true} className="space-y-4">
                             <div className="border-b-2 border-primary/10 pb-2">
-                                <h3 className="text-lg font-semibold font-headline text-primary/80">{pillar}</h3>
+                                <CollapsibleTrigger className="flex w-full items-center justify-between group">
+                                    <h3 className="text-lg font-semibold font-headline text-primary/80">{pillar}</h3>
+                                    <ChevronDown className="h-5 w-5 text-primary/80 transition-transform group-data-[state=closed]:-rotate-90" />
+                                </CollapsibleTrigger>
                             </div>
-                            {pillarOkrs.map(okr => (
-                                <div 
-                                    key={okr.id} 
-                                    ref={el => okrCardRefs.current[okr.id] = el} 
-                                    className={cn(
-                                        "scroll-mt-24",
-                                        highlightedOkrId === okr.id && 'animate-pulse-once'
-                                    )}
-                                >
-                                    <OkrCard
-                                        okr={okr}
-                                        allOkrs={okrsForOwner}
-                                        allStoreOkrs={allStoreOkrs}
-                                        level={0}
-                                        onAddOrUpdate={(data) => setEditingOkr({ ...data, owner })}
-                                    />
-                                </div>
-                            ))}
-                        </div>
+                            <CollapsibleContent className="space-y-4 data-[state=closed]:animate-none data-[state=open]:animate-none">
+                                {pillarOkrs.map(okr => (
+                                    <div 
+                                        key={okr.id} 
+                                        ref={el => okrCardRefs.current[okr.id] = el} 
+                                        className={cn(
+                                            "scroll-mt-24",
+                                            highlightedOkrId === okr.id && 'animate-pulse-once'
+                                        )}
+                                    >
+                                        <OkrCard
+                                            okr={okr}
+                                            allOkrs={okrsForOwner}
+                                            allStoreOkrs={allStoreOkrs}
+                                            level={0}
+                                            onAddOrUpdate={(data) => setEditingOkr({ ...data, owner })}
+                                        />
+                                    </div>
+                                ))}
+                            </CollapsibleContent>
+                        </Collapsible>
                     );
                 })
             ) : (
