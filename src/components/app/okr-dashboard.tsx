@@ -199,6 +199,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
         <div className="mb-12">
             <OkrGrid 
                 objectives={topLevelOkrs.filter(okr => okr.type === 'objective')}
+                allOkrs={allStoreOkrs}
                 onGridItemClick={handleGridItemClick}
                 onEdit={(okr) => setEditingOkr({ ...okr, owner })}
                 onDelete={(id) => handleDeleteClick(topLevelOkrs.find(o => o.id === id)!)}

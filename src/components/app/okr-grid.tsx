@@ -4,18 +4,25 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { OkrItem, OkrPillar, OkrPriority } from '@/lib/types';
-import { Target, MoreVertical, Sparkles, Trash2 } from 'lucide-react';
+import { Target, MoreVertical, Sparkles, Trash2, Link2, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import useOkrStore from '@/hooks/use-okr-store';
+import Link from 'next/link';
 
 type OkrGridProps = {
   objectives: OkrItem[];
+  allOkrs: OkrItem[];
   onGridItemClick: (id: string) => void;
   onEdit: (okr: OkrItem) => void;
   onDelete: (id: string) => void;
@@ -24,7 +31,7 @@ type OkrGridProps = {
 
 const pillars: OkrPillar[] = ['People', 'Product', 'Tech'];
 
-export function OkrGrid({ objectives, onGridItemClick, onEdit, onDelete, onSuggest }: OkrGridProps) {
+export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete, onSuggest }: OkrGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
       {pillars.map(pillar => (
@@ -40,6 +47,7 @@ export function OkrGrid({ objectives, onGridItemClick, onEdit, onDelete, onSugge
               <GridItem 
                 key={obj.id} 
                 item={obj} 
+                allOkrs={allOkrs}
                 onClick={onGridItemClick} 
                 onEdit={onEdit}
                 onDelete={onDelete}
@@ -60,18 +68,27 @@ const priorityStyles: Record<OkrPriority, string> = {
 
 function GridItem({ 
   item, 
+  allOkrs,
   onClick,
   onEdit,
   onDelete,
   onSuggest,
 }: { 
   item: OkrItem; 
+  allOkrs: OkrItem[];
   onClick: (id: string) => void;
   onEdit: (okr: OkrItem) => void;
   onDelete: (id: string) => void;
   onSuggest: (okr: OkrItem) => void;
 }) {
   const Icon = Target;
+  const { data } = useOkrStore();
+  
+  const getTeamName = (teamId: string) => {
+    return data.teams.find(t => t.id === teamId)?.title || 'Team';
+  }
+
+  const linkedChildren = allOkrs.filter(okr => okr.linkedDepartmentOkrId === item.id);
 
   return (
     <Card
@@ -111,6 +128,34 @@ function GridItem({
                     <Sparkles className="mr-2 h-4 w-4" />
                     Suggest KRs
                 </DropdownMenuItem>
+                
+                {linkedChildren.length > 0 && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <Link2 className="mr-2 h-4 w-4" />
+                                Linked OKRs ({linkedChildren.length})
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                {linkedChildren.map(child => {
+                                    if (child.owner.type !== 'team') return null;
+                                    const teamName = getTeamName(child.owner.id);
+                                    return (
+                                        <DropdownMenuItem key={child.id} asChild>
+                                            <Link href={`/department/${child.owner.departmentId}/team/${child.owner.id}`}>
+                                                <Users className="mr-2 h-4 w-4" />
+                                                {teamName}
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    )
+                                })}
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                    </>
+                )}
+
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onDelete(item.id)} className="text-destructive">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete
