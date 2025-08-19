@@ -36,7 +36,7 @@ import type { OkrItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Slider } from '@/components/ui/slider';
-import useOkrStore from '@/hooks/use-okr-store';
+import useOkrStore, { calculateProgress } from '@/hooks/use-okr-store';
 import { AiSuggestionsDialog } from './ai-suggestions-dialog';
 import { suggestKeyResultsAction } from '@/lib/actions';
 import Link from 'next/link';
@@ -261,6 +261,7 @@ export function OkrCard({
                        {displayedLinkedChildren.map(child => {
                          if (child.owner.type !== 'team') return null;
                          const teamName = getTeamName(child.owner.id);
+                         const progress = calculateProgress(child.id, allStoreOkrs);
                          return (
                             <Link key={child.id} href={`/department/${child.owner.departmentId}/team/${child.owner.id}`} className="block px-2">
                                 <Card className='p-2 hover:bg-secondary'>
@@ -271,9 +272,9 @@ export function OkrCard({
                                             <span className='text-xs text-muted-foreground'>{child.title}</span>
                                         </div>
                                         <div className="w-20 flex items-center gap-2">
-                                            <Progress value={child.progress} className="h-1.5 flex-1" />
+                                            <Progress value={progress} className="h-1.5 flex-1" />
                                             <span className="font-semibold text-primary w-8 text-right text-xs">
-                                                {child.progress}%
+                                                {progress}%
                                             </span>
                                         </div>
                                     </div>
