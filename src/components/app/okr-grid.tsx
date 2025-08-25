@@ -83,7 +83,7 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
             </h3>
           </div>
           {col.objectives.map(obj => (
-            <Collapsible key={obj.id} open={expandedItemId === obj.id} onOpenChange={(isOpen) => setExpandedItemId(isOpen ? obj.id : null)}>
+            <Collapsible key={obj.id} id={`grid-item-${obj.id}`} open={expandedItemId === obj.id} onOpenChange={(isOpen) => setExpandedItemId(isOpen ? obj.id : null)}>
               <GridItem 
                 item={obj} 
                 allOkrs={allOkrs}

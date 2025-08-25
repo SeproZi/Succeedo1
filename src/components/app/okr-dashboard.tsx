@@ -67,6 +67,21 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     }
   };
 
+  const handleCardClick = (id: string) => {
+    const targetId = `grid-item-${id}`;
+    const targetElement = document.getElementById(targetId);
+    if (targetElement) {
+        targetElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+        });
+        targetElement.classList.add('animate-pulse-once');
+        setTimeout(() => {
+            targetElement.classList.remove('animate-pulse-once');
+        }, 1000);
+    }
+  }
+
   useEffect(() => {
     const highlightId = searchParams.get('highlight');
     setHighlightedOkrId(highlightId);
@@ -235,6 +250,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
                                             allStoreOkrs={allStoreOkrs}
                                             level={0}
                                             onAddOrUpdate={(data) => setEditingOkr({ ...data, owner })}
+                                            onCardClick={handleCardClick}
                                         />
                                     </div>
                                 ))}

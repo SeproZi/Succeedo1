@@ -47,6 +47,7 @@ type OkrCardProps = {
   allStoreOkrs: OkrItem[];
   level: number;
   onAddOrUpdate: (data: Partial<OkrItem> | { parentId: string | null }) => void;
+  onCardClick?: (id: string) => void;
 };
 
 const KEY_RESULT_DISPLAY_LIMIT = 2;
@@ -57,6 +58,7 @@ export function OkrCard({
   allStoreOkrs,
   level,
   onAddOrUpdate,
+  onCardClick,
 }: OkrCardProps) {
   const { deleteOkr, updateOkrNotes, updateOkrProgress, addOkr, data } = useOkrStore();
   const isObjective = okr.type === 'objective';
@@ -120,7 +122,10 @@ export function OkrCard({
   return (
     <>
     <div style={{ marginLeft: level > 0 ? `${level * 0.5}rem` : '0' }}>
-      <Card className="overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <Card 
+        className="overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+        onClick={isObjective && onCardClick ? () => onCardClick(okr.id) : undefined}
+      >
         <CardHeader className="flex flex-row items-center justify-between p-2 bg-transparent">
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
             {icon}
