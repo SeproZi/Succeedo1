@@ -124,12 +124,16 @@ export function OkrCard({
     <div style={{ marginLeft: level > 0 ? `${level * 0.5}rem` : '0' }}>
       <Card 
         className={cn(
-            "overflow-hidden shadow-sm transition-all duration-300",
-            onCardClick && isObjective && "cursor-pointer hover:shadow-lg hover:-translate-y-1"
+            "overflow-hidden shadow-sm transition-all duration-300"
         )}
-        onClick={isObjective && onCardClick ? () => onCardClick(okr.id) : undefined}
       >
-        <CardHeader className="flex flex-row items-center justify-between p-2 bg-transparent">
+        <CardHeader 
+          className={cn(
+            "flex flex-row items-center justify-between p-2 bg-transparent",
+            onCardClick && isObjective && "cursor-pointer hover:bg-secondary/50"
+          )}
+          onClick={isObjective && onCardClick ? () => onCardClick(okr.id) : undefined}
+        >
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
             {icon}
             <span className="font-semibold text-sm truncate text-card-foreground">
