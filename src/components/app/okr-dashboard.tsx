@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -191,7 +192,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
             <PillarProgress overall={overallProgress} pillarProgress={pillarProgress} />
         </div>
 
-        <div className="mb-4">
+        <div id="okr-grid-container" className="mb-4">
             <OkrGrid 
                 objectives={topLevelOkrs.filter(okr => okr.type === 'objective')}
                 allOkrs={allStoreOkrs}

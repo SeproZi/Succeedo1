@@ -15,7 +15,7 @@ import {
     SidebarMenuSkeleton,
 } from '@/components/ui/sidebar';
 import useOkrStore from '@/hooks/use-okr-store';
-import { Building, Users, ChevronsRight, Plus, MoreHorizontal, LogOut, LayoutGrid } from 'lucide-react';
+import { Building, Users, ChevronsRight, Plus, MoreHorizontal, LogOut, LayoutGrid, ArrowUp } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter, usePathname } from 'next/navigation';
 import {
@@ -165,6 +165,13 @@ export function AppSidebar() {
         setDeleteTeamOpen(false);
         setItemToDelete(null);
     };
+    
+    const handleScrollToTop = () => {
+        const grid = document.getElementById('okr-grid-container');
+        if (grid) {
+            grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
 
     return (
         <>
@@ -271,6 +278,10 @@ export function AppSidebar() {
                 <Button variant="ghost" className="w-full justify-start" onClick={() => setAddDepartmentOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     {state === 'expanded' && <span>Add Department</span>}
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" onClick={handleScrollToTop}>
+                    <ArrowUp className="mr-2 h-4 w-4" />
+                    {state === 'expanded' && <span>Scroll to Top</span>}
                 </Button>
                 <SidebarSeparator />
                 <Button variant="ghost" className="w-full justify-start" onClick={logout}>
