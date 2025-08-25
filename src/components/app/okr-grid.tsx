@@ -229,11 +229,13 @@ function LinkedOkrList({ objectiveId, allOkrs }: { objectiveId: string, allOkrs:
                 return (
                     <Link key={child.id} href={`/department/${child.owner.departmentId}/team/${child.owner.id}?highlight=${child.id}`} className="block">
                         <Card className='p-2 hover:bg-secondary transition-colors'>
-                            <div className="flex items-center justify-between">
-                                <div className='flex items-center gap-2'>
-                                    <Users className='h-3 w-3 text-muted-foreground' />
-                                    <span className='text-xs font-semibold'>{teamName}: </span>
-                                    <span className='text-xs text-muted-foreground truncate' title={child.title}>{child.title}</span>
+                            <div className="flex items-start justify-between gap-4">
+                                <div className='flex-1 flex items-start gap-2 min-w-0'>
+                                    <Users className='h-3 w-3 text-muted-foreground mt-0.5' />
+                                    <div className="flex-1 min-w-0">
+                                      <span className='text-xs font-semibold'>{teamName}: </span>
+                                      <span className='text-xs text-muted-foreground' title={child.title}>{child.title}</span>
+                                    </div>
                                 </div>
                                 <div className="w-20 flex-shrink-0 flex items-center gap-2">
                                     <Progress value={progress} className="h-1.5 flex-1" />
