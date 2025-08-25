@@ -123,7 +123,10 @@ export function OkrCard({
     <>
     <div style={{ marginLeft: level > 0 ? `${level * 0.5}rem` : '0' }}>
       <Card 
-        className="overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+        className={cn(
+            "overflow-hidden shadow-sm transition-all duration-300",
+            onCardClick && isObjective && "cursor-pointer hover:shadow-lg hover:-translate-y-1"
+        )}
         onClick={isObjective && onCardClick ? () => onCardClick(okr.id) : undefined}
       >
         <CardHeader className="flex flex-row items-center justify-between p-2 bg-transparent">
@@ -283,17 +286,18 @@ export function OkrCard({
                          return (
                             <Link key={child.id} href={`/department/${child.owner.departmentId}/team/${child.owner.id}?highlight=${child.id}`} className="block px-2">
                                 <Card className='p-2 hover:bg-secondary'>
-                                    <div className="flex items-center justify-between">
-                                        <div className='flex items-center gap-2'>
-                                            <Users className='h-3 w-3 text-muted-foreground' />
-                                            <span className='text-xs font-semibold'>{teamName}: </span>
-                                            <span className='text-xs text-muted-foreground'>{child.title}</span>
-                                        </div>
-                                        <div className="w-20 flex items-center gap-2">
-                                            <Progress value={progress} className="h-1.5 flex-1" />
-                                            <span className="font-semibold text-primary w-8 text-right text-xs">
+                                    <div className="flex items-start gap-2">
+                                        <div className="flex-shrink-0 w-8 flex flex-col items-center gap-1">
+                                            <Users className='h-3.5 w-3.5 text-muted-foreground' />
+                                            <span className="font-semibold text-primary text-xs">
                                                 {progress}%
                                             </span>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className='text-xs text-muted-foreground leading-snug'>
+                                              <span className='font-semibold'>{teamName.charAt(0)}: </span>
+                                              {child.title}
+                                            </p>
                                         </div>
                                     </div>
                                 </Card>
