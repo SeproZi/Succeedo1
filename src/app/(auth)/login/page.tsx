@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/components/app/auth-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
@@ -111,23 +110,16 @@ export default function AuthPage() {
           <CardTitle className="text-2xl font-headline">Succeedo</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin" className='col-span-2'>Sign In</TabsTrigger>
-            </TabsList>
-            <div className="pt-4">
-              {error && (
-                  <Alert variant="destructive" className="mb-4">
-                      <Terminal className="h-4 w-4" />
-                      <AlertTitle>Authentication Error</AlertTitle>
-                      <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-              )}
-            </div>
-            <TabsContent value="signin">
-                <LoginForm />
-            </TabsContent>
-          </Tabs>
+          <div className="pt-4">
+            {error && (
+                <Alert variant="destructive" className="mb-4">
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>Authentication Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+          </div>
+          <LoginForm />
         </CardContent>
       </Card>
     </div>
