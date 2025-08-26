@@ -109,7 +109,6 @@ export default function AuthPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Succeedo</CardTitle>
-          <CardDescription>Sign in or create a new account.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
