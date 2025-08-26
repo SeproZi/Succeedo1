@@ -92,73 +92,6 @@ function LoginForm() {
   );
 }
 
-function SignUpForm() {
-    const { signUpWithEmailPassword, loading, error } = useAuth();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [passwordsMatch, setPasswordsMatch] = useState(true);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (password !== confirmPassword) {
-            setPasswordsMatch(false);
-            return;
-        }
-        setPasswordsMatch(true);
-        await signUpWithEmailPassword(email, password);
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-                <Label htmlFor="email-signup">Email Address</Label>
-                <Input
-                    id="email-signup"
-                    type="email"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={loading}
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="password-signup">Password</Label>
-                <Input
-                    id="password-signup"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="confirm-password-signup">Confirm Password</Label>
-                <Input
-                    id="confirm-password-signup"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                />
-            </div>
-            {!passwordsMatch && (
-                <p className="text-sm text-destructive">Passwords do not match.</p>
-            )}
-            <Button
-                type="submit"
-                className="w-full"
-                disabled={loading}
-            >
-                {loading ? 'Creating account...' : 'Create Account'}
-            </Button>
-        </form>
-    );
-}
-
 
 export default function AuthPage() {
   const { authorizedUser, loading, error } = useAuth();
@@ -181,8 +114,7 @@ export default function AuthPage() {
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin" className='col-span-2'>Sign In</TabsTrigger>
             </TabsList>
             <div className="pt-4">
               {error && (
@@ -195,9 +127,6 @@ export default function AuthPage() {
             </div>
             <TabsContent value="signin">
                 <LoginForm />
-            </TabsContent>
-            <TabsContent value="signup">
-                <SignUpForm />
             </TabsContent>
           </Tabs>
         </CardContent>

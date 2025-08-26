@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Users collection can be read by anyone to check for authorization
     match /users/{userId} {
-      allow read: if true;
+      allow read: if request.auth != null && request.auth.uid == userId;
       allow write: if false;
     }
 

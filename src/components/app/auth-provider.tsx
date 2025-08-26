@@ -5,7 +5,6 @@ import { createContext, useContext, ReactNode, useState, useEffect } from 'react
 import useOkrStore from '@/hooks/use-okr-store';
 import { User, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { checkUser } from '@/ai/flows/check-user';
 
 interface AuthContextType {
   authorizedUser: User | null; 
