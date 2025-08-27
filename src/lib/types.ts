@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 export type OkrPillar = 'People' | 'Product' | 'Tech';
@@ -29,6 +28,7 @@ export type OkrItem = BaseItem & {
   progress: number;
   parentId: string | null;
   owner: OkrOwner;
+  order: number;
   notes?: string;
   pillar?: OkrPillar;
   priority?: OkrPriority;
@@ -63,5 +63,3 @@ export const CheckUserOutputSchema = z.object({
     authorized: z.boolean().describe('Whether the user is authorized.'),
 });
 export type CheckUserOutput = z.infer<typeof CheckUserOutputSchema>;
-
-    

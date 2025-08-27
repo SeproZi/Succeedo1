@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -63,7 +62,7 @@ const formSchema = z.object({
 type AddOkrDialogProps = {
   isOpen: boolean;
   setOpen: (isOpen: boolean) => void;
-  okrData: Partial<OkrItem> | { parentId: string | null, owner: OkrOwner };
+  okrData: Partial<Omit<OkrItem, 'order'>> | { parentId: string | null, owner: OkrOwner };
   owner: OkrOwner;
 };
 

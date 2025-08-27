@@ -1,10 +1,9 @@
-
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { OkrItem, OkrOwner, OkrPillar, OkrPriority } from '@/lib/types';
-import { Target, MoreVertical, Sparkles, Trash2, Link2, Users, ChevronRight, Building } from 'lucide-react';
+import { Target, MoreVertical, Sparkles, Trash2, Link2, Users, ChevronRight, Building, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -23,6 +22,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { DragDropContext, Droppable, Draggable, OnDragEndResponder } from '@hello-pangea/dnd';
 
 type OkrGridProps = {
   objectives: OkrItem[];
@@ -54,7 +54,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete, owner, pillarDescriptions }: OkrGridProps) {
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
-  const { updatePillarDescription } = useOkrStore();
+  const { updatePillarDescription, reorderOkrs } = useOkrStore();
   const [localDescriptions, setLocalDescriptions] = useState(pillarDescriptions || {});
   const debouncedDescriptions = useDebounce(localDescriptions, 500);
   const { toast } = useToast();
@@ -64,7 +64,6 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
   }, [pillarDescriptions]);
 
   useEffect(() => {
-    // This effect runs when the debouncedDescriptions change
     const saveChanges = async () => {
       for (const pillar in debouncedDescriptions) {
           if (debouncedDescriptions[pillar as OkrPillar] !== pillarDescriptions?.[pillar as OkrPillar]) {
@@ -79,20 +78,44 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
   const handleDescriptionChange = useCallback((pillar: OkrPillar, value: string) => {
     setLocalDescriptions(prev => ({ ...prev, [pillar]: value }));
   }, []);
-
-  const gridColumns = useMemo(() => {
-    const objectivesByPillar: Record<OkrPillar, OkrItem[]> = {
-      People: [],
-      Product: [],
-      Tech: [],
-    };
-
+  
+  const objectivesByPillar = useMemo(() => {
+    const grouped: Record<OkrPillar, OkrItem[]> = { People: [], Product: [], Tech: [] };
     objectives.forEach(obj => {
-      if (obj.pillar) {
-        objectivesByPillar[obj.pillar].push(obj);
-      }
+        if(obj.pillar) {
+            grouped[obj.pillar].push(obj);
+        }
     });
+    // Sort objectives within each pillar by their 'order' property
+    for(const pillar in grouped) {
+        grouped[pillar as OkrPillar].sort((a, b) => a.order - b.order);
+    }
+    return grouped;
+  }, [objectives]);
 
+  const onDragEnd: OnDragEndResponder = (result) => {
+    const { source, destination, draggableId } = result;
+
+    if (!destination) {
+      return;
+    }
+
+    const sourcePillar = source.droppableId.split('-')[0] as OkrPillar;
+    const destPillar = destination.droppableId.split('-')[0] as OkrPillar;
+    
+    if (sourcePillar !== destPillar) {
+        return; // Prevent dragging between different pillars
+    }
+
+    const pillarObjectives = Array.from(objectivesByPillar[sourcePillar]);
+    const [movedObjective] = pillarObjectives.splice(source.index, 1);
+    pillarObjectives.splice(destination.index, 0, movedObjective);
+    
+    const orderedIds = pillarObjectives.map(obj => obj.id);
+    reorderOkrs(sourcePillar, orderedIds);
+  };
+  
+  const gridColumns = useMemo(() => {
     const columns: { pillar: OkrPillar; objectives: OkrItem[] }[] = [];
     const pillarOrder: OkrPillar[] = ['People', 'Product', 'Tech'];
 
@@ -106,57 +129,73 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
           });
         }
       } else {
-        // Add a column for the pillar even if it has no objectives, so the description box can be shown
         columns.push({ pillar, objectives: [] });
       }
     });
 
-    // Filter out columns that have no objectives AND no description
     return columns.filter(c => c.objectives.length > 0 || (localDescriptions[c.pillar] && localDescriptions[c.pillar]?.trim() !== ''));
 
-  }, [objectives, localDescriptions]);
+  }, [objectivesByPillar, localDescriptions]);
   
   const totalColumns = gridColumns.length > 3 ? gridColumns.length : 3;
 
   return (
-    <div 
-      className="grid gap-6 items-start"
-      style={{ gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))` }}
-    >
-      {gridColumns.map((col, index) => (
-        <div key={`${col.pillar}-${index}`} className="space-y-4">
-          <div className="bg-card/50 border border-border rounded-lg shadow-sm p-2">
-            <h3 className="text-center text-sm font-bold tracking-wider uppercase text-primary/80">
-              {col.pillar}
-            </h3>
-          </div>
-          <Textarea
-              placeholder="add text here"
-              value={localDescriptions[col.pillar] || ''}
-              onChange={(e) => handleDescriptionChange(col.pillar, e.target.value)}
-              className="text-sm min-h-[60px]"
-          />
-          {col.objectives.map(obj => (
-            <Collapsible key={obj.id} id={`grid-item-${obj.id}`} open={expandedItemId === obj.id} onOpenChange={(isOpen) => setExpandedItemId(isOpen ? obj.id : null)}>
-              <GridItem 
-                item={obj} 
-                allOkrs={allOkrs}
-                onClick={onGridItemClick} 
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-              <CollapsibleContent>
-                <LinkedOkrList objectiveId={obj.id} allOkrs={allOkrs} />
-              </CollapsibleContent>
-            </Collapsible>
+    <DragDropContext onDragEnd={onDragEnd}>
+        <div 
+          className="grid gap-6 items-start"
+          style={{ gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))` }}
+        >
+          {gridColumns.map((col, index) => (
+            <div key={`${col.pillar}-${index}`} className="space-y-4">
+                <div className="bg-card/50 border border-border rounded-lg shadow-sm p-2">
+                    <h3 className="text-center text-sm font-bold tracking-wider uppercase text-primary/80">
+                      {col.pillar}
+                    </h3>
+                </div>
+                <Textarea
+                    placeholder="add text here"
+                    value={localDescriptions[col.pillar] || ''}
+                    onChange={(e) => handleDescriptionChange(col.pillar, e.target.value)}
+                    className="text-sm min-h-[60px]"
+                />
+                <Droppable droppableId={`${col.pillar}-${index}`}>
+                    {(provided) => (
+                        <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                           {col.objectives.map((obj, objIndex) => (
+                              <Draggable key={obj.id} draggableId={obj.id} index={obj.order}>
+                                {(provided) => (
+                                    <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                    >
+                                        <Collapsible key={obj.id} id={`grid-item-${obj.id}`} open={expandedItemId === obj.id} onOpenChange={(isOpen) => setExpandedItemId(isOpen ? obj.id : null)}>
+                                          <GridItem 
+                                            item={obj} 
+                                            allOkrs={allOkrs}
+                                            onClick={onGridItemClick} 
+                                            onEdit={onEdit}
+                                            onDelete={onDelete}
+                                          />
+                                          <CollapsibleContent>
+                                            <LinkedOkrList objectiveId={obj.id} allOkrs={allOkrs} />
+                                          </CollapsibleContent>
+                                        </Collapsible>
+                                    </div>
+                                )}
+                              </Draggable>
+                           ))}
+                           {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+            </div>
+          ))}
+           {Array.from({ length: Math.max(0, 3 - gridColumns.length) }).map((_, index) => (
+            <div key={`placeholder-${index}`} />
           ))}
         </div>
-      ))}
-       {/* Render empty placeholder columns if there are fewer than 3 */}
-      {Array.from({ length: Math.max(0, 3 - gridColumns.length) }).map((_, index) => (
-        <div key={`placeholder-${index}`} />
-      ))}
-    </div>
+    </DragDropContext>
   );
 }
 
@@ -262,6 +301,9 @@ function GridItem({
             </DropdownMenuContent>
         </DropdownMenu>
        </div>
+       <div className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-full p-1 opacity-0 group-hover/grid-item:opacity-50 transition-opacity cursor-grab">
+          <GripVertical className="h-5 w-5 text-muted-foreground" />
+       </div>
     </Card>
     </>
   );
@@ -304,7 +346,3 @@ function LinkedOkrList({ objectiveId, allOkrs }: { objectiveId: string, allOkrs:
         </div>
     );
 }
-
-    
-
-    

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { create } from 'zustand';
@@ -97,12 +96,13 @@ interface OkrState {
   addTeam: (title: string, departmentId: string) => Promise<void>;
   updateTeam: (id: string, title: string) => Promise<void>;
   deleteTeam: (id: string) => Promise<void>;
-  addOkr: (okr: Omit<OkrItem, 'id' | 'progress'>) => Promise<void>;
+  addOkr: (okr: Omit<OkrItem, 'id' | 'progress' | 'order'>) => Promise<void>;
   updateOkr: (id: string, updates: Partial<Omit<OkrItem, 'id'>>) => Promise<void>;
   deleteOkr: (id: string) => Promise<void>;
   updateOkrProgress: (id: string, progress: number) => Promise<void>;
   updateOkrNotes: (id: string, notes: string) => Promise<void>;
   updatePillarDescription: (owner: OkrOwner, pillar: OkrPillar, description: string) => Promise<void>;
+  reorderOkrs: (pillar: OkrPillar, orderedIds: string[]) => Promise<void>;
   // Selectors
   selectFilteredOkrs: () => OkrItem[];
   selectCompanyOverview: () => { overallProgress: number, departmentProgress: Array<Department & { progress: number }> };
@@ -253,8 +253,25 @@ const useOkrStore = create<OkrState>((set, get) => ({
         }
     },
     addOkr: async (okr) => {
+        const { data, currentYear, currentPeriod } = get();
+
+        // Calculate the next order number for the new objective
+        let nextOrder = 0;
+        if (okr.type === 'objective') {
+            const objectivesInPillar = data.okrs.filter(o => 
+                o.type === 'objective' &&
+                getOwnerKey(o.owner) === getOwnerKey(okr.owner) &&
+                o.pillar === okr.pillar &&
+                o.year === currentYear &&
+                o.period === currentPeriod
+            );
+            nextOrder = objectivesInPillar.length > 0 
+                ? Math.max(...objectivesInPillar.map(o => o.order || 0)) + 1
+                : 0;
+        }
+
         try {
-            const newOkrData = { ...okr, progress: 0 };
+            const newOkrData = { ...okr, progress: 0, order: nextOrder };
             const docRef = await addDoc(collection(db, 'okrs'), newOkrData);
             const finalOkr = { ...newOkrData, id: docRef.id } as OkrItem;
 
@@ -352,6 +369,29 @@ const useOkrStore = create<OkrState>((set, get) => ({
             console.error("Error updating pillar description:", error);
         }
     },
+    reorderOkrs: async (pillar, orderedIds) => {
+        const batch = writeBatch(db);
+        const newOkrs = get().data.okrs.map(okr => {
+            const newIndex = orderedIds.indexOf(okr.id);
+            if (okr.pillar === pillar && newIndex !== -1) {
+                if (okr.order !== newIndex) {
+                    const okrRef = doc(db, 'okrs', okr.id);
+                    batch.update(okrRef, { order: newIndex });
+                }
+                return { ...okr, order: newIndex };
+            }
+            return okr;
+        });
+
+        try {
+            await batch.commit();
+            set(state => ({
+                data: { ...state.data, okrs: newOkrs }
+            }));
+        } catch (error) {
+            console.error('Error reordering OKRs in Firestore:', error);
+        }
+    },
     // Selectors
     selectFilteredOkrs: () => {
         const { data, currentYear, currentPeriod } = get();
@@ -427,5 +467,3 @@ const useOkrStore = create<OkrState>((set, get) => ({
 }));
 
 export default useOkrStore;
-
-    
