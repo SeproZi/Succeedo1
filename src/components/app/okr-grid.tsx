@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -94,7 +95,7 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
   }, [objectives]);
 
   const onDragEnd: OnDragEndResponder = (result) => {
-    const { source, destination, draggableId } = result;
+    const { source, destination } = result;
 
     if (!destination) {
       return;
@@ -129,13 +130,16 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
           });
         }
       } else {
-        columns.push({ pillar, objectives: [] });
+        // Only render a column for a pillar if it has a description, even if it has no objectives.
+        if (pillarDescriptions?.[pillar] && pillarDescriptions[pillar]?.trim() !== '') {
+            columns.push({ pillar, objectives: [] });
+        }
       }
     });
 
-    return columns.filter(c => c.objectives.length > 0 || (localDescriptions[c.pillar] && localDescriptions[c.pillar]?.trim() !== ''));
+    return columns;
 
-  }, [objectivesByPillar, localDescriptions]);
+  }, [objectivesByPillar, pillarDescriptions]);
   
   const totalColumns = gridColumns.length > 3 ? gridColumns.length : 3;
 
@@ -156,7 +160,7 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
                     placeholder="add text here"
                     value={localDescriptions[col.pillar] || ''}
                     onChange={(e) => handleDescriptionChange(col.pillar, e.target.value)}
-                    className="text-sm min-h-[60px] text-center"
+                    className="text-base font-bold min-h-[60px] text-center"
                 />
                 <Droppable droppableId={`${col.pillar}-${index}`}>
                     {(provided) => (
