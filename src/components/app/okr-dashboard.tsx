@@ -24,6 +24,25 @@ type OkrDashboardProps = {
     title: string;
 };
 
+function PriorityLegend() {
+    return (
+        <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground mb-4">
+             <div className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-purple-700/20 border border-purple-700/30"></span>
+                <span>Critical</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-cyan-500/20 border border-cyan-500/30"></span>
+                <span>High</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-card border border-border"></span>
+                <span>Normal</span>
+            </div>
+        </div>
+    )
+}
+
 export function OkrDashboard({ owner, title }: OkrDashboardProps) {
   const { 
     loading,
@@ -212,6 +231,8 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
         <div className="mb-4">
             <PillarProgress overall={overallProgress} pillarProgress={pillarProgress} />
         </div>
+        
+        <PriorityLegend />
 
         <div id="okr-grid-container" className="mb-4">
             <OkrGrid 
