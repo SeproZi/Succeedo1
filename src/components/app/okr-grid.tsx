@@ -156,7 +156,7 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
                     placeholder="add text here"
                     value={localDescriptions[col.pillar] || ''}
                     onChange={(e) => handleDescriptionChange(col.pillar, e.target.value)}
-                    className="text-sm min-h-[60px]"
+                    className="text-sm min-h-[60px] text-center"
                 />
                 <Droppable droppableId={`${col.pillar}-${index}`}>
                     {(provided) => (
