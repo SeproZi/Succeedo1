@@ -88,7 +88,7 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
     });
     // Sort objectives within each pillar by their 'order' property
     for(const pillar in grouped) {
-        grouped[pillar as OkrPillar].sort((a, b) => a.order - b.order);
+        grouped[pillar as OkrPillar].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }
     return grouped;
   }, [objectives]);
@@ -162,7 +162,7 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
                     {(provided) => (
                         <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
                            {col.objectives.map((obj, objIndex) => (
-                              <Draggable key={obj.id} draggableId={obj.id} index={obj.order}>
+                              <Draggable key={obj.id} draggableId={obj.id} index={obj.order ?? objIndex}>
                                 {(provided) => (
                                     <div
                                         ref={provided.innerRef}
