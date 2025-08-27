@@ -10,10 +10,13 @@ export interface BaseItem {
     title: string;
 }
 
-export interface Department extends BaseItem {}
+export interface Department extends BaseItem {
+    pillarDescriptions?: Partial<Record<OkrPillar, string>>;
+}
 
 export interface Team extends BaseItem {
     departmentId: string;
+    pillarDescriptions?: Partial<Record<OkrPillar, string>>;
 }
 
 export type OkrOwner = 

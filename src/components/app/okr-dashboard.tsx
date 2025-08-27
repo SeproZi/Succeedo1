@@ -36,6 +36,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     selectDashboardData,
     deleteOkr,
     addOkr,
+    data
   } = useOkrStore();
   
   const { toast } = useToast();
@@ -160,6 +161,11 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     )
   }
 
+  const ownerEntity = owner.type === 'department'
+    ? data.departments.find(d => d.id === owner.id)
+    : data.teams.find(t => t.id === owner.id);
+
+
   return (
     <>
       <div className="p-4 sm:p-6 lg:p-8 space-y-8">
@@ -214,6 +220,8 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
                 onGridItemClick={handleGridItemClick}
                 onEdit={(okr) => setEditingOkr({ ...okr, owner })}
                 onDelete={(id) => handleDeleteClick(topLevelOkrs.find(o => o.id === id)!)}
+                owner={owner}
+                pillarDescriptions={ownerEntity?.pillarDescriptions}
             />
         </div>
 

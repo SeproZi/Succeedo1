@@ -102,6 +102,7 @@ interface OkrState {
   deleteOkr: (id: string) => Promise<void>;
   updateOkrProgress: (id: string, progress: number) => Promise<void>;
   updateOkrNotes: (id: string, notes: string) => Promise<void>;
+  updatePillarDescription: (owner: OkrOwner, pillar: OkrPillar, description: string) => Promise<void>;
   // Selectors
   selectFilteredOkrs: () => OkrItem[];
   selectCompanyOverview: () => { overallProgress: number, departmentProgress: Array<Department & { progress: number }> };
@@ -317,6 +318,38 @@ const useOkrStore = create<OkrState>((set, get) => ({
             }));
         } catch (error) {
             console.error("Error updating OKR notes: ", error);
+        }
+    },
+    updatePillarDescription: async (owner, pillar, description) => {
+        if (owner.type === 'company') return;
+        try {
+            const collectionName = owner.type === 'department' ? 'departments' : 'teams';
+            const docRef = doc(db, collectionName, owner.id);
+            const fieldPath = `pillarDescriptions.${pillar}`;
+            await updateDoc(docRef, { [fieldPath]: description });
+
+            set(state => {
+                const newData = { ...state.data };
+                if (owner.type === 'department') {
+                    newData.departments = newData.departments.map(d => {
+                        if (d.id === owner.id) {
+                            return { ...d, pillarDescriptions: { ...d.pillarDescriptions, [pillar]: description } };
+                        }
+                        return d;
+                    });
+                } else if (owner.type === 'team') {
+                    newData.teams = newData.teams.map(t => {
+                        if (t.id === owner.id) {
+                            return { ...t, pillarDescriptions: { ...t.pillarDescriptions, [pillar]: description } };
+                        }
+                        return t;
+                    });
+                }
+                return { data: newData };
+            });
+
+        } catch (error) {
+            console.error("Error updating pillar description:", error);
         }
     },
     // Selectors

@@ -3,7 +3,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { OkrItem, OkrPillar, OkrPriority } from '@/lib/types';
+import { OkrItem, OkrOwner, OkrPillar, OkrPriority } from '@/lib/types';
 import { Target, MoreVertical, Sparkles, Trash2, Link2, Users, ChevronRight, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -19,8 +19,10 @@ import {
 import { Button } from '@/components/ui/button';
 import useOkrStore, { calculateProgress } from '@/hooks/use-okr-store';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { Textarea } from '../ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 type OkrGridProps = {
   objectives: OkrItem[];
@@ -28,12 +30,55 @@ type OkrGridProps = {
   onGridItemClick: (id: string) => void;
   onEdit: (okr: OkrItem) => void;
   onDelete: (id: string) => void;
+  owner: OkrOwner;
+  pillarDescriptions?: Partial<Record<OkrPillar, string>>;
 };
 
 const MAX_ITEMS_PER_COLUMN = 5;
 
-export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete }: OkrGridProps) {
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete, owner, pillarDescriptions }: OkrGridProps) {
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const { updatePillarDescription } = useOkrStore();
+  const [localDescriptions, setLocalDescriptions] = useState(pillarDescriptions || {});
+  const debouncedDescriptions = useDebounce(localDescriptions, 500);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    setLocalDescriptions(pillarDescriptions || {});
+  }, [pillarDescriptions]);
+
+  useEffect(() => {
+    // This effect runs when the debouncedDescriptions change
+    const saveChanges = async () => {
+      for (const pillar in debouncedDescriptions) {
+          if (debouncedDescriptions[pillar as OkrPillar] !== pillarDescriptions?.[pillar as OkrPillar]) {
+              await updatePillarDescription(owner, pillar as OkrPillar, debouncedDescriptions[pillar as OkrPillar] || '');
+              toast({ title: "Description Saved", description: `${pillar} description has been updated.` });
+          }
+      }
+    };
+    saveChanges();
+  }, [debouncedDescriptions, owner, pillarDescriptions, updatePillarDescription, toast]);
+
+  const handleDescriptionChange = useCallback((pillar: OkrPillar, value: string) => {
+    setLocalDescriptions(prev => ({ ...prev, [pillar]: value }));
+  }, []);
 
   const gridColumns = useMemo(() => {
     const objectivesByPillar: Record<OkrPillar, OkrItem[]> = {
@@ -49,8 +94,6 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
     });
 
     const columns: { pillar: OkrPillar; objectives: OkrItem[] }[] = [];
-
-    // Ensure we process in the desired order
     const pillarOrder: OkrPillar[] = ['People', 'Product', 'Tech'];
 
     pillarOrder.forEach(pillar => {
@@ -62,11 +105,16 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
             objectives: pillarObjectives.slice(i, i + MAX_ITEMS_PER_COLUMN),
           });
         }
+      } else {
+        // Add a column for the pillar even if it has no objectives, so the description box can be shown
+        columns.push({ pillar, objectives: [] });
       }
     });
 
-    return columns;
-  }, [objectives]);
+    // Filter out columns that have no objectives AND no description
+    return columns.filter(c => c.objectives.length > 0 || (localDescriptions[c.pillar] && localDescriptions[c.pillar]?.trim() !== ''));
+
+  }, [objectives, localDescriptions]);
   
   const totalColumns = gridColumns.length > 3 ? gridColumns.length : 3;
 
@@ -82,6 +130,12 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
               {col.pillar}
             </h3>
           </div>
+          <Textarea
+              placeholder="add text here"
+              value={localDescriptions[col.pillar] || ''}
+              onChange={(e) => handleDescriptionChange(col.pillar, e.target.value)}
+              className="text-sm min-h-[60px]"
+          />
           {col.objectives.map(obj => (
             <Collapsible key={obj.id} id={`grid-item-${obj.id}`} open={expandedItemId === obj.id} onOpenChange={(isOpen) => setExpandedItemId(isOpen ? obj.id : null)}>
               <GridItem 
