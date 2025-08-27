@@ -161,8 +161,8 @@ export function OkrGrid({ objectives, allOkrs, onGridItemClick, onEdit, onDelete
 }
 
 const priorityStyles: Record<OkrPriority, string> = {
-  P1: 'bg-red-500/10 border-red-500/20',
-  P2: 'bg-amber-500/10 border-amber-500/20',
+  P1: 'bg-purple-500/10 border-purple-500/20',
+  P2: 'bg-cyan-500/10 border-cyan-500/20',
   P3: 'bg-card border-border',
 };
 
@@ -304,5 +304,7 @@ function LinkedOkrList({ objectiveId, allOkrs }: { objectiveId: string, allOkrs:
         </div>
     );
 }
+
+    
 
     
