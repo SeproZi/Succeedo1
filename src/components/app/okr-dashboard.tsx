@@ -26,7 +26,7 @@ type OkrDashboardProps = {
 
 function PriorityLegend() {
     return (
-        <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground mb-4">
+        <div className="flex justify-start items-center gap-4 text-xs text-muted-foreground">
              <div className="flex items-center gap-1.5">
                 <span className="h-3 w-3 rounded-full bg-purple-700/20 border border-purple-700/30"></span>
                 <span>Critical</span>
@@ -187,7 +187,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
 
   return (
     <>
-      <div className="p-4 sm:p-6 lg:p-8 space-y-8">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
                 <SidebarTrigger className="md:hidden"/>
@@ -228,13 +228,13 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
             </div>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-0">
             <PillarProgress overall={overallProgress} pillarProgress={pillarProgress} />
         </div>
         
         <PriorityLegend />
 
-        <div id="okr-grid-container" className="mb-4">
+        <div id="okr-grid-container">
             <OkrGrid 
                 objectives={topLevelOkrs.filter(okr => okr.type === 'objective')}
                 allOkrs={allStoreOkrs}
