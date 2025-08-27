@@ -232,7 +232,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
             <PillarProgress overall={overallProgress} pillarProgress={pillarProgress} />
         </div>
         
-        <div className="mt-2 mb-4">
+        <div className="mt-2 mb-2">
             <PriorityLegend />
         </div>
 
