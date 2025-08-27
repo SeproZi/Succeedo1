@@ -187,7 +187,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
 
   return (
     <>
-      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
                 <SidebarTrigger className="md:hidden"/>
@@ -228,11 +228,11 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
             </div>
         </div>
 
-        <div>
+        <div className="mt-6">
             <PillarProgress overall={overallProgress} pillarProgress={pillarProgress} />
         </div>
         
-        <div className="mb-2 mt-2">
+        <div className="mt-2 mb-4">
             <PriorityLegend />
         </div>
 
@@ -248,7 +248,7 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
             />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 mt-6">
             <h2 className="text-3xl font-bold font-headline text-primary mb-4">
                 Objectives Details
             </h2>
@@ -313,5 +313,3 @@ export function OkrDashboard({ owner, title }: OkrDashboardProps) {
     </>
   );
 }
-
-    
